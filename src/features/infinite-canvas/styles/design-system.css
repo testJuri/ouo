@@ -9,18 +9,18 @@
    ============================================ */
 :root {
   /* Primary Colors */
-  --ic-primary: #3755c3;
-  --ic-primary-dim: #2848b7;
-  --ic-primary-container: #dde1ff;
-  --ic-on-primary: #f8f7ff;
-  --ic-on-primary-container: #2747b6;
+  --ic-primary: hsl(var(--primary));
+  --ic-primary-dim: #d73b00;
+  --ic-primary-container: hsl(var(--primary-fixed));
+  --ic-on-primary: hsl(var(--primary-foreground));
+  --ic-on-primary-container: hsl(var(--on-primary-fixed));
   
   /* Secondary Colors */
-  --ic-secondary: #526075;
-  --ic-secondary-dim: #465469;
-  --ic-secondary-container: #d5e3fd;
-  --ic-on-secondary: #f8f8ff;
-  --ic-on-secondary-container: #455367;
+  --ic-secondary: hsl(var(--secondary));
+  --ic-secondary-dim: hsl(var(--secondary));
+  --ic-secondary-container: hsl(var(--surface-container-high));
+  --ic-on-secondary: hsl(var(--secondary-foreground));
+  --ic-on-secondary-container: hsl(var(--on-secondary-fixed-variant));
   
   /* Tertiary Colors */
   --ic-tertiary: #625b77;
@@ -30,24 +30,24 @@
   --ic-on-tertiary-container: #4f4964;
   
   /* Surface Colors */
-  --ic-surface: #faf8ff;
-  --ic-surface-dim: #cdd9ff;
-  --ic-surface-bright: #faf8ff;
-  --ic-surface-variant: #d9e2ff;
-  --ic-surface-tint: #3755c3;
+  --ic-surface: hsl(var(--surface));
+  --ic-surface-dim: hsl(var(--surface-container));
+  --ic-surface-bright: hsl(var(--surface));
+  --ic-surface-variant: hsl(var(--surface-container-high));
+  --ic-surface-tint: hsl(var(--primary));
   
   /* Surface Container Colors */
-  --ic-surface-container: #eaedff;
-  --ic-surface-container-low: #f2f3ff;
-  --ic-surface-container-lowest: #ffffff;
-  --ic-surface-container-high: #e2e7ff;
-  --ic-surface-container-highest: #d9e2ff;
+  --ic-surface-container: hsl(var(--surface-container));
+  --ic-surface-container-low: hsl(var(--surface-container-low));
+  --ic-surface-container-lowest: hsl(var(--surface-container-lowest));
+  --ic-surface-container-high: hsl(var(--surface-container-high));
+  --ic-surface-container-highest: hsl(var(--surface-container-highest));
   
   /* Background & On Colors */
-  --ic-background: #faf8ff;
-  --ic-on-background: #113069;
-  --ic-on-surface: #113069;
-  --ic-on-surface-variant: #445d99;
+  --ic-background: hsl(var(--surface));
+  --ic-on-background: hsl(var(--on-surface));
+  --ic-on-surface: hsl(var(--on-surface));
+  --ic-on-surface-variant: hsl(var(--on-surface-variant));
   
   /* Error Colors */
   --ic-error: #9f403d;
@@ -57,8 +57,8 @@
   --ic-on-error-container: #752121;
   
   /* Outline */
-  --ic-outline: #6079b7;
-  --ic-outline-variant: #98b1f2;
+  --ic-outline: hsl(var(--secondary));
+  --ic-outline-variant: hsl(var(--outline-variant));
   
   /* Inverse Colors */
   --ic-inverse-surface: #060e20;
@@ -83,7 +83,7 @@
   --ic-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --ic-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --ic-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --ic-shadow-primary: 0 10px 25px -5px rgba(55, 85, 195, 0.4);
+  --ic-shadow-primary: 0 10px 25px -5px rgba(172, 46, 0, 0.28);
   
   /* Layout */
   --ic-header-height: 4rem;

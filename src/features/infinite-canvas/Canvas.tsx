@@ -450,13 +450,13 @@ const CanvasInner: React.FC = () => {
   }, []);
 
   const nodeTypeOptions = [
-    { type: 'text', name: '文本节点', icon: <FileTextOutlined />, color: '#3b82f6' },
-    { type: 'imageConfig', name: '文生图配置', icon: <BgColorsOutlined />, color: '#10b981' },
-    { type: 'videoConfig', name: '视频生成配置', icon: <VideoCameraOutlined />, color: '#8b5cf6' },
-    { type: 'effectConfig', name: '效果配置', icon: <BgColorsOutlined />, color: '#ec4899' },
-    { type: 'templateEffect', name: '视频特效', icon: <BgColorsOutlined />, color: '#7c3aed' },
-    { type: 'image', name: '图片节点', icon: <PictureOutlined />, color: '#06b6d4' },
-    { type: 'video', name: '视频节点', icon: <VideoCameraOutlined />, color: '#f59e0b' },
+    { type: 'text', name: '文本节点', icon: <FileTextOutlined />, color: '#ac2e00' },
+    { type: 'imageConfig', name: '文生图配置', icon: <BgColorsOutlined />, color: '#c2410c' },
+    { type: 'videoConfig', name: '视频生成配置', icon: <VideoCameraOutlined />, color: '#9a3412' },
+    { type: 'effectConfig', name: '效果配置', icon: <BgColorsOutlined />, color: '#d97706' },
+    { type: 'templateEffect', name: '视频特效', icon: <BgColorsOutlined />, color: '#b45309' },
+    { type: 'image', name: '图片节点', icon: <PictureOutlined />, color: '#ea580c' },
+    { type: 'video', name: '视频节点', icon: <VideoCameraOutlined />, color: '#b45309' },
   ];
 
   // 导出工作流
@@ -554,23 +554,28 @@ const CanvasInner: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#131313] text-[#e5e2e1]">
-      {/* Header - Dark theme style */}
-      <header className="h-16 flex items-center justify-between px-6 bg-[#131313]/80 backdrop-blur-xl border-b border-[#474747]/30 z-50">
+    <div className="h-screen w-screen flex flex-col bg-[hsl(var(--surface))] text-[hsl(var(--on-surface))]">
+      <header className="h-16 flex items-center justify-between px-6 bg-[hsl(var(--surface))]/95 backdrop-blur-md border-b border-[hsl(var(--outline-variant))]/20 z-50">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(`/project/${projectId}/episode/${episodeId}`)}
-            className="w-8 h-8 flex items-center justify-center hover:bg-[#353534] rounded transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
             <ArrowLeftOutlined style={{ fontSize: 16 }} />
           </button>
           <div className="relative">
             <button 
               onClick={() => setShowProjectMenu(!showProjectMenu)}
-              className="flex items-center gap-2 hover:bg-[#353534] px-3 py-1.5 rounded transition-colors"
+              className="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-[hsl(var(--surface-container-low))] transition-colors"
             >
-              <span className="text-sm font-bold tracking-tight">{projectName}</span>
-              <DownOutlined style={{ fontSize: 12 }} />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl signature-gradient text-white shadow-sm">
+                <PictureOutlined style={{ fontSize: 16 }} />
+              </div>
+              <div className="text-left leading-tight">
+                <div className="text-[11px] uppercase tracking-[0.22em] text-[hsl(var(--secondary))]">创作画布</div>
+                <span className="text-sm font-bold tracking-tight text-[hsl(var(--on-surface))]">{projectName}</span>
+              </div>
+              <DownOutlined style={{ fontSize: 12, color: 'hsl(var(--secondary))' }} />
             </button>
             {showProjectMenu && (
               <>
@@ -578,17 +583,17 @@ const CanvasInner: React.FC = () => {
                   className="fixed inset-0 z-40" 
                   onClick={() => setShowProjectMenu(false)}
                 />
-                <div className="absolute left-0 top-full mt-1 bg-[#1c1b1b] rounded-lg border border-[#474747]/30 shadow-xl p-1 z-50 min-w-[160px]">
+                <div className="absolute left-0 top-full mt-2 min-w-[180px] rounded-2xl border border-[hsl(var(--outline-variant))]/50 bg-[hsl(var(--surface-container-lowest))]/95 p-1.5 shadow-xl shadow-black/5 backdrop-blur-md z-50">
                   <button
                     onClick={handleExportWorkflow}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-[#353534] transition-colors text-left text-sm"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-colors text-left text-sm"
                   >
                     <DownloadOutlined style={{ fontSize: 14 }} />
                     <span>导出工作流</span>
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-[#353534] transition-colors text-left text-sm"
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-colors text-left text-sm"
                   >
                     <UploadOutlined style={{ fontSize: 14 }} />
                     <span>导入工作流</span>
@@ -600,13 +605,13 @@ const CanvasInner: React.FC = () => {
         </div>
         
         {/* Center Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
-          <button className="text-xs uppercase tracking-widest text-white font-bold border-b-2 border-white pb-1">
+        <nav className="hidden md:flex items-center gap-3 rounded-2xl bg-[hsl(var(--surface-container-low))] p-1">
+          <button className="rounded-xl bg-[hsl(var(--surface-container-highest))] px-4 py-2 text-xs font-bold tracking-[0.24em] text-[hsl(var(--on-surface))] shadow-sm">
             画布
           </button>
           <button 
             onClick={() => navigate(`/project/${projectId}/episode/${episodeId}`)}
-            className="text-xs uppercase tracking-widest text-[#c6c6c6] hover:text-white transition-colors"
+            className="px-3 py-2 text-xs tracking-[0.2em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
             返回片段
           </button>
@@ -615,7 +620,7 @@ const CanvasInner: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleTheme}
-            className="w-9 h-9 flex items-center justify-center hover:bg-[#353534] rounded transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
             title={isDark ? '切换到亮色主题' : '切换到深色主题'}
           >
             {isDark ? <SunOutlined style={{ fontSize: 18 }} /> : <MoonOutlined style={{ fontSize: 18 }} />}
@@ -623,13 +628,15 @@ const CanvasInner: React.FC = () => {
           {allowApiKeyConfig && (
             <button
               onClick={() => setShowApiSettings(true)}
-              className="w-9 h-9 flex items-center justify-center hover:bg-[#353534] rounded transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="API 设置"
             >
               <SettingOutlined style={{ fontSize: 18 }} />
             </button>
           )}
-          <div className="w-8 h-8 rounded-full bg-[#c6c6c6] ml-2"></div>
+          <div className="ml-2 hidden h-10 items-center rounded-full bg-[hsl(var(--primary-fixed))] px-4 text-xs font-semibold text-[hsl(var(--on-primary-fixed))] md:flex">
+            片段工作区
+          </div>
         </div>
       </header>
 
@@ -642,14 +649,14 @@ const CanvasInner: React.FC = () => {
         style={{ display: 'none' }}
       />
 
-      {/* Main Canvas Area - Dark canvas grid background */}
       <RadialMenu onSelect={handleRadialMenuSelect} shouldOpen={shouldOpenRadialMenu}>
         <div 
           className="flex-1 relative overflow-hidden h-full cursor-grab"
           style={{
-            backgroundImage: 'radial-gradient(circle, #474747 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(circle at top right, rgba(172, 46, 0, 0.08), transparent 28%), radial-gradient(circle at left 20%, rgba(215, 59, 0, 0.06), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,244,240,0.94))',
+            backgroundBlendMode: 'normal',
             backgroundSize: '40px 40px',
-            backgroundColor: '#131313'
+            backgroundColor: 'hsl(var(--surface))'
           }}
         >
         <ReactFlow
@@ -681,27 +688,26 @@ const CanvasInner: React.FC = () => {
           <MiniMap position="bottom-right" pannable zoomable />
         </ReactFlow>
 
-        {/* Left Toolbar - Dark theme */}
-        <aside className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-1 p-2 bg-[#1c1b1b] rounded-lg border border-[#474747]/30 shadow-xl z-10">
+        <aside className="absolute left-4 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1 rounded-[20px] border border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))]/90 p-2 shadow-xl shadow-black/5 backdrop-blur-md">
           <button
             onClick={() => setShowNodeMenu(!showNodeMenu)}
-            className="w-10 h-10 flex items-center justify-center rounded bg-white text-black hover:bg-[#c6c6c6] transition-all shadow-lg"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl signature-gradient text-white transition-all shadow-md hover:opacity-90"
             title="添加节点"
           >
             <PlusOutlined style={{ fontSize: 20 }} />
           </button>
           <button
             onClick={() => setShowWorkflowPanel(true)}
-            className="w-10 h-10 flex items-center justify-center rounded hover:bg-[#353534] transition-colors text-[#c6c6c6]"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
             title="工作流模板"
           >
             <AppstoreOutlined style={{ fontSize: 20 }} />
           </button>
-          <div className="w-full h-px bg-[#474747]/50 my-1" />
+          <div className="my-1 h-px w-full bg-[hsl(var(--outline-variant))]/40" />
           <button
             onClick={undo}
             disabled={!canUndo()}
-            className="w-10 h-10 flex items-center justify-center rounded hover:bg-[#353534] transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-[#c6c6c6]"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="撤销"
           >
             <UndoOutlined style={{ fontSize: 20 }} />
@@ -709,57 +715,55 @@ const CanvasInner: React.FC = () => {
           <button
             onClick={redo}
             disabled={!canRedo()}
-            className="w-10 h-10 flex items-center justify-center rounded hover:bg-[#353534] transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-[#c6c6c6]"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             title="重做"
           >
             <RedoOutlined style={{ fontSize: 20 }} />
           </button>
         </aside>
 
-        {/* Node Menu Popup - Dark theme */}
         {showNodeMenu && (
-          <div className="absolute left-20 top-1/2 -translate-y-1/2 bg-[#1c1b1b] rounded-lg border border-[#474747]/30 shadow-xl p-2 z-20">
+          <div className="absolute left-20 top-1/2 z-20 -translate-y-1/2 rounded-[24px] border border-[hsl(var(--outline-variant))]/50 bg-[hsl(var(--surface-container-lowest))]/95 p-2 shadow-xl shadow-black/5 backdrop-blur-md">
             {nodeTypeOptions.map((nodeType) => (
               <button
                 key={nodeType.type}
                 onClick={() => handleAddNode(nodeType.type)}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-[#353534] transition-colors text-left"
+                className="w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-[hsl(var(--surface-container-low))]"
               >
                 <span style={{ color: nodeType.color, fontSize: 20 }}>{nodeType.icon}</span>
-                <span className="text-sm text-[#e5e2e1]">{nodeType.name}</span>
+                <span className="text-sm text-[hsl(var(--on-surface))]">{nodeType.name}</span>
               </button>
             ))}
           </div>
         )}
 
-        {/* Bottom Controls - Dark theme */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-[#1c1b1b]/90 backdrop-blur-md rounded-lg border border-[#474747]/30 p-1 shadow-xl">
+        <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-[20px] border border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))]/90 p-1.5 shadow-xl shadow-black/5 backdrop-blur-md">
           <button
             onClick={() => fitView({ padding: 0.2 })}
-            className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+            className="rounded-xl p-2.5 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
             title="适应视图"
           >
             <AimOutlined style={{ fontSize: 16 }} />
           </button>
-          <div className="w-px h-5 bg-[#474747]/50" />
+          <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
           <div className="flex items-center gap-1 px-2">
-            <button onClick={() => zoomOut()} className="p-1 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]">
+            <button onClick={() => zoomOut()} className="rounded-lg p-1.5 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors">
               <MinusOutlined style={{ fontSize: 14 }} />
             </button>
-            <span className="text-xs min-w-[40px] text-center text-[#c6c6c6]">
+            <span className="min-w-[48px] text-center text-xs font-medium text-[hsl(var(--secondary))]">
               {Math.round(viewport.zoom * 100)}%
             </span>
-            <button onClick={() => zoomIn()} className="p-1 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]">
+            <button onClick={() => zoomIn()} className="rounded-lg p-1.5 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors">
               <PlusOutlined style={{ fontSize: 14 }} />
             </button>
           </div>
-          <div className="w-px h-5 bg-[#474747]/50" />
+          <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
           <button
             onClick={handleToggleLock}
             className={`p-2 rounded transition-colors ${
               isLocked 
-                ? 'bg-amber-500/20 text-amber-500 hover:bg-amber-500/30' 
-                : 'hover:bg-[#353534] text-[#c6c6c6]'
+                ? 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/20' 
+                : 'text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))]'
             }`}
             title={isLocked ? '解锁画布' : '锁定画布'}
           >
@@ -767,12 +771,12 @@ const CanvasInner: React.FC = () => {
           </button>
           <button
             onClick={handleClearCanvas}
-            className="p-2 hover:bg-red-500/20 hover:text-red-500 rounded transition-colors text-[#c6c6c6]"
+            className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-red-500/10 hover:text-red-600 transition-colors"
             title="清空画布"
           >
             <DeleteOutlined style={{ fontSize: 16 }} />
           </button>
-          <div className="w-px h-5 bg-[#474747]/50" />
+          <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
           <button
             onClick={() => {
               setIsSelectionMode(prev => {
@@ -783,8 +787,8 @@ const CanvasInner: React.FC = () => {
             }}
             className={`p-2 rounded transition-colors ${
               isSelectionMode 
-                ? 'bg-blue-500/20 text-blue-500 hover:bg-blue-500/30' 
-                : 'hover:bg-[#353534] text-[#c6c6c6]'
+                ? 'bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/15' 
+                : 'text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))]'
             }`}
             title={isSelectionMode ? '关闭框选模式' : '开启框选模式'}
           >
@@ -794,56 +798,56 @@ const CanvasInner: React.FC = () => {
 
         {/* 对齐工具栏 - 选中多个节点时显示 */}
         {selectedNodes.length >= 2 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-[#1c1b1b]/90 backdrop-blur-md rounded-lg border border-[#474747]/30 p-1 shadow-xl">
-            <span className="text-xs text-[#c6c6c6] px-2">对齐 ({selectedNodes.length})</span>
-            <div className="w-px h-5 bg-[#474747]/50" />
+          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-[20px] border border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))]/90 p-1.5 shadow-xl shadow-black/5 backdrop-blur-md">
+            <span className="px-2 text-xs font-medium text-[hsl(var(--secondary))]">对齐 ({selectedNodes.length})</span>
+            <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
             <button
               onClick={() => alignNodes('left')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="左对齐"
             >
               <AlignLeftOutlined style={{ fontSize: 16 }} />
             </button>
             <button
               onClick={() => alignNodes('horizontal-center')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="水平居中"
             >
               <AlignCenterOutlined style={{ fontSize: 16 }} />
             </button>
             <button
               onClick={() => alignNodes('right')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="右对齐"
             >
               <AlignRightOutlined style={{ fontSize: 16 }} />
             </button>
-            <div className="w-px h-5 bg-[#474747]/50" />
+            <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
             <button
               onClick={() => alignNodes('top')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="顶部对齐"
             >
               <VerticalAlignTopOutlined style={{ fontSize: 16 }} />
             </button>
             <button
               onClick={() => alignNodes('vertical-center')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="垂直居中"
             >
               <VerticalAlignMiddleOutlined style={{ fontSize: 16 }} />
             </button>
             <button
               onClick={() => alignNodes('bottom')}
-              className="p-2 hover:bg-[#353534] rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
               title="底部对齐"
             >
               <VerticalAlignBottomOutlined style={{ fontSize: 16 }} />
             </button>
-            <div className="w-px h-5 bg-[#474747]/50" />
+            <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
             <button
               onClick={autoAlignNodes}
-              className="p-2 hover:bg-blue-500/20 hover:text-blue-500 rounded transition-colors text-[#c6c6c6]"
+              className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-[hsl(var(--primary))]/10 hover:text-[hsl(var(--primary))] transition-colors"
               title="自动展开（按执行顺序）"
             >
               <SplitCellsOutlined style={{ fontSize: 16 }} />

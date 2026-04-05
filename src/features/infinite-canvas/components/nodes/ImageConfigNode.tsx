@@ -274,22 +274,22 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
       {/* Main node content */}
       <div
         className={`rounded-lg shadow-lg border-2 ${
-          selected ? 'border-white shadow-[0_0_0_1px_rgba(255,255,255,0.8)]' : 'border-[var(--border-color)]'
+          selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } min-w-[320px] transition-colors relative`}
         style={{ backgroundColor: 'var(--bg-primary)' }}
       >
         {/* Handles */}
-        <Handle type="target" position={Position.Left} className="!bg-blue-500" />
-        <Handle type="source" position={Position.Right} className="!bg-blue-500" />
+        <Handle type="target" position={Position.Left} className="!bg-[hsl(var(--primary))]" />
+        <Handle type="source" position={Position.Right} className="!bg-[hsl(var(--primary))]" />
 
         {/* Header */}
         <div
           className={`px-4 py-2 font-semibold rounded-t-md flex items-center justify-between ${
             selected
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+              ? 'text-white'
               : ''
           }`}
-          style={selected ? { backgroundColor: 'var(--bg-secondary)', borderColor: 'rgba(255,255,255,0.8)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
         >
           {isEditingLabel ? (
             <Input
@@ -373,9 +373,9 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                   disabled={!isSupported}
                   className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-lg transition-all border ${
                     isSelected
-                      ? 'bg-white/10 border-white'
+                      ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]'
                       : isSupported
-                        ? 'bg-transparent border-[var(--border-color)] hover:border-blue-300'
+                        ? 'bg-transparent border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
                         : 'bg-transparent border-[var(--border-color)] opacity-30 cursor-not-allowed'
                   }`}
                 >
@@ -384,13 +384,13 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                     style={{ 
                       width: iconSize.w, 
                       height: iconSize.h,
-                      borderColor: isSelected ? '#3b82f6' : 'var(--text-secondary)',
+                      borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
                     }}
                   />
                   <span 
                     className="text-xs"
                     style={{ 
-                      color: isSelected ? '#3b82f6' : 'var(--text-secondary)',
+                      color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
                       fontWeight: isSelected ? 500 : 400,
                     }}
                   >

@@ -304,7 +304,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
       {/* Main node content */}
       <div
         className={`rounded-lg shadow-lg border-2 ${
-          selected ? 'border-white shadow-[0_0_0_1px_rgba(255,255,255,0.8)]' : 'border-[var(--border-color)]'
+          selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } min-w-[320px] transition-colors relative`}
         style={{ backgroundColor: 'var(--bg-primary)' }}
       >
@@ -315,7 +315,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               type="target" 
               position={Position.Left} 
               id="prompt"
-              className="!bg-blue-500"
+              className="!bg-[hsl(var(--primary))]"
               title="提示词"
             />
             <Handle 
@@ -336,18 +336,18 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
             />
           </>
         ) : (
-          <Handle type="target" position={Position.Left} className="!bg-blue-500" />
+          <Handle type="target" position={Position.Left} className="!bg-[hsl(var(--primary))]" />
         )}
-        <Handle type="source" position={Position.Right} className="!bg-blue-500" />
+        <Handle type="source" position={Position.Right} className="!bg-[hsl(var(--primary))]" />
 
         {/* Header */}
         <div
           className={`px-4 py-2 font-semibold rounded-t-md flex items-center justify-between ${
             selected
-              ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white'
+              ? 'text-white'
               : ''
           }`}
-          style={selected ? { backgroundColor: 'var(--bg-secondary)', borderColor: 'rgba(255,255,255,0.8)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
         >
           {isEditingLabel ? (
             <Input
@@ -465,8 +465,8 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                         onClick={() => handleT2vAspectRatioChange(ratio)}
                         className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-lg transition-all border ${
                           isSelected
-                            ? 'bg-blue-500/10 border-blue-500'
-                            : 'bg-transparent border-[var(--border-color)] hover:border-blue-300'
+                            ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]'
+                            : 'bg-transparent border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
                         }`}
                       >
                         <div
@@ -474,13 +474,13 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                           style={{ 
                             width: iconSize.w, 
                             height: iconSize.h,
-                            borderColor: isSelected ? '#3b82f6' : 'var(--text-secondary)',
+                            borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
                           }}
                         />
                         <span 
                           className="text-xs"
                           style={{ 
-                            color: isSelected ? '#3b82f6' : 'var(--text-secondary)',
+                            color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
                             fontWeight: isSelected ? 500 : 400,
                           }}
                         >
@@ -504,9 +504,10 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                     onClick={() => handleResolutionChange(res)}
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                       localResolution === res
-                        ? 'bg-blue-500 text-white border-blue-500'
+                        ? 'text-white border-[hsl(var(--primary))]'
                         : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-white/60'
                     }`}
+                    style={localResolution === res ? { backgroundColor: 'hsl(var(--primary))' } : undefined}
                   >
                     {res}
                   </button>

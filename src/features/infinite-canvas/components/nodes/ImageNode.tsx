@@ -15,19 +15,19 @@ const EffectIcon: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
 
 // 自定义 Loading 动画组件
 const ImageLoadingAnimation: React.FC = () => (
-  <div className="aspect-square flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-lg overflow-hidden relative">
+  <div className="aspect-square flex flex-col items-center justify-center rounded-lg overflow-hidden relative bg-gradient-to-br from-orange-50 to-stone-100">
     {/* Shimmer 效果 */}
     <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
     
     {/* 图标和圆点 */}
     <div className="relative z-10 flex flex-col items-center gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center animate-pulse shadow-lg">
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center animate-pulse shadow-lg signature-gradient">
         <PictureOutlined className="text-white text-xl" />
       </div>
       <div className="flex gap-1.5">
-        <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-        <span className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+        <span className="w-2 h-2 rounded-full animate-bounce bg-orange-300" style={{ animationDelay: '0ms' }} />
+        <span className="w-2 h-2 rounded-full animate-bounce bg-orange-400" style={{ animationDelay: '150ms' }} />
+        <span className="w-2 h-2 rounded-full animate-bounce bg-orange-500" style={{ animationDelay: '300ms' }} />
       </div>
     </div>
   </div>
@@ -157,22 +157,22 @@ const ImageNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected
       {/* Main node content */}
       <div
         className={`image-node rounded-xl border-2 ${
-          selected ? 'border-white shadow-[0_0_0_1px_rgba(255,255,255,0.8)]' : 'border-[var(--border-color)]'
+          selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } shadow-lg w-[280px] transition-all duration-200 relative`}
         style={{ backgroundColor: 'var(--bg-primary)' }}
       >
         {/* Handles */}
-        <Handle type="target" position={Position.Left} className="!bg-blue-500" />
-        <Handle type="source" position={Position.Right} className="!bg-blue-500" />
+        <Handle type="target" position={Position.Left} className="!bg-[hsl(var(--primary))]" />
+        <Handle type="source" position={Position.Right} className="!bg-[hsl(var(--primary))]" />
 
         {/* Header */}
         <div
           className={`flex items-center justify-between px-3 py-2 rounded-t-xl ${
             selected
-              ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white'
+              ? 'text-white'
               : ''
           }`}
-          style={selected ? { backgroundColor: 'var(--bg-secondary)', borderColor: 'rgba(255,255,255,0.8)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
         >
           {isEditingLabel ? (
             <Input
