@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Play } from "lucide-react"
+import { Plus, MoreHorizontal, Play, Check } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useProjectStore } from "@/stores/projectStore"
 
@@ -11,21 +11,22 @@ interface EpisodesTabProps {
   onToggleSelect?: (id: number) => void
 }
 
-export default function EpisodesTab({ 
-  onAddNew, 
-  batchMode: _batchMode = false, 
-  selectedIds: _selectedIds = [], 
-  onToggleSelect: _onToggleSelect 
+export default function EpisodesTab({
+  onAddNew,
+  batchMode = false,
+  selectedIds = [],
+  onToggleSelect,
 }: EpisodesTabProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  batchMode; selectedIds; onToggleSelect;
-  
   const navigate = useNavigate()
   const { id: projectId } = useParams()
   const episodes = useProjectStore((state) => state.assets.episodes)
   const { openDrawer } = useProjectStore()
 
   const handleEpisodeClick = (episodeId: number) => {
+    if (batchMode) {
+      onToggleSelect?.(episodeId)
+      return
+    }
     navigate(`/project/${projectId}/episode/${episodeId}`)
   }
 
@@ -33,13 +34,12 @@ export default function EpisodesTab({
     if (onAddNew) {
       onAddNew()
     } else {
-      openDrawer('episode')
+      openDrawer("episode")
     }
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {/* Add New Episode Card */}
       <div
         onClick={handleAddNew}
         className="aspect-[4/3] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
@@ -51,11 +51,11 @@ export default function EpisodesTab({
         <span className="text-[10px] text-[hsl(var(--secondary))] mt-1 uppercase tracking-tighter">组织故事章节</span>
       </div>
 
-      {/* Episode Cards */}
       {episodes.map((episode) => (
         <div
           key={episode.id}
-          className="group relative bg-[hsl(var(--surface-container-lowest))] rounded-xl overflow-hidden hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 transition-all hover:-translate-y-1"
+          onClick={() => handleEpisodeClick(episode.id)}
+          className={`group relative rounded-xl overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-1 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(episode.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
           <div className="aspect-[4/3] w-full relative overflow-hidden bg-gradient-to-br from-[hsl(var(--surface-container-high))] to-[hsl(var(--surface-container))] flex items-center justify-center">
             <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--primary))]/10 flex items-center justify-center">
@@ -74,7 +74,19 @@ export default function EpisodesTab({
                 {episode.status === "completed" ? "已完成" : episode.status === "in-progress" ? "进行中" : "草稿"}
               </Badge>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+            {batchMode && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleSelect?.(episode.id)
+                }}
+                className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border ${selectedIds.includes(episode.id) ? "border-transparent bg-[hsl(var(--primary))] text-white" : "border-white/60 bg-black/30 text-transparent"}`}
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/60 to-transparent transition-opacity flex items-end p-4 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
               <div className="flex gap-2 w-full">
                 <Button
                   variant="secondary"

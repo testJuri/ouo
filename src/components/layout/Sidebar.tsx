@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useState } from "react"
+import ApiKeySettings from "./ApiKeySettings"
 
 const navItems = [
   { icon: LayoutGrid, label: "仪表盘", href: "/dashboard" },
@@ -35,6 +36,7 @@ const projects = [
 export default function Sidebar() {
   const [currentProject, setCurrentProject] = useState(projects[0])
   const [isSwitching, setIsSwitching] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -135,10 +137,13 @@ export default function Sidebar() {
             <span>返回控制台</span>
           </Button>
         </Link>
-        <a href="#" className="flex items-center gap-4 px-4 py-3 rounded-lg text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))] transition-colors">
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))] transition-colors"
+        >
           <Settings className="w-5 h-5" />
           <span>设置</span>
-        </a>
+        </button>
         <div className="mt-4 flex items-center gap-3 px-4 py-3">
           <Avatar className="w-8 h-8">
             <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="用户" />
@@ -151,6 +156,9 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+
+    {/* API Key Settings Dialog */}
+    <ApiKeySettings open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </>
   )
 }
