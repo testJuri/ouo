@@ -12,7 +12,7 @@ export default function WorkspaceLayout({ header, children }: WorkspaceLayoutPro
       <Sidebar />
       <div className="ml-64 flex h-full flex-col">
         {header}
-        <main className="flex-1 overflow-y-auto px-8 pb-12 pt-6">{children}</main>
+        <main className="flex-1 overflow-y-auto px-8 pb-12 pt-24">{children}</main>
       </div>
     </div>
   )

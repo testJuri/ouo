@@ -12,14 +12,15 @@ import { useProjectStore } from "@/stores/projectStore"
 import type { Character } from "@/types"
 
 interface CharactersTabProps {
+  characters?: Character[]
   onAddNew?: () => void
   batchMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
 }
 
-export default function CharactersTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: CharactersTabProps) {
-  const characters = useProjectStore((state) => state.assets.characters)
+export default function CharactersTab({ characters: charactersProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: CharactersTabProps) {
+  const characters = useProjectStore((state) => charactersProp ?? state.assets.characters)
   const { deleteCharacter, duplicateCharacter, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
 
@@ -54,7 +55,7 @@ export default function CharactersTab({ onAddNew, batchMode = false, selectedIds
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
       {/* Add New Character Card */}
       <div
         onClick={handleAddNew}

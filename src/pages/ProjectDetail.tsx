@@ -268,6 +268,7 @@ export default function ProjectDetail() {
           side="right" 
           className="w-[900px] sm:max-w-[900px] p-0 overflow-hidden bg-[hsl(var(--surface))]"
           style={{ maxWidth: '900px' }}
+          hideCloseButton
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))]">

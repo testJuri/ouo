@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { HelpCircle } from "lucide-react"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 interface EpisodeCreatorProps {
   open: boolean
@@ -21,12 +22,19 @@ interface EpisodeCreatorProps {
 }
 
 export default function EpisodeCreator({ open, onOpenChange, onCreate }: EpisodeCreatorProps) {
+  const { notify } = useFeedback()
   const [folderName, setFolderName] = useState("")
   const [episodeCount, setEpisodeCount] = useState("")
   const [description, setDescription] = useState("")
 
   const handleSubmit = () => {
-    onCreate?.({ folderName, episodeCount, description })
+    // 表单校验
+    if (!folderName.trim()) {
+      notify.warning("请输入片段文件夹名称")
+      return
+    }
+    
+    onCreate?.({ folderName: folderName.trim(), episodeCount, description })
     onOpenChange(false)
     setFolderName("")
     setEpisodeCount("")
@@ -93,7 +101,8 @@ export default function EpisodeCreator({ open, onOpenChange, onCreate }: Episode
         <div className="px-6 pb-6 pt-2">
           <Button
             onClick={handleSubmit}
-            className="w-full h-11 signature-gradient text-white rounded-xl font-bold text-base border-0 hover:opacity-90 transition-opacity"
+            disabled={!folderName.trim()}
+            className="w-full h-11 signature-gradient text-white rounded-xl font-bold text-base border-0 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             创建片段
           </Button>

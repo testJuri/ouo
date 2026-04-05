@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, ChevronLeft } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { useState } from "react"
 import ProjectCreator from "./ProjectCreator"
 import Sidebar from "@/components/layout/Sidebar"
@@ -219,6 +219,27 @@ export default function ProjectsList() {
             ))}
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-16 py-8 border-t border-[hsl(var(--outline-variant))]/15">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+              <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
+              <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
+            </div>
+            <div className="flex gap-6">
+              <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                隐私政策
+              </Link>
+              <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                服务条款
+              </Link>
+              <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                联系我们
+              </Link>
+            </div>
+          </div>
+        </footer>
       </main>
     </div>
   )

@@ -12,6 +12,7 @@ import { useProjectStore } from "@/stores/projectStore"
 import type { ObjectItem, ObjectType } from "@/types"
 
 interface ObjectsTabProps {
+  objects?: ObjectItem[]
   onAddNew?: () => void
   batchMode?: boolean
   selectedIds?: number[]
@@ -27,8 +28,8 @@ const typeColors: Record<ObjectType, string> = {
   "上传": "bg-cyan-500",
 }
 
-export default function ObjectsTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ObjectsTabProps) {
-  const objects = useProjectStore((state) => state.assets.objects)
+export default function ObjectsTab({ objects: objectsProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ObjectsTabProps) {
+  const objects = useProjectStore((state) => objectsProp ?? state.assets.objects)
   const { deleteObject, duplicateObject, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
 

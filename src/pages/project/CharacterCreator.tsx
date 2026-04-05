@@ -210,7 +210,7 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[900px] sm:max-w-[900px] p-0 overflow-hidden bg-[hsl(var(--surface))]" style={{ maxWidth: '900px' }}>
+      <SheetContent side="right" className="w-[900px] sm:max-w-[900px] p-0 overflow-hidden bg-[hsl(var(--surface))]" style={{ maxWidth: '900px' }} hideCloseButton>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))]">
           <div className="flex items-center gap-3">
@@ -338,19 +338,19 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
           </div>
 
           {/* Generation Method */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[96px_minmax(0,1fr)] md:items-center">
+            <label className="text-sm font-medium text-[hsl(var(--on-surface))] md:pt-1">
               <span className="text-red-500 mr-1">*</span>生成方式
             </label>
-            <div className="inline-flex max-w-full rounded-full bg-black p-1">
+            <div className="flex max-w-full flex-wrap gap-2 rounded-2xl border border-[hsl(var(--outline-variant))]/30 bg-[hsl(var(--surface-container-low))] p-1.5">
               {generationMethods.map((method) => (
                 <button
                   key={method.id}
                   onClick={() => handleGenMethodChange(method.id)}
-                  className={`rounded-full px-5 py-2.5 text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`rounded-xl px-4 py-2 text-[13px] font-semibold whitespace-nowrap transition-all ${
                     genMethod === method.id
-                      ? "signature-gradient text-white"
-                      : "text-white/90 hover:bg-white/8"
+                      ? "signature-gradient text-white shadow-sm"
+                      : "text-[hsl(var(--on-surface-variant))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))]"
                   }`}
                 >
                   {method.label}

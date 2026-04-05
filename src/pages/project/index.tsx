@@ -12,7 +12,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronDown, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
+import { Link } from "react-router-dom"
 import Sidebar from "@/components/layout/Sidebar"
 import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -39,6 +46,14 @@ const secondaryTabs: { id: ProjectTab; label: string }[] = [
   { id: "objects", label: "物品管理" },
 ]
 
+const sortOptions = [
+  { id: "recent", label: "最近" },
+  { id: "name-asc", label: "名称 A-Z" },
+  { id: "name-desc", label: "名称 Z-A" },
+] as const
+
+type SortOption = (typeof sortOptions)[number]["id"]
+
 export default function ProjectDetail() {
   const { confirm, notify } = useFeedback()
   // 从 Store 获取状态
@@ -59,6 +74,7 @@ export default function ProjectDetail() {
   } = useProjectStore()
   const [batchMode, setBatchMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [sortBy, setSortBy] = useState<SortOption>("recent")
 
   const assetType = useMemo(() => {
     switch (activeTab) {
@@ -79,6 +95,38 @@ export default function ProjectDetail() {
     setBatchMode(false)
     setSelectedIds([])
   }, [activeTab])
+
+  const sortItemsByName = <T extends { name: string }>(items: T[], direction: "asc" | "desc") => {
+    const multiplier = direction === "asc" ? 1 : -1
+    return [...items].sort((left, right) => multiplier * left.name.localeCompare(right.name, "zh-CN"))
+  }
+
+  const sortedAssets = useMemo(() => {
+    switch (sortBy) {
+      case "name-asc":
+        return {
+          episodes: sortItemsByName(assets.episodes, "asc"),
+          scenes: sortItemsByName(assets.scenes, "asc"),
+          characters: sortItemsByName(assets.characters, "asc"),
+          objects: sortItemsByName(assets.objects, "asc"),
+        }
+      case "name-desc":
+        return {
+          episodes: sortItemsByName(assets.episodes, "desc"),
+          scenes: sortItemsByName(assets.scenes, "desc"),
+          characters: sortItemsByName(assets.characters, "desc"),
+          objects: sortItemsByName(assets.objects, "desc"),
+        }
+      case "recent":
+      default:
+        return {
+          episodes: assets.episodes,
+          scenes: assets.scenes,
+          characters: assets.characters,
+          objects: assets.objects,
+        }
+    }
+  }, [assets.characters, assets.episodes, assets.objects, assets.scenes, sortBy])
 
   const handleToggleSelect = (id: number) => {
     setSelectedIds((current) =>
@@ -118,6 +166,7 @@ export default function ProjectDetail() {
       case "episodes":
         return (
           <EpisodesTab
+            episodes={sortedAssets.episodes}
             onAddNew={() => openDrawer('episode')}
             batchMode={batchMode}
             selectedIds={selectedIds}
@@ -127,6 +176,7 @@ export default function ProjectDetail() {
       case "scenes":
         return (
           <ScenesTab
+            scenes={sortedAssets.scenes}
             onAddNew={() => openDrawer('scene')}
             batchMode={batchMode}
             selectedIds={selectedIds}
@@ -136,6 +186,7 @@ export default function ProjectDetail() {
       case "characters":
         return (
           <CharactersTab
+            characters={sortedAssets.characters}
             onAddNew={() => openDrawer('character')}
             batchMode={batchMode}
             selectedIds={selectedIds}
@@ -145,6 +196,7 @@ export default function ProjectDetail() {
       case "objects":
         return (
           <ObjectsTab
+            objects={sortedAssets.objects}
             onAddNew={() => openDrawer('object')}
             batchMode={batchMode}
             selectedIds={selectedIds}
@@ -200,10 +252,24 @@ export default function ProjectDetail() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-2">
               <span className="text-sm text-[hsl(var(--secondary))]">排序:</span>
-              <div className="flex items-center bg-[hsl(var(--surface-container-low))] rounded-lg px-3 py-2 gap-2 text-xs font-medium text-[hsl(var(--secondary))]">
-                <span>最近</span>
-                <ChevronRight className="w-3 h-3 rotate-90" />
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center rounded-lg bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--secondary))] transition-colors hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))]"
+                  >
+                    <span>{sortOptions.find((option) => option.id === sortBy)?.label ?? "最近"}</span>
+                    <ChevronDown className="ml-2 h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-36">
+                  {sortOptions.map((option) => (
+                    <DropdownMenuItem key={option.id} onClick={() => setSortBy(option.id)}>
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               {batchMode && (
                 <span className="rounded-full bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--primary))]">
                   已选 {selectedIds.length} 项
@@ -269,6 +335,27 @@ export default function ProjectDetail() {
               </Button>
             </div>
           </div>
+
+          {/* Footer */}
+          <footer className="mt-12 py-8 border-t border-[hsl(var(--outline-variant))]/15">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div>
+                <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
+                <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
+              </div>
+              <div className="flex gap-6">
+                <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                  隐私政策
+                </Link>
+                <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                  服务条款
+                </Link>
+                <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
+                  联系我们
+                </Link>
+              </div>
+            </div>
+          </footer>
         </div>
       </main>
     </div>

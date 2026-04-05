@@ -3,8 +3,10 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, Play, Check } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useProjectStore } from "@/stores/projectStore"
+import type { Episode } from "@/types"
 
 interface EpisodesTabProps {
+  episodes?: Episode[]
   onAddNew?: () => void
   batchMode?: boolean
   selectedIds?: number[]
@@ -12,6 +14,7 @@ interface EpisodesTabProps {
 }
 
 export default function EpisodesTab({
+  episodes: episodesProp,
   onAddNew,
   batchMode = false,
   selectedIds = [],
@@ -19,7 +22,7 @@ export default function EpisodesTab({
 }: EpisodesTabProps) {
   const navigate = useNavigate()
   const { id: projectId } = useParams()
-  const episodes = useProjectStore((state) => state.assets.episodes)
+  const episodes = useProjectStore((state) => episodesProp ?? state.assets.episodes)
   const { openDrawer } = useProjectStore()
 
   const handleEpisodeClick = (episodeId: number) => {

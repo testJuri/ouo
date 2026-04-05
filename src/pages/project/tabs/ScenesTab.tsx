@@ -12,14 +12,15 @@ import { useProjectStore } from "@/stores/projectStore"
 import type { Scene } from "@/types"
 
 interface ScenesTabProps {
+  scenes?: Scene[]
   onAddNew?: () => void
   batchMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
 }
 
-export default function ScenesTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ScenesTabProps) {
-  const scenes = useProjectStore((state) => state.assets.scenes)
+export default function ScenesTab({ scenes: scenesProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ScenesTabProps) {
+  const scenes = useProjectStore((state) => scenesProp ?? state.assets.scenes)
   const { deleteScene, duplicateScene, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
 
