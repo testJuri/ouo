@@ -1,12 +1,6 @@
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Check } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import type { MouseEvent } from "react"
+import { Trash2, Check, ArrowRight, Wand2, Workflow } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useProjectStore } from "@/stores/projectStore"
 import type { Character } from "@/types"
@@ -14,17 +8,26 @@ import type { Character } from "@/types"
 interface CharactersTabProps {
   characters?: Character[]
   onAddNew?: () => void
+  onOpenCanvas?: () => void
   batchMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
 }
 
-export default function CharactersTab({ characters: charactersProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: CharactersTabProps) {
+export default function CharactersTab({
+  characters: charactersProp,
+  onAddNew,
+  onOpenCanvas,
+  batchMode = false,
+  selectedIds = [],
+  onToggleSelect,
+}: CharactersTabProps) {
   const characters = useProjectStore((state) => charactersProp ?? state.assets.characters)
-  const { deleteCharacter, duplicateCharacter, openDrawer } = useProjectStore()
+  const { deleteCharacter, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (e: MouseEvent<HTMLButtonElement>, id: number) => {
+    e.stopPropagation()
     const confirmed = await confirm({
       title: "删除角色",
       description: "删除后将无法恢复这个角色资料。",
@@ -38,14 +41,6 @@ export default function CharactersTab({ characters: charactersProp, onAddNew, ba
     }
   }
 
-  const handleDuplicate = (character: Character) => {
-    duplicateCharacter(character.id)
-  }
-
-  const handleEdit = (character: Character) => {
-    notify.info(`编辑角色：${character.name}（编辑功能完整实现中）`)
-  }
-
   const handleAddNew = () => {
     if (onAddNew) {
       onAddNew()
@@ -54,18 +49,63 @@ export default function CharactersTab({ characters: charactersProp, onAddNew, ba
     }
   }
 
+  const handleOpenCanvas = () => {
+    if (onOpenCanvas) {
+      onOpenCanvas()
+      return
+    }
+
+    notify.info("无限画布创作模式正在接入角色工作流")
+  }
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
       {/* Add New Character Card */}
       <div
-        onClick={handleAddNew}
-        className="aspect-[4/5] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-lg hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
+        className="aspect-[4/5] rounded-lg border-2 border-dashed border-[hsl(var(--outline-variant))] bg-[linear-gradient(180deg,hsl(var(--surface-container))_0%,hsl(var(--surface-container-low))_100%)] p-3.5 transition-all hover:border-[hsl(var(--primary))]/35 hover:shadow-lg hover:shadow-[hsl(var(--primary))]/5"
       >
-        <div className="w-10 h-10 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-          <Plus className="w-5 h-5 text-[hsl(var(--primary))]" />
+        <div className="mb-5 pt-2">
+          <h3 className="text-sm font-bold text-[hsl(var(--on-surface))]">添加角色</h3>
+          <p className="mt-1 text-[11px] leading-5 text-[hsl(var(--secondary))]">
+            选择创作方式。
+          </p>
         </div>
-        <span className="text-sm font-bold text-[hsl(var(--on-surface-variant))]">添加角色</span>
-        <span className="text-[10px] text-[hsl(var(--secondary))] mt-1">新建设定</span>
+
+        <div className="mt-auto space-y-2">
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="flex w-full items-center justify-between rounded-xl bg-[hsl(var(--surface-container-high))] px-3 py-3 text-left transition-all hover:bg-[hsl(var(--surface-container-highest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--primary))]/12 text-[hsl(var(--primary))]">
+                <Wand2 className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">快捷创作</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">快速建角色</div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[hsl(var(--secondary))]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCanvas}
+            className="flex w-full items-center justify-between rounded-xl border border-[hsl(var(--outline-variant))]/60 bg-[hsl(var(--surface))]/75 px-3 py-3 text-left transition-all hover:border-[hsl(var(--primary))]/30 hover:bg-[hsl(var(--surface-container-lowest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--secondary-container))] text-[hsl(var(--on-secondary-container))]">
+                <Workflow className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">无限画布</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">自由编排</div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[hsl(var(--secondary))]" />
+          </button>
+        </div>
       </div>
 
       {/* Character Cards */}
@@ -104,43 +144,13 @@ export default function CharactersTab({ characters: charactersProp, onAddNew, ba
                 <Check className="h-4 w-4" />
               </button>
             )}
-            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/80 via-transparent to-transparent transition-opacity flex items-end p-3 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
-              <div className="flex gap-1.5 w-full">
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={() => handleEdit(character)}
-                  className="flex-1 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold py-1.5 rounded-md border border-white/30 hover:bg-white/40 transition-colors h-auto"
-                >
-                  <Pencil className="w-3 h-3 mr-1" />
-                  编辑
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="secondary"
-                      size="icon"
-                      className="w-7 h-7 bg-white/20 backdrop-blur-md text-white rounded-md border border-white/30 hover:bg-white/40 transition-colors"
-                    >
-                      <MoreHorizontal className="w-3 h-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-32">
-                    <DropdownMenuItem onClick={() => handleDuplicate(character)}>
-                      <Copy className="w-4 h-4 mr-2" />
-                      复制
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(character.id)}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      删除
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={(e) => handleDelete(e, character.id)}
+              className={`absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-red-500 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
           <div className="p-2.5">
             <h3 className="text-xs font-bold text-[hsl(var(--on-surface))] truncate">{character.name}</h3>

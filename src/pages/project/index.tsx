@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import Sidebar from "@/components/layout/Sidebar"
 import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -63,6 +63,7 @@ const projectTitleMap: Record<string, string> = {
 
 export default function ProjectDetail() {
   const { id: projectId } = useParams()
+  const navigate = useNavigate()
   const { confirm, notify } = useFeedback()
   // 从 Store 获取状态
   const activeTab = useProjectStore((state) => state.activeTab)
@@ -169,6 +170,18 @@ export default function ProjectDetail() {
     setBatchMode(false)
   }
 
+  const handleOpenInfiniteCanvas = () => {
+    if (!projectId) return
+
+    const targetEpisode = assets.episodes[0]
+    if (!targetEpisode) {
+      notify.info("请先创建一个片段，再进入无限画布")
+      return
+    }
+
+    navigate(`/project/${projectId}/episode/${targetEpisode.id}/canvas`)
+  }
+
   // Tab 内容渲染
   const renderTabContent = () => {
     switch (activeTab) {
@@ -197,6 +210,7 @@ export default function ProjectDetail() {
           <CharactersTab
             characters={sortedAssets.characters}
             onAddNew={() => openDrawer('character')}
+            onOpenCanvas={handleOpenInfiniteCanvas}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -251,120 +265,124 @@ export default function ProjectDetail() {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="relative ml-64 h-screen overflow-hidden">
+      <main className="relative ml-64 flex h-screen flex-col overflow-hidden">
         {/* Header */}
         <ProjectHeader activeTab={activeTab} onTabChange={setActiveTab} projectTitle={projectTitle} />
 
         {/* Content Canvas */}
-        <div className="h-full overflow-y-auto px-8 pb-12 pt-24">
-          {/* Secondary Toolbar */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-[hsl(var(--secondary))]">排序:</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center rounded-lg bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--secondary))] transition-colors hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))]"
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex min-h-full flex-col px-8 pb-12 pt-24">
+            {/* Secondary Toolbar */}
+            <div className="mb-8 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-[hsl(var(--secondary))]">排序:</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex items-center rounded-lg bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--secondary))] transition-colors hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))]"
+                    >
+                      <span>{sortOptions.find((option) => option.id === sortBy)?.label ?? "最近"}</span>
+                      <ChevronDown className="ml-2 h-3 w-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-36">
+                    {sortOptions.map((option) => (
+                      <DropdownMenuItem key={option.id} onClick={() => setSortBy(option.id)}>
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {batchMode && (
+                  <span className="rounded-full bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--primary))]">
+                    已选 {selectedIds.length} 项
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {batchMode && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setBatchMode(false)
+                      setSelectedIds([])
+                    }}
+                    className="rounded-xl px-4 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))]"
                   >
-                    <span>{sortOptions.find((option) => option.id === sortBy)?.label ?? "最近"}</span>
-                    <ChevronDown className="ml-2 h-3 w-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-36">
-                  {sortOptions.map((option) => (
-                    <DropdownMenuItem key={option.id} onClick={() => setSortBy(option.id)}>
-                      {option.label}
-                    </DropdownMenuItem>
+                    取消
+                  </Button>
+                )}
+                <Button
+                  onClick={handleBatchDelete}
+                  className="flex items-center gap-2 rounded-xl border-0 bg-[hsl(var(--primary))] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-90"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {batchMode ? `删除所选${selectedIds.length ? ` (${selectedIds.length})` : ""}` : "批量删除"}
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1">
+              {/* Tab Content */}
+              {renderTabContent()}
+
+              {/* Pagination */}
+              <div className="mt-16 flex justify-center">
+                <div className="flex items-center gap-1 rounded-xl bg-[hsl(var(--surface-container-low))] p-1.5">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="w-8 h-8 rounded-lg"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  {[1, 2, 3].map((page) => (
+                    <Button
+                      key={page}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg text-xs ${currentPage === page ? "bg-[hsl(var(--primary))] text-white" : ""}`}
+                    >
+                      {page}
+                    </Button>
                   ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {batchMode && (
-                <span className="rounded-full bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--primary))]">
-                  已选 {selectedIds.length} 项
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {batchMode && (
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setBatchMode(false)
-                    setSelectedIds([])
-                  }}
-                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))]"
-                >
-                  取消
-                </Button>
-              )}
-              <Button
-                onClick={handleBatchDelete}
-                className="bg-[hsl(var(--primary))] text-white flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 shadow-sm border-0"
-              >
-                <Trash2 className="w-4 h-4" />
-                {batchMode ? `删除所选${selectedIds.length ? ` (${selectedIds.length})` : ""}` : "批量删除"}
-              </Button>
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          {renderTabContent()}
-
-          {/* Pagination */}
-          <div className="mt-16 flex justify-center">
-            <div className="flex items-center gap-1 bg-[hsl(var(--surface-container-low))] p-1.5 rounded-xl">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="w-8 h-8 rounded-lg"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {[1, 2, 3].map((page) => (
-                <Button
-                  key={page}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-xs ${currentPage === page ? "bg-[hsl(var(--primary))] text-white" : ""}`}
-                >
-                  {page}
-                </Button>
-              ))}
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="w-8 h-8 rounded-lg"
-                onClick={() => setCurrentPage(Math.min(3, currentPage + 1))}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <footer className="mt-12 py-8 border-t border-[hsl(var(--outline-variant))]/15">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div>
-                <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
-                <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
-              </div>
-              <div className="flex gap-6">
-                <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                  隐私政策
-                </Link>
-                <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                  服务条款
-                </Link>
-                <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                  联系我们
-                </Link>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="w-8 h-8 rounded-lg"
+                    onClick={() => setCurrentPage(Math.min(3, currentPage + 1))}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </footer>
+
+            {/* Footer */}
+            <footer className="mt-12 border-t border-[hsl(var(--outline-variant))]/15 py-8">
+              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div>
+                  <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
+                  <p className="mt-1 text-xs text-[hsl(var(--on-secondary-fixed-variant))]">© 2024 Kinetic Gallery. 保留所有权利。</p>
+                </div>
+                <div className="flex gap-6">
+                  <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] transition-colors hover:text-[hsl(var(--primary))]">
+                    隐私政策
+                  </Link>
+                  <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] transition-colors hover:text-[hsl(var(--primary))]">
+                    服务条款
+                  </Link>
+                  <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] transition-colors hover:text-[hsl(var(--primary))]">
+                    联系我们
+                  </Link>
+                </div>
+              </div>
+            </footer>
+          </div>
         </div>
       </main>
     </div>

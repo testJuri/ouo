@@ -82,10 +82,10 @@ export default function Sidebar() {
                   if (project.id === currentProject.id) return
                   setIsSwitching(true)
                   setCurrentProject(project)
-                  // 2秒 loading 后跳转到项目仪表盘
+                  // 2秒 loading 后跳转到项目工作台（默认显示片段管理）
                   setTimeout(() => {
                     setIsSwitching(false)
-                    navigate(`/project/${project.id}`)
+                    navigate(`/project/${project.id}`, { replace: true })
                   }, 2000)
                 }}
                 className="flex items-center justify-between cursor-pointer"
