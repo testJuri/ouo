@@ -9,9 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { 
   LayoutGrid, 
-  FolderOpen, 
-  Image as ImageIcon,
-  BarChart3,
+  FolderOpen,
   Settings,
   ArrowLeft,
   ChevronDown,
@@ -24,8 +22,6 @@ import { useState } from "react"
 const navItems = [
   { icon: LayoutGrid, label: "仪表盘", href: "#", active: true },
   { icon: FolderOpen, label: "项目", href: "#" },
-  { icon: ImageIcon, label: "媒体库", href: "#" },
-  { icon: BarChart3, label: "分析", href: "#" },
 ]
 
 const projects = [
@@ -85,11 +81,6 @@ export default function Sidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-
-      {/* New Asset Button */}
-      <Button className="signature-gradient text-white font-semibold py-3 px-6 rounded-xl mb-6 flex items-center justify-center gap-2 transition-transform active:scale-95 duration-150 border-0">
-        新建资源
-      </Button>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-2">

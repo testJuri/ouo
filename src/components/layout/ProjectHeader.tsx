@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Bell } from "lucide-react"
 
-const topTabs = [
+import type { ProjectTab } from "@/types"
+
+const topTabs: { id: ProjectTab; label: string }[] = [
   { id: "episodes", label: "片段管理" },
   { id: "characters", label: "角色管理" },
   { id: "scenes", label: "场景管理" },
@@ -12,8 +14,8 @@ const topTabs = [
 ]
 
 interface ProjectHeaderProps {
-  activeTab: string
-  onTabChange: (tab: string) => void
+  activeTab: ProjectTab
+  onTabChange: (tab: ProjectTab) => void
 }
 
 export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderProps) {

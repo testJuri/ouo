@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Link, useNavigate } from "react-router-dom"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export default function Login() {
+  const { notify } = useFeedback()
   const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
   // Mock 数据自动填充，方便测试
@@ -17,12 +19,12 @@ export default function Login() {
     e.preventDefault()
     
     if (!email.trim() || !password.trim()) {
-      alert("请输入邮箱和密码")
+      notify.warning("请输入邮箱和密码")
       return
     }
 
     if (!isLogin && !username.trim()) {
-      alert("请输入用户名")
+      notify.warning("请输入用户名")
       return
     }
 
@@ -48,7 +50,7 @@ export default function Login() {
 
   const handleSocialLogin = (provider: string) => {
     // Mock 第三方登录
-    alert(`${provider} 登录演示：已模拟登录成功`)
+    notify.success(`${provider} 登录演示：已模拟登录成功`)
     
     const user = {
       email: `${provider.toLowerCase()}@example.com`,
@@ -140,7 +142,7 @@ export default function Login() {
                   to="#" 
                   onClick={(e) => {
                     e.preventDefault()
-                    alert("重置链接已发送至邮箱（Mock）")
+                    notify.info("重置链接已发送至邮箱（Mock）")
                   }}
                   className="text-xs text-[hsl(var(--primary))] hover:underline"
                 >

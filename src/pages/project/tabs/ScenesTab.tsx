@@ -1,103 +1,56 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, Trash2, Copy, Eye } from "lucide-react"
-import { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-export interface Scene {
-  id: number
-  name: string
-  image: string
-  status: "in-use" | "draft"
-  modified: string
-  code: string
-  genMethod?: string
-  model?: string
-  description?: string
-}
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useProjectStore } from "@/stores/projectStore"
+import type { Scene } from "@/types"
 
 interface ScenesTabProps {
-  onAddNew: () => void
-  scenes?: Scene[]
-  onScenesChange?: (scenes: Scene[]) => void
+  onAddNew?: () => void
 }
 
-const initialScenes: Scene[] = [
-  {
-    id: 1,
-    name: "赛博街区 7 号扇区",
-    image: "https://images.unsplash.com/photo-1614726365723-49cfae927846?w=600&h=450&fit=crop",
-    status: "in-use",
-    modified: "2 小时前",
-    code: "BG_042"
-  },
-  {
-    id: 2,
-    name: "黄昏教室 2B",
-    image: "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=600&h=450&fit=crop",
-    status: "draft",
-    modified: "1 天前",
-    code: "INT_011"
-  },
-  {
-    id: 3,
-    name: "薄雾寺院庭院",
-    image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=600&h=450&fit=crop",
-    status: "in-use",
-    modified: "3 小时前",
-    code: "EXT_088"
-  },
-  {
-    id: 4,
-    name: "观测甲板欧米茄",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&h=450&fit=crop",
-    status: "draft",
-    modified: "5 天前",
-    code: "SCI_003"
-  },
-  {
-    id: 5,
-    name: "低语森林",
-    image: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&h=450&fit=crop",
-    status: "in-use",
-    modified: "12 小时前",
-    code: "FNT_072"
-  }
-]
+export default function ScenesTab({ onAddNew }: ScenesTabProps) {
+  const scenes = useProjectStore((state) => state.assets.scenes)
+  const { deleteScene, duplicateScene, openDrawer } = useProjectStore()
+  const { confirm, notify } = useFeedback()
 
-export default function ScenesTab({ onAddNew, scenes: externalScenes, onScenesChange }: ScenesTabProps) {
-  const [internalScenes, setInternalScenes] = useState<Scene[]>(initialScenes)
-  
-  const scenes = externalScenes ?? internalScenes
-  const setScenes = onScenesChange ?? setInternalScenes
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: "删除场景",
+      description: "删除后将无法恢复这个场景及其当前信息。",
+      confirmText: "删除",
+      tone: "danger",
+    })
 
-  const handleDelete = (id: number) => {
-    if (confirm("确定要删除这个场景吗？")) {
-      setScenes(scenes.filter(s => s.id !== id))
+    if (confirmed) {
+      deleteScene(id)
+      notify.success("场景已删除")
     }
   }
 
   const handleDuplicate = (scene: Scene) => {
-    const newScene: Scene = {
-      ...scene,
-      id: Math.max(...scenes.map(s => s.id), 0) + 1,
-      name: `${scene.name} (复制)`,
-      code: `${scene.code}_COPY`,
-      modified: "刚刚"
+    duplicateScene(scene.id)
+  }
+
+  const handleAddNew = () => {
+    if (onAddNew) {
+      onAddNew()
+    } else {
+      openDrawer('scene')
     }
-    setScenes([newScene, ...scenes])
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {/* Add New Scene Card */}
       <div 
-        onClick={onAddNew}
+        onClick={handleAddNew}
         className="aspect-[4/3] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
       >
         <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -150,7 +103,7 @@ export default function ScenesTab({ onAddNew, scenes: externalScenes, onScenesCh
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem onClick={() => alert(`查看详情: ${scene.name}`)}>
+                    <DropdownMenuItem onClick={() => notify.info(`查看详情：${scene.name}`)}>
                       <Eye className="w-4 h-4 mr-2" />
                       查看详情
                     </DropdownMenuItem>

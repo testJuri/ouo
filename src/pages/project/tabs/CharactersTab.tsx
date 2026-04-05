@@ -1,164 +1,60 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, Trash2, Copy, Pencil } from "lucide-react"
-import { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-export interface Character {
-  id: number
-  name: string
-  image: string
-  role: "主角" | "配角"
-  style: string
-  scenes: number
-  gender?: string
-  ageGroup?: string
-  genMethod?: string
-  model?: string
-  description?: string
-}
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useProjectStore } from "@/stores/projectStore"
+import type { Character } from "@/types"
 
 interface CharactersTabProps {
-  onAddNew: () => void
-  characters?: Character[]
-  onCharactersChange?: (characters: Character[]) => void
+  onAddNew?: () => void
 }
 
-const initialCharacters: Character[] = [
-  {
-    id: 1,
-    name: "龙崎真治",
-    image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "赛博朋克",
-    scenes: 12
-  },
-  {
-    id: 2,
-    name: "月城雪兔",
-    image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "传统水墨",
-    scenes: 8
-  },
-  {
-    id: 3,
-    name: "神乐千鹤",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "现代写实",
-    scenes: 15
-  },
-  {
-    id: 4,
-    name: "黑崎一护",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "热血少年",
-    scenes: 6
-  },
-  {
-    id: 5,
-    name: "春野樱",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "治愈系",
-    scenes: 10
-  },
-  {
-    id: 6,
-    name: "佐藤健",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "科幻风",
-    scenes: 7
-  },
-  {
-    id: 7,
-    name: "林小北",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "青春校园",
-    scenes: 18
-  },
-  {
-    id: 8,
-    name: "陈默",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "悬疑暗黑",
-    scenes: 9
-  },
-  {
-    id: 9,
-    name: "白浅",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "古风仙侠",
-    scenes: 20
-  },
-  {
-    id: 10,
-    name: "韩立",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "修仙玄幻",
-    scenes: 5
-  },
-  {
-    id: 11,
-    name: "苏沐橙",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=400&fit=crop",
-    role: "主角",
-    style: "电竞少女",
-    scenes: 14
-  },
-  {
-    id: 12,
-    name: "叶修",
-    image: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=300&h=400&fit=crop",
-    role: "配角",
-    style: "成熟稳重",
-    scenes: 11
-  }
-]
+export default function CharactersTab({ onAddNew }: CharactersTabProps) {
+  const characters = useProjectStore((state) => state.assets.characters)
+  const { deleteCharacter, duplicateCharacter, openDrawer } = useProjectStore()
+  const { confirm, notify } = useFeedback()
 
-export default function CharactersTab({ onAddNew, characters: externalCharacters, onCharactersChange }: CharactersTabProps) {
-  const [internalCharacters, setInternalCharacters] = useState<Character[]>(initialCharacters)
-  
-  const characters = externalCharacters ?? internalCharacters
-  const setCharacters = onCharactersChange ?? setInternalCharacters
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: "删除角色",
+      description: "删除后将无法恢复这个角色资料。",
+      confirmText: "删除",
+      tone: "danger",
+    })
 
-  const handleDelete = (id: number) => {
-    if (confirm("确定要删除这个角色吗？")) {
-      setCharacters(characters.filter(c => c.id !== id))
+    if (confirmed) {
+      deleteCharacter(id)
+      notify.success("角色已删除")
     }
   }
 
   const handleDuplicate = (character: Character) => {
-    const newCharacter: Character = {
-      ...character,
-      id: Math.max(...characters.map(c => c.id), 0) + 1,
-      name: `${character.name} (复制)`,
-      scenes: 0,
-    }
-    setCharacters([newCharacter, ...characters])
+    duplicateCharacter(character.id)
   }
 
   const handleEdit = (character: Character) => {
-    alert(`编辑角色: ${character.name}\n（编辑功能完整实现中）`)
+    notify.info(`编辑角色：${character.name}（编辑功能完整实现中）`)
+  }
+
+  const handleAddNew = () => {
+    if (onAddNew) {
+      onAddNew()
+    } else {
+      openDrawer('character')
+    }
   }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
       {/* Add New Character Card */}
       <div
-        onClick={onAddNew}
+        onClick={handleAddNew}
         className="aspect-[4/5] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-lg hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
       >
         <div className="w-10 h-10 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">

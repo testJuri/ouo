@@ -2,34 +2,35 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, Play } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
-
-interface Episode {
-  id: number
-  name: string
-  count: number
-  status: "completed" | "in-progress" | "draft"
-  modified: string
-  code: string
-}
+import { useProjectStore } from "@/stores/projectStore"
 
 interface EpisodesTabProps {
-  onAddNew: () => void
-  episodes: Episode[]
+  onAddNew?: () => void
 }
 
-export default function EpisodesTab({ onAddNew, episodes }: EpisodesTabProps) {
+export default function EpisodesTab({ onAddNew }: EpisodesTabProps) {
   const navigate = useNavigate()
   const { id: projectId } = useParams()
+  const episodes = useProjectStore((state) => state.assets.episodes)
+  const { openDrawer } = useProjectStore()
 
   const handleEpisodeClick = (episodeId: number) => {
     navigate(`/project/${projectId}/episode/${episodeId}`)
+  }
+
+  const handleAddNew = () => {
+    if (onAddNew) {
+      onAddNew()
+    } else {
+      openDrawer('episode')
+    }
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {/* Add New Episode Card */}
       <div
-        onClick={onAddNew}
+        onClick={handleAddNew}
         className="aspect-[4/3] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
       >
         <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">

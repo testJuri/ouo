@@ -5,7 +5,14 @@
 ## 快速预览
 
 ```bash
+# 克隆仓库
+git clone git@github.com:testJuri/juri.git
+cd juri
+
+# 安装依赖
 npm install
+
+# 启动开发服务器
 npm run dev
 ```
 

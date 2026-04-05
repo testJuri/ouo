@@ -7,7 +7,7 @@ import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet"
-import { 
+import {
   Plus,
   X,
   CheckCircle2,
@@ -17,6 +17,7 @@ import {
   RefreshCw
 } from "lucide-react"
 import { useState, useRef } from "react"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export interface SceneCreateData {
   name: string
@@ -54,6 +55,7 @@ const shotTypes = [
 ]
 
 export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCreatorProps) {
+  const { notify } = useFeedback()
   const [selectedModel, setSelectedModel] = useState("classic")
   const [genMethod, setGenMethod] = useState("custom")
   const [seedType, setSeedType] = useState("fixed")
@@ -83,7 +85,7 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
 
   const handleSubmit = () => {
     if (!sceneName.trim()) {
-      alert("请输入场景名称")
+      notify.warning("请输入场景名称")
       return
     }
     

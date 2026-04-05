@@ -14,6 +14,7 @@ import {
   Sparkles
 } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,6 +68,7 @@ const storyboard = [
 
 export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
+  const { notify } = useFeedback()
   
   // eslint-disable-next-line no-console
   console.log("Episode ID:", episodeId)
@@ -139,7 +141,7 @@ export default function EpisodeDetail() {
                   variant="outline" 
                   size="sm"
                   className="rounded-lg"
-                  onClick={() => alert("预览功能开发中")}
+                  onClick={() => notify.info("预览功能开发中")}
                 >
                   <Play className="w-4 h-4 mr-2" />
                   预览
@@ -151,9 +153,9 @@ export default function EpisodeDetail() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => alert("重命名")}>重命名</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => alert("复制片段")}>复制片段</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => alert("导出")}>导出</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => notify.info("重命名功能开发中")}>重命名</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => notify.info("复制片段功能开发中")}>复制片段</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => notify.info("导出功能开发中")}>导出</DropdownMenuItem>
                     <DropdownMenuItem className="text-red-600">删除</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -228,7 +230,7 @@ export default function EpisodeDetail() {
                           ? "bg-[hsl(var(--surface-container-high))] ring-1 ring-[hsl(var(--primary))]/30" 
                           : "bg-[hsl(var(--surface-container))] hover:bg-[hsl(var(--surface-container-high))]"
                       }`}
-                      onClick={() => alert(`编辑镜头: ${shot.scene}`)}
+                      onClick={() => notify.info(`编辑镜头：${shot.scene}`)}
                     >
                       <div className="w-8 h-8 rounded-lg bg-[hsl(var(--surface-container-highest))] flex items-center justify-center text-xs font-bold text-[hsl(var(--secondary))]">
                         {index + 1}
@@ -254,7 +256,7 @@ export default function EpisodeDetail() {
                 <Button 
                   variant="ghost" 
                   className="w-full mt-4 py-3 border-2 border-dashed border-[hsl(var(--outline-variant))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5"
-                  onClick={() => alert("添加新镜头")}
+                  onClick={() => notify.info("添加新镜头功能开发中")}
                 >
                   + 添加镜头
                 </Button>
@@ -279,7 +281,7 @@ export default function EpisodeDetail() {
                     <div 
                       key={char.id} 
                       className="flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--surface-container-high))] transition-colors cursor-pointer"
-                      onClick={() => alert(`查看角色: ${char.name}`)}
+                      onClick={() => notify.info(`查看角色：${char.name}`)}
                     >
                       <img 
                         src={char.image} 
@@ -311,7 +313,7 @@ export default function EpisodeDetail() {
                     <div 
                       key={scene.id} 
                       className="group cursor-pointer"
-                      onClick={() => alert(`查看场景: ${scene.name}`)}
+                      onClick={() => notify.info(`查看场景：${scene.name}`)}
                     >
                       <div className="relative aspect-video rounded-lg overflow-hidden mb-2">
                         <img 
@@ -345,7 +347,7 @@ export default function EpisodeDetail() {
                     <div 
                       key={obj.id} 
                       className="group cursor-pointer"
-                      onClick={() => alert(`查看物品: ${obj.name}`)}
+                      onClick={() => notify.info(`查看物品：${obj.name}`)}
                     >
                       <div className="aspect-square rounded-lg overflow-hidden mb-1">
                         <img 

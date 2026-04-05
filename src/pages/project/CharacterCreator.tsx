@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { X, ChevronDown, ImagePlus, Copy, Check } from "lucide-react"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export interface CharacterCreateData {
   name: string
@@ -84,6 +85,7 @@ const promptTemplate = `【基础信息】
 习惯性动作：`;
 
 export default function CharacterCreator({ open, onOpenChange, onCreate }: CharacterCreatorProps) {
+  const { notify } = useFeedback()
   const [genMethod, setGenMethod] = useState("model")
   const [selectedModel, setSelectedModel] = useState("xt45")
   const [gender, setGender] = useState("")
@@ -122,15 +124,15 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
 
   const handleSubmit = () => {
     if (!characterName.trim()) {
-      alert("请输入角色名称")
+      notify.warning("请输入角色名称")
       return
     }
     if (!gender) {
-      alert("请选择性别")
+      notify.warning("请选择性别")
       return
     }
     if (!age) {
-      alert("请选择年龄段")
+      notify.warning("请选择年龄段")
       return
     }
     

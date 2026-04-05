@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { X, ChevronDown, ImagePlus, CheckCircle2, Clock, LayoutList } from "lucide-react"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export interface ObjectCreateData {
   name: string
@@ -53,6 +54,7 @@ const generationTasks = [
 ]
 
 export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCreatorProps) {
+  const { notify } = useFeedback()
   const [genMethod, setGenMethod] = useState("model")
   const [objectType, setObjectType] = useState("")
   const [scene, setScene] = useState("")
@@ -77,11 +79,11 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
 
   const handleSubmit = () => {
     if (!objectName.trim()) {
-      alert("请输入物品名称")
+      notify.warning("请输入物品名称")
       return
     }
     if (!objectType) {
-      alert("请选择物品类型")
+      notify.warning("请选择物品类型")
       return
     }
     

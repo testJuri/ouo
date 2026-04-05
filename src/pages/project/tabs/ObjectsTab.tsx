@@ -1,144 +1,67 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreHorizontal, Trash2, Copy, Eye, Link } from "lucide-react"
-import { useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-export interface ObjectItem {
-  id: number
-  name: string
-  image: string
-  type: "武器" | "道具" | "服装" | "场景装饰"
-  status: "in-use" | "draft"
-  scene: string
-  modified: string
-  description?: string
-}
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useProjectStore } from "@/stores/projectStore"
+import type { ObjectItem, ObjectType } from "@/types"
 
 interface ObjectsTabProps {
-  onAddNew: () => void
-  objects?: ObjectItem[]
-  onObjectsChange?: (objects: ObjectItem[]) => void
+  onAddNew?: () => void
 }
 
-const initialObjects: ObjectItem[] = [
-  {
-    id: 1,
-    name: "光子武士刀",
-    image: "https://images.unsplash.com/photo-1589254065878-42c9da997008?w=300&h=300&fit=crop",
-    type: "武器",
-    status: "in-use",
-    scene: "赛博街区 7 号扇区",
-    modified: "2 小时前"
-  },
-  {
-    id: 2,
-    name: "古董怀表",
-    image: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=300&h=300&fit=crop",
-    type: "道具",
-    status: "draft",
-    scene: "黄昏教室 2B",
-    modified: "1 天前"
-  },
-  {
-    id: 3,
-    name: "魔法卷轴",
-    image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=300&h=300&fit=crop",
-    type: "道具",
-    status: "in-use",
-    scene: "薄雾寺院庭院",
-    modified: "3 小时前"
-  },
-  {
-    id: 4,
-    name: "战术背包",
-    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=300&fit=crop",
-    type: "服装",
-    status: "draft",
-    scene: "观测甲板欧米茄",
-    modified: "5 天前"
-  },
-  {
-    id: 5,
-    name: "霓虹灯笼",
-    image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=300&h=300&fit=crop",
-    type: "场景装饰",
-    status: "in-use",
-    scene: "赛博街区 7 号扇区",
-    modified: "1 小时前"
-  },
-  {
-    id: 6,
-    name: "能量手枪",
-    image: "https://images.unsplash.com/photo-1595590424283-b8f17842773f?w=300&h=300&fit=crop",
-    type: "武器",
-    status: "draft",
-    scene: "未关联场景",
-    modified: "2 天前"
-  },
-  {
-    id: 7,
-    name: "和服",
-    image: "https://images.unsplash.com/photo-1544967082-d9d25d867d66?w=300&h=300&fit=crop",
-    type: "服装",
-    status: "in-use",
-    scene: "薄雾寺院庭院",
-    modified: "4 小时前"
-  },
-  {
-    id: 8,
-    name: "古籍",
-    image: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=300&fit=crop",
-    type: "道具",
-    status: "draft",
-    scene: "黄昏教室 2B",
-    modified: "1 周前"
-  }
-]
-
-const typeColors: Record<string, string> = {
+const typeColors: Record<ObjectType, string> = {
   "武器": "bg-red-500",
   "道具": "bg-blue-500",
   "服装": "bg-purple-500",
   "场景装饰": "bg-emerald-500",
 }
 
-export default function ObjectsTab({ onAddNew, objects: externalObjects, onObjectsChange }: ObjectsTabProps) {
-  const [internalObjects, setInternalObjects] = useState<ObjectItem[]>(initialObjects)
-  
-  const objects = externalObjects ?? internalObjects
-  const setObjects = onObjectsChange ?? setInternalObjects
+export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
+  const objects = useProjectStore((state) => state.assets.objects)
+  const { deleteObject, duplicateObject, openDrawer } = useProjectStore()
+  const { confirm, notify } = useFeedback()
 
-  const handleDelete = (id: number) => {
-    if (confirm("确定要删除这个物品吗？")) {
-      setObjects(objects.filter(o => o.id !== id))
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: "删除物品",
+      description: "删除后将无法恢复这个物品资料。",
+      confirmText: "删除",
+      tone: "danger",
+    })
+
+    if (confirmed) {
+      deleteObject(id)
+      notify.success("物品已删除")
     }
   }
 
   const handleDuplicate = (object: ObjectItem) => {
-    const newObject: ObjectItem = {
-      ...object,
-      id: Math.max(...objects.map(o => o.id), 0) + 1,
-      name: `${object.name} (复制)`,
-      modified: "刚刚"
-    }
-    setObjects([newObject, ...objects])
+    duplicateObject(object.id)
   }
 
   const handleLinkScene = (object: ObjectItem) => {
-    alert(`关联场景: ${object.name}\n（场景选择功能开发中）`)
+    notify.info(`关联场景：${object.name}（场景选择功能开发中）`)
+  }
+
+  const handleAddNew = () => {
+    if (onAddNew) {
+      onAddNew()
+    } else {
+      openDrawer('object')
+    }
   }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
       {/* Add New Object Card */}
       <div
-        onClick={onAddNew}
+        onClick={handleAddNew}
         className="aspect-square bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
       >
         <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
@@ -162,7 +85,7 @@ export default function ObjectsTab({ onAddNew, objects: externalObjects, onObjec
             />
             <div className="absolute top-3 left-3 flex gap-1">
               <Badge 
-                className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border-0 ${typeColors[object.type] || "bg-gray-500"} text-white`}
+                className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase border-0 ${typeColors[object.type]} text-white`}
               >
                 {object.type}
               </Badge>
@@ -194,7 +117,7 @@ export default function ObjectsTab({ onAddNew, objects: externalObjects, onObjec
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem onClick={() => alert(`查看详情: ${object.name}`)}>
+                    <DropdownMenuItem onClick={() => notify.info(`查看详情：${object.name}`)}>
                       <Eye className="w-4 h-4 mr-2" />
                       查看详情
                     </DropdownMenuItem>
