@@ -6,6 +6,7 @@ import {
   DownOutlined,
   PlusOutlined,
   AppstoreOutlined,
+  DeploymentUnitOutlined,
   UndoOutlined,
   RedoOutlined,
   AimOutlined,
@@ -27,7 +28,7 @@ import {
   AlignCenterOutlined,
   SplitCellsOutlined,
 } from '@ant-design/icons';
-import { message, Modal } from 'antd';
+import { message, Modal, Tooltip } from 'antd';
 import 'reactflow/dist/style.css';
 
 import { useCanvasStore } from './stores/canvasStore';
@@ -45,6 +46,7 @@ import PromptOrderEdge from './components/edges/PromptOrderEdge';
 import ImageRoleEdge from './components/edges/ImageRoleEdge';
 import ApiSettings from './components/ApiSettings';
 import WorkflowPanel from './components/WorkflowPanel';
+import MaterialPanel from './components/MaterialPanel';
 import { RadialMenu, MenuItem } from './components/RadialMenu';
 
 const nodeTypes = {
@@ -94,6 +96,7 @@ const CanvasInner: React.FC = () => {
 
   const [showApiSettings, setShowApiSettings] = useState(false);
   const [showWorkflowPanel, setShowWorkflowPanel] = useState(false);
+  const [showMaterialPanel, setShowMaterialPanel] = useState(false);
   const [showNodeMenu, setShowNodeMenu] = useState(false);
   const showGrid = true;
   const [isLocked, setIsLocked] = useState(false);
@@ -666,37 +669,64 @@ const CanvasInner: React.FC = () => {
         </ReactFlow>
 
         <aside className="absolute left-4 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-1 rounded-[20px] border border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))]/90 p-2 shadow-xl shadow-black/5 backdrop-blur-md">
-          <button
-            onClick={() => setShowNodeMenu(!showNodeMenu)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl signature-gradient text-white transition-all shadow-md hover:opacity-90"
-            title="添加节点"
-          >
-            <PlusOutlined style={{ fontSize: 20 }} />
-          </button>
-          <button
-            onClick={() => setShowWorkflowPanel(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
-            title="工作流模板"
-          >
-            <AppstoreOutlined style={{ fontSize: 20 }} />
-          </button>
+          <Tooltip title="添加节点" placement="right">
+            <button
+              onClick={() => setShowNodeMenu(!showNodeMenu)}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl signature-gradient text-white transition-all shadow-md hover:opacity-90"
+            >
+              <PlusOutlined style={{ fontSize: 20 }} />
+            </button>
+          </Tooltip>
+          <Tooltip title="工作流模板" placement="right">
+            <button
+              onClick={() => {
+                setShowWorkflowPanel(true);
+                setShowMaterialPanel(false);
+              }}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
+            >
+              <AppstoreOutlined style={{ fontSize: 20 }} />
+            </button>
+          </Tooltip>
+          <Tooltip title="我的素材" placement="right">
+            <button
+              onClick={() => {
+                setShowMaterialPanel((current) => {
+                  const next = !current;
+                  if (next) {
+                    setShowWorkflowPanel(false);
+                  }
+                  return next;
+                });
+              }}
+              className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-colors ${
+                showMaterialPanel
+                  ? 'bg-[hsl(var(--surface-container-high))] text-[hsl(var(--on-surface))]'
+                  : 'text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))]'
+              }`}
+            >
+              <DeploymentUnitOutlined style={{ fontSize: 20 }} />
+            </button>
+          </Tooltip>
           <div className="my-1 h-px w-full bg-[hsl(var(--outline-variant))]/40" />
-          <button
-            onClick={undo}
-            disabled={!canUndo()}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            title="撤销"
-          >
-            <UndoOutlined style={{ fontSize: 20 }} />
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo()}
-            className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-            title="重做"
-          >
-            <RedoOutlined style={{ fontSize: 20 }} />
-          </button>
+          <Tooltip title="撤销" placement="right">
+            <button
+              onClick={undo}
+              disabled={!canUndo()}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <UndoOutlined style={{ fontSize: 20 }} />
+            </button>
+          </Tooltip>
+          <Tooltip title="重做" placement="right">
+            <button
+              onClick={redo}
+              disabled={!canRedo()}
+              className="flex h-11 w-11 items-center justify-center rounded-2xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <RedoOutlined style={{ fontSize: 20 }} />
+            </button>
+          </Tooltip>
         </aside>
 
         {showNodeMenu && (
@@ -836,6 +866,7 @@ const CanvasInner: React.FC = () => {
 
       {/* Modals */}
       <WorkflowPanel visible={showWorkflowPanel} onClose={() => setShowWorkflowPanel(false)} />
+      <MaterialPanel visible={showMaterialPanel} onClose={() => setShowMaterialPanel(false)} />
       {allowApiKeyConfig && <ApiSettings visible={showApiSettings} onClose={() => setShowApiSettings(false)} />}
     </div>
   );
