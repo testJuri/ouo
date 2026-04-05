@@ -54,15 +54,38 @@ export default function EpisodesTab({
         <span className="text-[10px] text-[hsl(var(--secondary))] mt-1 uppercase tracking-tighter">组织故事章节</span>
       </div>
 
-      {episodes.map((episode) => (
+      {episodes.map((episode, index) => {
+        // 为每个片段分配一个主题图片
+        const episodeImages = [
+          "https://images.unsplash.com/photo-1614726365723-49cfae927846?w=600&h=400&fit=crop",
+          "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=600&h=400&fit=crop",
+          "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=400&fit=crop",
+          "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&h=400&fit=crop",
+          "https://images.unsplash.com/photo-1514539079130-25950c84af65?w=600&h=400&fit=crop",
+          "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&h=400&fit=crop",
+        ]
+        const imageUrl = episodeImages[index % episodeImages.length]
+        
+        return (
         <div
           key={episode.id}
           onClick={() => handleEpisodeClick(episode.id)}
           className={`group relative rounded-xl overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-1 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(episode.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
-          <div className="aspect-[4/3] w-full relative overflow-hidden bg-gradient-to-br from-[hsl(var(--surface-container-high))] to-[hsl(var(--surface-container))] flex items-center justify-center">
-            <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--primary))]/10 flex items-center justify-center">
-              <Play className="w-8 h-8 text-[hsl(var(--primary))]" />
+          <div className="aspect-[4/3] w-full relative overflow-hidden">
+            {/* 背景图 */}
+            <img
+              src={imageUrl}
+              alt={episode.name}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            />
+            {/* 遮罩层 */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            {/* 播放按钮 */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center transition-transform group-hover:scale-110">
+                <Play className="w-8 h-8 text-white" />
+              </div>
             </div>
             <div className="absolute top-3 left-3 flex gap-2">
               <Badge
@@ -119,7 +142,8 @@ export default function EpisodesTab({
             </div>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

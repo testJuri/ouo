@@ -125,7 +125,7 @@ export default function ProjectsList() {
   }
 
   const handlePermissions = (project: Project) => {
-    notify.info(`权限控制：${project.name}（成员与权限设置开发中）`)
+    navigate(`/project/${project.id}/permissions`)
   }
 
   const handleDuplicateProject = (project: Project) => {

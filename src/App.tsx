@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import Dashboard from "./pages/Dashboard"
 import ProjectsList from "./pages/ProjectsList"
+import ProjectPermissions from "./pages/ProjectPermissions"
 import ProjectDetail from "./pages/project"
 import EpisodeDetail from "./pages/project/EpisodeDetail"
 import EpisodeCanvas from "./pages/project/EpisodeCanvas"
@@ -289,6 +290,7 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/workflow" element={<Workflow />} />
+        <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
       </Routes>
     </BrowserRouter>
   )
