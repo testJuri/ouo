@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   使用 Design System 变量
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--ic-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--ic-background);
+  color: var(--ic-on-surface);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* ============================================
+   React Flow Overrides - Dark Canvas Theme
+   ============================================ */
+.react-flow__node {
+  cursor: default;
+}
+
+.react-flow__edge-path {
+  stroke: #474747;
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #ffffff;
+}
+
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #131313;
+}
+
+.react-flow__controls {
+  background: #1c1b1b !important;
+  border: 1px solid #474747 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+.react-flow__controls-button {
+  background: #1c1b1b !important;
+  border-bottom: 1px solid #474747 !important;
+  color: #c6c6c6 !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #353534 !important;
+}
+
+.react-flow__minimap {
+  background: #1c1b1b !important;
+  border: 1px solid #474747 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(255,255,255,0.1) !important;
+  stroke: #ffffff !important;
+  stroke-width: 2 !important;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(55, 85, 195, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(55, 85, 195, 0.6);
+  }
+}
+
+/* ============================================
+   Ant Design Overrides
+   ============================================ */
+.image-node .ant-upload {
+  display: block !important;
+  width: 100% !important;
+}
+
+.image-node .ant-upload-wrapper {
+  display: block !important;
+  width: 100% !important;
+}
+
+/* Ant Design Theme Integration */
+.ant-btn-primary {
+  background: linear-gradient(135deg, var(--ic-primary) 0%, var(--ic-primary-dim) 100%);
+  box-shadow: var(--ic-shadow-primary);
+}
+
+.ant-btn-primary:hover {
+  box-shadow: 0 10px 30px -5px rgba(55, 85, 195, 0.5);
+}
+
+.ant-input:focus,
+.ant-input-focused {
+  border-color: var(--ic-primary);
+  box-shadow: 0 0 0 2px rgba(55, 85, 195, 0.1);
+}
+
+.ant-modal-content {
+  background-color: var(--ic-surface-container-lowest);
+}
+
+.ant-modal-header {
+  background-color: var(--ic-surface-container-lowest);
+  border-bottom: 1px solid var(--ic-outline-variant);
+}
+
+.ant-dropdown-menu {
+  background-color: var(--ic-surface-container-lowest);
+}
+
+.ant-dropdown-menu-item:hover {
+  background-color: var(--ic-surface-container);
+}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MangaCanvas | Asset Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e5e2e1",
+                        "secondary-fixed": "#e4e2e1",
+                        "on-background": "#1b1c1c",
+                        "primary-fixed": "#ffdbd1",
+                        "inverse-primary": "#ffb5a0",
+                        "surface-tint": "#b02f00",
+                        "surface-container": "#f0eded",
+                        "primary-fixed-dim": "#ffb5a0",
+                        "on-primary-fixed-variant": "#862200",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#fdfcff",
+                        "outline-variant": "#e6beb3",
+                        "surface-container-low": "#f6f3f2",
+                        "on-primary-container": "#fffbff",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e5e2e1",
+                        "on-primary": "#ffffff",
+                        "secondary": "#5f5e5e",
+                        "on-surface-variant": "#5c4038",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "secondary-container": "#e4e2e1",
+                        "on-tertiary-fixed-variant": "#00497b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#656464",
+                        "on-secondary-fixed-variant": "#474747",
+                        "on-error-container": "#93000a",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-tertiary-fixed": "#001d35",
+                        "surface": "#fcf9f8",
+                        "inverse-surface": "#303030",
+                        "tertiary-fixed": "#d0e4ff",
+                        "tertiary-fixed-dim": "#9ccaff",
+                        "secondary-fixed-dim": "#c8c6c6",
+                        "outline": "#916f66",
+                        "on-primary-fixed": "#3b0900",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#eae7e7",
+                        "on-error": "#ffffff",
+                        "on-surface": "#1b1c1c",
+                        "background": "#fcf9f8",
+                        "surface-bright": "#fcf9f8",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#ac2e00",
+                        "tertiary-container": "#0079c5",
+                        "surface-dim": "#dcd9d9",
+                        "primary-container": "#d73b00",
+                        "tertiary": "#005f9d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #ac2e00 0%, #d73b00 100%);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f6f3f2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #eae7e7;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f8]/80 dark:bg-[#1b1c1c]/80 backdrop-blur-md flex justify-between items-center px-8 h-20 w-full shadow-[0_40px_40px_rgba(27,28,28,0.04)]">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black text-[#1b1c1c] dark:text-[#fcf9f8] tracking-tighter">MangaCanvas</span>
+<div class="hidden md:flex gap-8 font-['Inter'] tracking-tight text-sm font-medium">
+<a class="text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300" href="#">Gallery</a>
+<a class="text-[#ac2e00] border-b-2 border-[#ac2e00] pb-1" href="#">Workflow</a>
+<a class="text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="font-['Inter'] tracking-tight text-sm font-medium text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300 scale-95 active:scale-90 transition-transform">Sign In</button>
+<button class="signature-gradient text-on-primary px-6 py-2.5 rounded-xl font-['Inter'] tracking-tight text-sm font-medium scale-95 active:scale-90 transition-transform shadow-lg shadow-primary/20">Create Project</button>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f6f3f2] dark:bg-[#1b1c1c] flex flex-col p-6 gap-y-4 pt-28">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a digital artist with creative workspace in soft bokeh background, professional aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiyzd7kghGtQ_5qeNkVUC58CCLXTLEF_NDQ8Jb5MGh4z5-3Hf6g7LAvOcudbTxjLs6bPZh50GTEU6fFHy5nSuXux1510s9u1jp474zMRlqPRlsIPOKW_JfgqKvE1zztUbJ0q3sLazDfpVpbGXyZ_KpRdxfQvNud32iRJP6iZUn1gM5DMXpsviet-smNCvJ6Dp6bBPt_JZ35mnqmnHxsu0eGBlRsELu8HZZ7UqH4z-k2aljX2L1lWV2oDb8pVQjlfPQ80N15PNBDQ"/>
+</div>
+<div>
+<h3 class="text-[#ac2e00] font-bold text-sm">Project Alpha</h3>
+<p class="text-[10px] text-secondary font-semibold uppercase tracking-widest">Editorial Phase</p>
+</div>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-[#eae7e7] dark:bg-[#474747] text-[#ac2e00] rounded-lg font-['Inter'] text-sm font-semibold uppercase tracking-widest translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="movie">movie</span>
+<span>Episodes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all font-['Inter'] text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="person_celebrate">person_celebrate</span>
+<span>Characters</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all font-['Inter'] text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="landscape">landscape</span>
+<span>Scenes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all font-['Inter'] text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span>Objects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all font-['Inter'] text-sm font-semibold uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined" data-icon="audio_file">audio_file</span>
+<span>Sound Effects</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/15">
+<button class="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-surface-container-high text-on-surface font-semibold text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Asset
+            </button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 pt-28 px-12 pb-12 min-h-screen bg-surface">
+<!-- Header & Action Bar -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-4xl font-black text-on-surface tracking-tighter mb-2">Production Assets</h1>
+<p class="text-on-secondary-fixed-variant max-w-lg">Manage your project's visual and auditory resources. Select assets to perform bulk actions or update production statuses.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-lg group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="bg-surface-container-low border-none rounded-xl pl-12 pr-6 py-3 text-sm w-64 focus:ring-1 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all" placeholder="Filter assets..." type="text"/>
+</div>
+<button class="flex items-center gap-2 px-5 py-3 rounded-xl bg-surface-container-high text-on-surface font-bold text-xs uppercase tracking-widest hover:bg-error/10 hover:text-error transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="delete_sweep">delete_sweep</span>
+                        Bulk Action
+                    </button>
+</div>
+</div>
+<!-- Internal Sub-Nav (Tabs) -->
+<div class="mt-10 flex gap-1 items-center bg-surface-container-low p-1 rounded-2xl w-fit">
+<button class="px-6 py-2.5 rounded-xl text-sm font-bold bg-surface-container-lowest text-primary shadow-sm">All Assets</button>
+<button class="px-6 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-on-surface transition-colors">Recent</button>
+<button class="px-6 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-on-surface transition-colors">Shared</button>
+<button class="px-6 py-2.5 rounded-xl text-sm font-medium text-secondary hover:text-on-surface transition-colors">Archived</button>
+</div>
+</header>
+<!-- Asset Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+<!-- Card 1: Character Sketch -->
+<div class="group bg-surface-container-lowest p-4 rounded-xl transition-all hover:scale-[1.02] hover:bg-surface-container-highest cursor-pointer">
+<div class="relative aspect-[3/4] mb-4 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="black and white manga character sketch of a samurai in dynamic action pose, clean ink lines, detailed armor textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSQ2DgAmDOTHeLBMh96RMS72AmRcNWqvh-OSCP--PM8f6sXF0KjTR5KSRfqezQMkAaz4RlJ5mCGbeP5xPMxo5KzIpCoqs-h7qVWu7vs_MAlm9_cCcHNtkAcAqkYVD5QcPOLSyG0rPAq01pV6PQyYtEGSwd9r3_Eb8dSi9DNcen_nky5PNWBy8qiNdmuueCtuB1knRAIK6gs6TCUaCl7FDSlUKTOKNti3fDOsz_umavd1_l78Aa1IDveH8rzJSdicX29emwYELR2A"/>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-6 h-6 bg-surface-container-lowest rounded-full flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="check" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface text-base tracking-tight mb-1">Kenji - Battle Pose</h4>
+<p class="text-xs text-secondary font-medium uppercase tracking-widest">Character Art</p>
+</div>
+<span class="px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">In Use</span>
+</div>
+</div>
+<!-- Card 2: Background Scene -->
+<div class="group bg-surface-container-lowest p-4 rounded-xl transition-all hover:scale-[1.02] hover:bg-surface-container-highest cursor-pointer">
+<div class="relative aspect-[3/4] mb-4 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="detailed cinematic manga background of a futuristic Tokyo street at night, neon signs reflection on rain-slicked asphalt, high contrast ink style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmKXeOXC0OhehfgWVqusCYRDS0zbjfEREcbpa3r_uB04vbdFX7JTorb1ZO8TAbsJsjm08k1c4_dG_S5YzwblWtqGsIxRvmAsUF8cWDQBlekyzfA5UQM9LpAS5_S7jJ9dYBTjHeBvFEODa7DHALNr0Pugh8v55B7_w4BLqQtskyFcwx0QExIVERiULKrBx-O1taIY3neVJmG-F04H5wHLRGlXU0FL_pQE9gO1juILO_iM_ACd8r5PBEeokmMQRgZOKFVKKhTqKVdg"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface text-base tracking-tight mb-1">Neo-Shibuya Night</h4>
+<p class="text-xs text-secondary font-medium uppercase tracking-widest">Background</p>
+</div>
+<span class="px-2 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest">Draft</span>
+</div>
+</div>
+<!-- Card 3: Character Sheet -->
+<div class="group bg-surface-container-lowest p-4 rounded-xl transition-all hover:scale-[1.02] hover:bg-surface-container-highest cursor-pointer">
+<div class="relative aspect-[3/4] mb-4 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="manga character expression sheet, various emotional states of a young heroine, clean black ink on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT84CTUvdr_1nZEmavQjqSh18CvoJYuwlcnET6DLrwrRvIWMSLPplU1ad07QDZwTP0ZHCk52qUaFGEtvarGo6VvrnnXzvu5gjWFUeOWeoHWPfOT0p9Td5ZxGpL2Wvf6aJ0XoCbiCmZPP9nlno6tzGYR6NAo1Qte1hesFtHBZgXILO1Ip7X48L445-HY_O3tL8inYjcueDelYIwYrtn-k7BoIKRn_9MDEsmRkSqGI73ux_b590uQxqXRdALAglztfytOC-HioOMDg"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface text-base tracking-tight mb-1">Yuki - Expressions</h4>
+<p class="text-xs text-secondary font-medium uppercase tracking-widest">Character Art</p>
+</div>
+<span class="px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest">In Use</span>
+</div>
+</div>
+<!-- Card 4: Sound Effect Icon -->
+<div class="group bg-surface-container-lowest p-4 rounded-xl transition-all hover:scale-[1.02] hover:bg-surface-container-highest cursor-pointer">
+<div class="relative aspect-[3/4] mb-4 rounded-lg overflow-hidden bg-[#1b1c1c] flex items-center justify-center p-8">
+<div class="text-center text-surface-container-lowest">
+<span class="material-symbols-outlined text-6xl mb-4 text-primary" data-icon="audio_file">audio_file</span>
+<p class="font-black italic text-3xl tracking-tighter uppercase">D-DOOM!</p>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface text-base tracking-tight mb-1">Impact Heavy FX</h4>
+<p class="text-xs text-secondary font-medium uppercase tracking-widest">Sound Effect</p>
+</div>
+<span class="px-2 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest">Library</span>
+</div>
+</div>
+</div>
+<!-- Empty State Preview (Subtle Sidebar Placeholder) -->
+<div class="mt-20 border-2 border-dashed border-outline-variant/30 rounded-3xl p-16 flex flex-col items-center justify-center text-center">
+<div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-4xl text-secondary" data-icon="auto_awesome_motion">auto_awesome_motion</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface mb-2">Refine Your Selection</h3>
+<p class="text-secondary max-w-sm mb-8">Select multiple assets to enable batch editing, organizational moves, or production tagging.</p>
+<div class="flex gap-4">
+<button class="px-8 py-3 rounded-full bg-surface-container-highest text-on-surface font-bold text-sm tracking-tight hover:bg-surface-container-high transition-colors">Learn Workflow</button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#fcf9f8] dark:bg-[#1b1c1c] w-full py-12 px-8 border-t border-[#e6beb3]/15">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto">
+<span class="font-bold text-[#1b1c1c] text-lg tracking-tighter mb-4 md:mb-0">MangaCanvas</span>
+<div class="flex gap-8 mb-6 md:mb-0">
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Contact</a>
+</div>
+<p class="font-['Inter'] text-xs text-[#474747]">© 2024 MangaCanvas. All rights reserved.</p>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #ac2e00 0%, #d73b00 100%);
+        }
+        /* Custom scrollbar for gallery feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f6f3f2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e6beb3;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#c8c6c6",
+                      "error": "#ba1a1a",
+                      "on-surface": "#1b1c1c",
+                      "surface-bright": "#fcf9f8",
+                      "inverse-primary": "#ffb5a0",
+                      "on-tertiary-fixed-variant": "#00497b",
+                      "primary": "#ac2e00",
+                      "surface-tint": "#b02f00",
+                      "primary-fixed-dim": "#ffb5a0",
+                      "on-surface-variant": "#5c4038",
+                      "primary-fixed": "#ffdbd1",
+                      "tertiary-fixed-dim": "#9ccaff",
+                      "on-tertiary-fixed": "#001d35",
+                      "on-error-container": "#93000a",
+                      "background": "#fcf9f8",
+                      "on-error": "#ffffff",
+                      "surface": "#fcf9f8",
+                      "secondary-fixed": "#e4e2e1",
+                      "outline-variant": "#e6beb3",
+                      "surface-container": "#f0eded",
+                      "on-secondary-fixed": "#1b1c1c",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-fixed-variant": "#474747",
+                      "on-secondary-container": "#656464",
+                      "secondary-container": "#e4e2e1",
+                      "on-primary": "#ffffff",
+                      "surface-variant": "#e5e2e1",
+                      "surface-dim": "#dcd9d9",
+                      "tertiary": "#005f9d",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#3b0900",
+                      "on-primary-fixed-variant": "#862200",
+                      "on-primary-container": "#fffbff",
+                      "tertiary-fixed": "#d0e4ff",
+                      "secondary": "#5f5e5e",
+                      "primary-container": "#d73b00",
+                      "outline": "#916f66",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#eae7e7",
+                      "surface-container-low": "#f6f3f2",
+                      "inverse-surface": "#303030",
+                      "inverse-on-surface": "#f3f0ef",
+                      "on-secondary": "#ffffff",
+                      "on-background": "#1b1c1c",
+                      "on-tertiary-container": "#fdfcff",
+                      "surface-container-highest": "#e5e2e1",
+                      "tertiary-container": "#0079c5"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+      </script>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#fcf9f8]/80 dark:bg-[#1b1c1c]/80 backdrop-blur-md shadow-[0_40px_40px_rgba(27,28,28,0.04)]">
+<div class="flex justify-between items-center px-8 h-20 w-full">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black text-[#1b1c1c] dark:text-[#fcf9f8] tracking-tighter">MangaCanvas</span>
+<div class="hidden md:flex items-center gap-8 font-['Inter'] tracking-tight text-sm font-medium">
+<a class="text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300" href="#">Gallery</a>
+<a class="text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300" href="#">Workflow</a>
+<a class="text-[#474747] dark:text-[#eae7e7] hover:text-[#ac2e00] transition-colors duration-300" href="#">Pricing</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:block text-[#474747] dark:text-[#eae7e7] font-medium text-sm hover:text-[#ac2e00] transition-colors duration-300">Sign In</button>
+<button class="signature-gradient text-white px-6 py-2.5 rounded-xl text-sm font-semibold scale-95 active:scale-90 transition-transform">Create Project</button>
+</div>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex items-center px-8 py-20 overflow-hidden">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+<div class="lg:col-span-6 z-10">
+<span class="text-primary font-bold tracking-[0.2em] uppercase text-xs mb-6 block">The New Era of Storytelling</span>
+<h1 class="text-6xl md:text-8xl font-black text-on-surface leading-[0.9] tracking-tighter mb-8">
+                        Transform Manga into <span class="text-secondary italic">Cinematic</span> Experiences
+                    </h1>
+<p class="text-lg text-on-secondary-fixed-variant max-w-lg mb-10 leading-relaxed">
+                        The ultimate asset management and sequencing tool for creators. Turn static panels into dynamic narratives with our high-end editorial workflow.
+                    </p>
+<div class="flex flex-wrap gap-4">
+<button class="signature-gradient text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all scale-100 active:scale-95">Get Started</button>
+<button class="bg-surface-container-high text-on-surface px-8 py-4 rounded-xl font-bold text-lg hover:bg-surface-container-highest transition-all">Watch Reel</button>
+</div>
+</div>
+<div class="lg:col-span-6 relative">
+<div class="relative rounded-2xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
+<img class="w-full aspect-[3/4] object-cover" data-alt="Dynamic black and white manga action panel featuring a protagonist in mid-air motion, high contrast ink strokes, cinematic framing, and dramatic depth" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK6r9TTi49C0Pz6UMVXET0AHwH22T3FCEz9Q7tOrRMUJWBvgfsbkruu1SKxmO_Gt8AV7MTpsI42ytQYMU7q3eEfvqpqYqGCcd1QKvaLbaXOAKkN8KodwO-xayqI-GMxKVdkcc7JWw1arfsWw7H6cxoky4H8Sc5mwQHfQMiQ-ujIbwZ8iRRN57mZaZqqpAB71xgHYjbVsa2rCxlUDNhWSL1t25JTYO4fFIOXOodMWvMtOgbeKfu19my-Cu4TcWWTYPJeBXhRirzbw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent"></div>
+</div>
+<!-- Overlapping element for "Digital Gallery" feel -->
+<div class="absolute -bottom-10 -left-10 bg-surface-container-lowest p-6 rounded-xl shadow-xl max-w-[240px] hidden md:block">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">auto_fix_high</span>
+</div>
+<div>
+<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Active Sync</p>
+<p class="text-[10px] text-secondary">Editorial Phase</p>
+</div>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Background Decorative Element -->
+<div class="absolute top-0 right-0 -z-10 w-1/2 h-full opacity-5 pointer-events-none">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<defs>
+<pattern height="10" id="grid" patternunits="userSpaceOnUse" width="10">
+<path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" stroke-width="0.5"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100" width="100"></rect>
+</svg>
+</div>
+</section>
+<!-- Features Bento Grid -->
+<section class="py-32 px-8 bg-surface-container-low">
+<div class="max-w-7xl mx-auto">
+<div class="mb-20 text-center">
+<h2 class="text-4xl md:text-5xl font-black text-on-surface tracking-tighter mb-4">Crafted for Excellence</h2>
+<p class="text-secondary max-w-xl mx-auto">Our toolkit bridges the gap between traditional illustration and modern digital production.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
+<!-- Asset Management -->
+<div class="md:col-span-8 bg-surface-container-lowest p-10 rounded-xl flex flex-col justify-between group hover:bg-surface-container-highest transition-all border border-outline-variant/10">
+<div class="max-w-md">
+<span class="material-symbols-outlined text-primary text-4xl mb-6" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<h3 class="text-3xl font-bold mb-4">Asset Management</h3>
+<p class="text-on-secondary-fixed-variant leading-relaxed">Organize your panels, textures, and sound effects effortlessly. A centralized library that treats every asset like a masterpiece.</p>
+</div>
+<div class="mt-12 flex gap-4 overflow-hidden">
+<div class="w-32 h-40 bg-surface-container rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close up of detailed manga eye drawing with expressive hatching and ink texture, monochrome" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIwE-In-WHDXjVCFpcHTE3y1ulMnYIBAfgpslyCl03b2IAlet6HOUDc6czsYBpBAhgv9JCsSJW6rRlaVyjWf4XW4XdOOR_XDNg-dYtddX7Ar_pb4TDdk0LqcsC5U83SAF5UusBKxglinZJbQUB0vA-HCQVliD0Cpl68DrQ1f3bOow5FztopYsgDNMx26kGbErlm7CtV79GP8xAVdjsVgWxeUZupDqtoq_rP-rajJRhaMWPpOCvdSdoGi3FgEsKB5LWGZbNU-Ol2w"/>
+</div>
+<div class="w-32 h-40 bg-surface-container rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Stylized cityscape manga background panel with dramatic perspective and clean linework, nighttime aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPRoeJID_TFqEyEGN_Bh0b1xe8r5xQAsYcgBLeQtjetl0jScdnGwfmz76Ub8ty9bZ3AN0ZZQ2UaYOd_wgkkwEuyCQQWJYZknhgPRAUQC9cQ4-Ow8kG9n984nu1wSKtEJQfOXPfhLaG3Jx1s7gCq0P4rJu7BeqNrE-inc6PQ16swrCukYnpzK1dMWelfDHDGr_4VSKi6jYdX5QNfe5dZ1CD5bxIWi_a5U8MiDtlOMQiXIYcPA8xovhc7tHo0gGoO7Hd1Ffa64OKMA"/>
+</div>
+<div class="w-32 h-40 bg-surface-container rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Abstract ink splash and watercolor texture in black and grey tones, perfect for manga background effects" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOnQTo3q2HqG3o9BABEAmhXUHXaC1E2zSjHe5yfJwOe1f2vFZQ2x6mXPDOn756y7aPCAOxpGLUJJoN_mJFeedFjbglMMWEq9xrmc70LGn1HEdxZATVpboaCfp-i-mHnBlQAj4Ki4cXvRgn5ZWKx4NIHEEtuM_tVX_TqS3x0CRKigscCPPygrlVB1HNJ95K_A1wL7bUEfNkrABL2tPUVYiUF25_BdOulXt_CsXwYfcmWSt4LWDxuJcDH6io7B3R1rtw6ThXVtcOZw"/>
+</div>
+</div>
+</div>
+<!-- Scene Sequencing -->
+<div class="md:col-span-4 bg-primary p-10 rounded-xl flex flex-col justify-between text-white group cursor-pointer">
+<div>
+<span class="material-symbols-outlined text-4xl mb-6">movie_edit</span>
+<h3 class="text-3xl font-bold mb-4">Scene Sequencing</h3>
+<p class="text-primary-fixed/80 leading-relaxed">Smooth transitions from manga to motion. Build your storyboard with rhythmic precision.</p>
+</div>
+<div class="mt-8 flex justify-end">
+<div class="w-16 h-16 rounded-full border-2 border-primary-fixed/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Team Collaboration -->
+<div class="md:col-span-4 bg-surface-container-high p-10 rounded-xl flex flex-col justify-between hover:bg-surface-container-highest transition-all">
+<div>
+<span class="material-symbols-outlined text-primary text-4xl mb-6">group</span>
+<h3 class="text-2xl font-bold mb-4">Team Collaboration</h3>
+<p class="text-on-secondary-fixed-variant text-sm">Work together in real-time. Share assets, leave feedback, and iterate instantly.</p>
+</div>
+<div class="mt-6 flex -space-x-3">
+<div class="w-10 h-10 rounded-full border-2 border-surface bg-gray-200"></div>
+<div class="w-10 h-10 rounded-full border-2 border-surface bg-gray-300"></div>
+<div class="w-10 h-10 rounded-full border-2 border-surface bg-primary flex items-center justify-center text-xs font-bold text-white">+5</div>
+</div>
+</div>
+<!-- Workflow Optimization -->
+<div class="md:col-span-8 bg-on-surface p-10 rounded-xl flex flex-col md:flex-row items-center gap-8 text-surface">
+<div class="flex-1">
+<h3 class="text-2xl font-bold mb-2">Advanced Workflow</h3>
+<p class="text-secondary-fixed-dim text-sm">Automate repetitive tasks with AI-assisted tagging and smart panel extraction.</p>
+</div>
+<div class="w-full md:w-1/3 aspect-video bg-white/10 rounded-lg backdrop-blur-sm border border-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-5xl">auto_awesome</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-40 px-8 bg-surface overflow-hidden relative">
+<div class="max-w-4xl mx-auto text-center relative z-10">
+<h2 class="text-5xl md:text-7xl font-black text-on-surface tracking-tighter mb-8">Ready to animate your vision?</h2>
+<p class="text-xl text-secondary mb-12 max-w-2xl mx-auto">Join the new generation of manga artists and studios turning static art into cinematic gold.</p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center">
+<button class="signature-gradient text-white px-12 py-5 rounded-xl font-bold text-xl hover:shadow-2xl transition-all scale-100 active:scale-95">Start Creating Free</button>
+</div>
+</div>
+<!-- Large faint text background -->
+<div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none">
+<span class="text-[40vw] font-black leading-none">MANGA</span>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#fcf9f8] dark:bg-[#1b1c1c] w-full py-12 px-8 border-t border-[#e6beb3]/15">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-bold text-[#1b1c1c] dark:text-[#fcf9f8] text-xl">MangaCanvas</span>
+<p class="font-['Inter'] text-xs text-[#474747] max-w-xs text-center md:text-left">
+                    The premium editorial ecosystem for comic and manga creators worldwide.
+                </p>
+</div>
+<div class="flex gap-8">
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] transition-opacity opacity-80 hover:opacity-100" href="#">Contact</a>
+</div>
+<p class="font-['Inter'] text-xs text-[#474747]">
+                © 2024 Kinetic Gallery. All rights reserved.
+            </p>
+</div>
+</footer>
+</body></html>

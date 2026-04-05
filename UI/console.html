@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MangaCanvas Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#c8c6c6",
+                    "error": "#ba1a1a",
+                    "on-surface": "#1b1c1c",
+                    "surface-bright": "#fcf9f8",
+                    "inverse-primary": "#ffb5a0",
+                    "on-tertiary-fixed-variant": "#00497b",
+                    "primary": "#ac2e00",
+                    "surface-tint": "#b02f00",
+                    "primary-fixed-dim": "#ffb5a0",
+                    "on-surface-variant": "#5c4038",
+                    "primary-fixed": "#ffdbd1",
+                    "tertiary-fixed-dim": "#9ccaff",
+                    "on-tertiary-fixed": "#001d35",
+                    "on-error-container": "#93000a",
+                    "background": "#fcf9f8",
+                    "on-error": "#ffffff",
+                    "surface": "#fcf9f8",
+                    "secondary-fixed": "#e4e2e1",
+                    "outline-variant": "#e6beb3",
+                    "surface-container": "#f0eded",
+                    "on-secondary-fixed": "#1b1c1c",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#474747",
+                    "on-secondary-container": "#656464",
+                    "secondary-container": "#e4e2e1",
+                    "on-primary": "#ffffff",
+                    "surface-variant": "#e5e2e1",
+                    "surface-dim": "#dcd9d9",
+                    "tertiary": "#005f9d",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#3b0900",
+                    "on-primary-fixed-variant": "#862200",
+                    "on-primary-container": "#fffbff",
+                    "tertiary-fixed": "#d0e4ff",
+                    "secondary": "#5f5e5e",
+                    "primary-container": "#d73b00",
+                    "outline": "#916f66",
+                    "error-container": "#ffdad6",
+                    "surface-container-high": "#eae7e7",
+                    "surface-container-low": "#f6f3f2",
+                    "inverse-surface": "#303030",
+                    "inverse-on-surface": "#f3f0ef",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#1b1c1c",
+                    "on-tertiary-container": "#fdfcff",
+                    "surface-container-highest": "#e5e2e1",
+                    "tertiary-container": "#0079c5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f6f3f2] dark:bg-[#1b1c1c] flex flex-col p-6 gap-y-4 z-40">
+<div class="mb-8 px-2">
+<h1 class="text-xl font-bold text-[#ac2e00]">MangaCanvas</h1>
+<div class="mt-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional creative designer in a minimalist studio setting with soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpT1ESd12AoXGhDpPn9hfwfSnPPrDwPZLPWkQ5eTERUkF8G3EFXy2WdznxkoZ35eGFaqn30XDxC5gHOUdPOuz4gaCIQB709h-zBjm712E1k_-Qic9uAABmOLNMFDnwFDD0X_nG5_r-hthF1YNXY2a58wTWisvQ5BTPQP4F7_0WvWKC5dMYlC_rlAlr7pQ3BmK6nxDLkAfKMsktYVX1MevSAaVrA7mwnHFfezyxvTRIGzO3d9pymaufZ3LSgoPd8sqth2qqtN_wAQ"/>
+</div>
+<div>
+<p class="font-['Inter'] text-sm font-semibold uppercase tracking-widest text-[#ac2e00]">Project Alpha</p>
+<p class="text-[10px] text-secondary font-medium uppercase tracking-wider">Editorial Phase</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-y-2">
+<!-- Active: Projects -->
+<a class="flex items-center gap-3 px-4 py-3 bg-[#eae7e7] dark:bg-[#474747] text-[#ac2e00] rounded-lg translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Inter'] text-sm font-semibold uppercase tracking-widest">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+<span class="font-['Inter'] text-sm font-semibold uppercase tracking-widest">Assets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Inter'] text-sm font-semibold uppercase tracking-widest">Team</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#474747] dark:text-[#eae7e7] hover:bg-[#eae7e7] dark:hover:bg-[#474747] transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-sm font-semibold uppercase tracking-widest">Settings</span>
+</a>
+</nav>
+<div class="mt-auto">
+<button class="w-full py-4 bg-gradient-to-br from-[#ac2e00] to-[#d73b00] text-white rounded-xl font-bold text-sm tracking-widest uppercase shadow-lg hover:scale-[1.02] transition-transform active:scale-95">
+                New Asset
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen bg-surface p-12">
+<!-- Header Section -->
+<header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
+<div class="space-y-1">
+<h2 class="text-4xl font-extrabold tracking-tighter text-on-surface">Console</h2>
+<p class="text-secondary font-medium">Welcome back to your kinetic workspace.</p>
+</div>
+<div class="flex items-center gap-4 w-full md:w-auto">
+<div class="relative flex-grow md:w-80">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary text-lg">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-surface-container-low border-none rounded-xl focus:ring-0 focus:bg-surface-container-lowest transition-colors text-sm font-medium outline-none placeholder:text-secondary/50" placeholder="Search projects..." type="text"/>
+<div class="absolute inset-0 border border-outline-variant/15 rounded-xl pointer-events-none"></div>
+</div>
+<button class="bg-gradient-to-br from-[#ac2e00] to-[#d73b00] text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:scale-[1.02] transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg">add</span>
+                    New Project
+                </button>
+</div>
+</header>
+<!-- Section Label -->
+<div class="flex items-end justify-between mb-8">
+<h3 class="text-xl font-bold tracking-tight text-on-surface flex items-center gap-2">
+                Recent Projects
+                <span class="w-2 h-2 rounded-full bg-[#ac2e00]"></span>
+</h3>
+<button class="text-[#ac2e00] font-bold text-xs uppercase tracking-widest hover:underline">View All</button>
+</div>
+<!-- Project Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Project Card 1 (Large Thumbnail) -->
+<div class="group bg-surface-container-lowest rounded-xl p-4 transition-all duration-300 hover:surface-container-highest hover:scale-[1.02]">
+<div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-surface-container relative">
+<img alt="Manga Art Project" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Cinematic dark manga illustration showing a futuristic samurai in a rain-slicked neon city at night, high contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBzcyWv-OVICyKPbECzLtyNPsXvOsdUE0pKMRylLwqPjiUMPH3PgQXCrQhQ8qdGLt1vJUXy3YpxSViTEMFjELPR03LyJ_r4SA019pZn8VYy8-jtJVAJbNdjRLPL6zWd3jYVxpIDBRcfNlac92DZacQt6GuXBIX5GXlIdo4O_OHGy2YcQ2QUeAoY5TgZKzIW0-aMSWqQejJbGNIdNSCZwW8OgvMLNyfLpnaT0CeOl1DrxKIg37EDi59g51wvpVHgPtVi4X4qmhzhA"/>
+<div class="absolute top-3 right-3">
+<span class="px-3 py-1 rounded-full bg-[#ac2e00] text-white text-[10px] font-bold uppercase tracking-widest shadow-sm">In Progress</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight mb-1">Cyberpunk Ronin</h4>
+<p class="text-xs text-secondary font-medium">Updated 2 hours ago</p>
+</div>
+<button class="text-on-surface-variant hover:text-[#ac2e00] transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="group bg-surface-container-lowest rounded-xl p-4 transition-all duration-300 hover:surface-container-highest hover:scale-[1.02]">
+<div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-surface-container relative">
+<img alt="Ink Sketch" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Traditional Japanese ink wash painting style showing a serene mountain landscape with wispy clouds and pine trees" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRS-3ihvZ_Xqq6GJy7i7lG82ko3XzjQjg7bTjYF0zQX8w4cZhuTNf64ZLe4-QcDBgLQVrhhRewOh6mfoFAtlCo8pwVCGxtBu6I4PYGk5TapAd95VafSXAHX51Kt9xLXvptyx8N39ArxhobLOSV1o1jq97So45Mav-DwwwQQWw9r3GJclilAa-WyX25u_1-O914x7C2WAJl-_q3JA_neIFzldwWSH85h0Vtmyi30Kysn0VxSVA3mHn4fjHwzhaWgltv9uD0lTP5iA"/>
+<div class="absolute top-3 right-3">
+<span class="px-3 py-1 rounded-full bg-secondary text-white text-[10px] font-bold uppercase tracking-widest shadow-sm">Completed</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight mb-1">Spirit of Zen</h4>
+<p class="text-xs text-secondary font-medium">Updated 3 days ago</p>
+</div>
+<button class="text-on-surface-variant hover:text-[#ac2e00] transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group bg-surface-container-lowest rounded-xl p-4 transition-all duration-300 hover:surface-container-highest hover:scale-[1.02]">
+<div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-surface-container relative">
+<img alt="Character Design" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Detailed character concept art of a mechanical hero with glowing blue accents and metallic armor plates" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtdslWZbt8igSg1FQj1jPShsua0k--svT1QPwKk9Z6FCHISXbBpIaiq2fKIdbUUQ4oS_nyTGgieEdrQczWZqcJySEwnV6soK_mw_jCZnxWJBrAnBxISKZ708Wc4ytpcYI4jYQAeIg5kmAw9DJohMZaH_iYzOLA5vRs8u3iMLDXlCxm-Sq1tn5w9KVCkCTKEppDZsTlelKdYv3yHZ_3OOgChzLGQJggCOC2rSxHdmkIdY9vbHlTSPcju4RBie_dVySki5CAnWioHw"/>
+<div class="absolute top-3 right-3">
+<span class="px-3 py-1 rounded-full bg-[#ac2e00] text-white text-[10px] font-bold uppercase tracking-widest shadow-sm">In Progress</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight mb-1">Mech Core Series</h4>
+<p class="text-xs text-secondary font-medium">Updated 5 hours ago</p>
+</div>
+<button class="text-on-surface-variant hover:text-[#ac2e00] transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="group bg-surface-container-lowest rounded-xl p-4 transition-all duration-300 hover:surface-container-highest hover:scale-[1.02]">
+<div class="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-surface-container relative">
+<img alt="Background Layout" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Abstract vibrant explosion of colors with flowing liquid textures in deep reds and oranges, high energy" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhfVtKDU__PYlst89Rd_5Gb3rqGBpcpcoYOELLtAKZ0Q0dkUmKyr2Jk3BonZFpP16uYfqrik0N0WB7pLzTXLyG10jwEHP8mFoB_5RDXkVkkUj-X_4grJA121SOmGy1YJT4hn4ocOUoqPlv0sOJJC7U_A38CQTeYypKKM5WQt1Qz7ce8SXvD77KaRGDo6I_Sv3o7xPJb46PVMOfqgM3Yon3Ia6D_dxaJCwAQ-wKi-RRnbibop3nbpKPBkA1I3l6sUsMHCDjdO6kSg"/>
+<div class="absolute top-3 right-3">
+<span class="px-3 py-1 rounded-full bg-[#ac2e00] text-white text-[10px] font-bold uppercase tracking-widest shadow-sm">In Progress</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="text-lg font-bold text-on-surface leading-tight mb-1">Kinetic Backgrounds</h4>
+<p class="text-xs text-secondary font-medium">Updated 1 week ago</p>
+</div>
+<button class="text-on-surface-variant hover:text-[#ac2e00] transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Empty State / Add New -->
+<div class="group cursor-pointer bg-surface-container-low rounded-xl p-4 flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/30 hover:border-[#ac2e00]/50 transition-all min-h-[320px]">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-[#ac2e00] mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">add_circle</span>
+</div>
+<p class="text-on-surface font-bold">Create New Project</p>
+<p class="text-xs text-secondary mt-1">Start a fresh editorial board</p>
+</div>
+</div>
+<!-- Team Activity (Asymmetric Detail) -->
+<section class="mt-24 max-w-4xl">
+<h3 class="text-xl font-bold tracking-tight text-on-surface mb-8">Activity Feed</h3>
+<div class="space-y-6">
+<div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container-low/50">
+<div class="flex -space-x-3">
+<div class="w-8 h-8 rounded-full border-2 border-surface overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="Portrait of a young woman with a friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVuSVjEPFTrbvoYm0haj-wsl_y9Qct5yuFtZ2g32Tvv8yOVaG7PyCGv78j9_UZW_NBO5IeCv-ZcL7bmNzt3DzfLqwFMsZk7ES-hl4atetS1p_V6Xn3BgtBmjo24aon0a4m2tmYavPrQqxnJ7vNALARjOAWOZJoIbjucXNXW4JBfrFVFn2eG60d2vYwhTePAzSjw0Y0mGx8vqNRv_fqPq9pwVXRFfkP6gbh3iqDcWWlnZnVRgLeJeA5mDZCimw-_9ADmQEhQ5SXpg"/>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="Portrait of a smiling young man in a casual setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE6fsS0iA2uNDvtwLhsQQtcqNsieUGQtPbOefpJbvqIVn96HtIYFApBJH0V-b6fLfLeH2cxuQ5B9J6RfmiyQIdXI3E5yHUOXlzbBeTMJ3JrzPwtGJw48I-Ef-_zjxBjytAx1UYpfoOUyjpPd1GplSJkqeF1P0PBrlLHeF-AIpOQYJNZfa8g02h01N-4vZpZHPmCElm1G-f6bWnBsHEm9PVMq7ZuxXGWokICRUM5G5KPWFfHm526cmpdIgCsu2atQs0Cff1AeNRMg"/>
+</div>
+</div>
+<div class="text-sm">
+<span class="font-bold text-on-surface">Elena and Marcus</span>
+<span class="text-secondary">uploaded 12 new assets to</span>
+<span class="font-bold text-[#ac2e00]">Cyberpunk Ronin</span>
+</div>
+<div class="ml-auto text-[10px] text-secondary font-bold uppercase tracking-widest">12:45 PM</div>
+</div>
+<div class="flex items-center gap-6 p-4 rounded-xl bg-surface-container-low/50">
+<div class="w-8 h-8 rounded-full bg-[#ac2e00]/10 flex items-center justify-center text-[#ac2e00]">
+<span class="material-symbols-outlined text-sm">history</span>
+</div>
+<div class="text-sm">
+<span class="font-bold text-on-surface">Editorial Review</span>
+<span class="text-secondary">completed for Chapter 04 on</span>
+<span class="font-bold text-[#ac2e00]">Spirit of Zen</span>
+</div>
+<div class="ml-auto text-[10px] text-secondary font-bold uppercase tracking-widest">Yesterday</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Authority: JSON) -->
+<footer class="ml-64 bg-[#fcf9f8] dark:bg-[#1b1c1c] w-full py-12 px-8 border-t border-[#e6beb3]/15">
+<div class="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto">
+<div class="mb-4 md:mb-0">
+<span class="font-bold text-[#1b1c1c] text-lg">MangaCanvas</span>
+<p class="font-['Inter'] text-xs text-[#474747] mt-1">© 2024 Kinetic Gallery. All rights reserved.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] opacity-80 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] opacity-80 hover:opacity-100 transition-opacity" href="#">Terms of Service</a>
+<a class="font-['Inter'] text-xs text-[#5f5e5e] hover:text-[#ac2e00] opacity-80 hover:opacity-100 transition-opacity" href="#">Contact</a>
+</div>
+</div>
+</footer>
+</body></html>
