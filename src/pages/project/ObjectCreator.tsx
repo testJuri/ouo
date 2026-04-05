@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X, ImagePlus, Package } from "lucide-react"
+import { X, ImagePlus, Package, LayoutList, CheckCircle2, Clock, ChevronLeft } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export interface ObjectCreateData {
@@ -16,11 +16,18 @@ interface ObjectCreatorProps {
   onCreate?: (data: ObjectCreateData) => void
 }
 
+const objectGenerationTasks = [
+  { id: 1, name: "光子武士刀", status: "processing", detail: "正在生成多角度预览", time: "刚刚" },
+  { id: 2, name: "古董怀表", status: "completed", detail: "主图和透明底图已完成", time: "12 分钟前" },
+  { id: 3, name: "战术背包", status: "queued", detail: "等待队列中，还需约 3 分钟", time: "18 分钟前" },
+]
+
 export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCreatorProps) {
   const { notify } = useFeedback()
   const [genMethod, setGenMethod] = useState<"model" | "upload">("upload")
   const [objectName, setObjectName] = useState("")
   const [referenceImage, setReferenceImage] = useState<string | null>(null)
+  const [taskDrawerOpen, setTaskDrawerOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
 
@@ -68,9 +75,78 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={() => onOpenChange(false)}
       />
-      
-      {/* Drawer */}
-      <div className="relative w-full max-w-[600px] h-full bg-[hsl(var(--surface))] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+
+      <div className="relative h-full w-[600px] shrink-0">
+        {taskDrawerOpen && (
+          <div className="absolute inset-y-0 right-full h-full w-[360px] border-r border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-lowest))] shadow-2xl animate-in slide-in-from-left duration-300">
+            <div className="flex h-full flex-col">
+              <div className="flex items-center justify-between border-b border-[hsl(var(--outline-variant))]/15 px-5 py-4">
+                <div>
+                  <h3 className="text-lg font-black text-[hsl(var(--on-surface))]">物品生成任务</h3>
+                  <p className="mt-1 text-xs text-[hsl(var(--secondary))]">查看当前创建与上传任务进度</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTaskDrawerOpen(false)}
+                  className="h-9 w-9 rounded-lg"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-3">
+                  {objectGenerationTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className={`rounded-2xl border p-4 ${
+                        task.status === "completed"
+                          ? "border-transparent bg-[hsl(var(--surface-container-low))]"
+                          : task.status === "processing"
+                          ? "border-[hsl(var(--primary))]/20 bg-[hsl(var(--primary))]/5"
+                          : "border-transparent bg-[hsl(var(--surface-container-low))]"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                          {task.status === "completed" ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          ) : (
+                            <Clock className={`h-4 w-4 ${task.status === "processing" ? "text-[hsl(var(--primary))]" : "text-[hsl(var(--secondary))]"}`} />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="truncate text-sm font-bold text-[hsl(var(--on-surface))]">{task.name}</p>
+                            <span className="shrink-0 text-[10px] text-[hsl(var(--secondary))]">{task.time}</span>
+                          </div>
+                          <p className="mt-1 text-xs leading-5 text-[hsl(var(--on-surface-variant))]">{task.detail}</p>
+                          <div className="mt-3">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                                task.status === "completed"
+                                  ? "bg-emerald-500/12 text-emerald-600"
+                                  : task.status === "processing"
+                                  ? "bg-[hsl(var(--primary))]/12 text-[hsl(var(--primary))]"
+                                  : "bg-[hsl(var(--surface-container-high))] text-[hsl(var(--secondary))]"
+                              }`}
+                            >
+                              {task.status === "completed" ? "已完成" : task.status === "processing" ? "进行中" : "排队中"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Drawer */}
+        <div className="relative h-full w-[600px] shrink-0 bg-[hsl(var(--surface))] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20">
           <div className="flex items-center gap-3">
@@ -80,9 +156,11 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
             <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">新建物品</h2>
           </div>
           <Button 
-            variant="outline" 
-            className="rounded-full px-4 py-2 text-sm font-medium border-[hsl(var(--outline-variant))] hover:bg-[hsl(var(--surface-container-high))]"
+            variant="ghost"
+            onClick={() => setTaskDrawerOpen((current) => !current)}
+            className="h-10 rounded-xl border border-[hsl(var(--outline-variant))]/30 bg-[hsl(var(--surface-container-low))] px-4 text-sm font-semibold text-[hsl(var(--on-surface-variant))] hover:bg-[hsl(var(--surface-container-high))]"
           >
+            <LayoutList className="h-4 w-4" />
             物品生成任务列表
           </Button>
         </div>
@@ -207,6 +285,7 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
             创建物品
           </Button>
         </div>
+      </div>
       </div>
     </div>
   )
