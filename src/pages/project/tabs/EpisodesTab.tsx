@@ -6,9 +6,20 @@ import { useProjectStore } from "@/stores/projectStore"
 
 interface EpisodesTabProps {
   onAddNew?: () => void
+  batchMode?: boolean
+  selectedIds?: number[]
+  onToggleSelect?: (id: number) => void
 }
 
-export default function EpisodesTab({ onAddNew }: EpisodesTabProps) {
+export default function EpisodesTab({ 
+  onAddNew, 
+  batchMode: _batchMode = false, 
+  selectedIds: _selectedIds = [], 
+  onToggleSelect: _onToggleSelect 
+}: EpisodesTabProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  batchMode; selectedIds; onToggleSelect;
+  
   const navigate = useNavigate()
   const { id: projectId } = useParams()
   const episodes = useProjectStore((state) => state.assets.episodes)

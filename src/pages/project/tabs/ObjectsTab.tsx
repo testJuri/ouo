@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Link } from "lucide-react"
+import { Plus, MoreHorizontal, Trash2, Copy, Link, Check } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,9 @@ import type { ObjectItem, ObjectType } from "@/types"
 
 interface ObjectsTabProps {
   onAddNew?: () => void
+  batchMode?: boolean
+  selectedIds?: number[]
+  onToggleSelect?: (id: number) => void
 }
 
 const typeColors: Record<ObjectType, string> = {
@@ -24,7 +27,7 @@ const typeColors: Record<ObjectType, string> = {
   "上传": "bg-cyan-500",
 }
 
-export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
+export default function ObjectsTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ObjectsTabProps) {
   const objects = useProjectStore((state) => state.assets.objects)
   const { deleteObject, duplicateObject, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
@@ -77,7 +80,8 @@ export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
       {objects.map((object) => (
         <div 
           key={object.id}
-          className="group relative bg-[hsl(var(--surface-container-lowest))] rounded-xl overflow-hidden hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 transition-all hover:-translate-y-1"
+          onClick={batchMode ? () => onToggleSelect?.(object.id) : undefined}
+          className={`group relative rounded-xl overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-1 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(object.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
           <div className="aspect-square w-full relative overflow-hidden">
             <img 
@@ -97,7 +101,19 @@ export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
                 </Badge>
               )}
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+            {batchMode && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleSelect?.(object.id)
+                }}
+                className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border ${selectedIds.includes(object.id) ? "border-transparent bg-[hsl(var(--primary))] text-white" : "border-white/60 bg-black/30 text-transparent"}`}
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/70 to-transparent transition-opacity flex items-end p-3 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
               <div className="flex gap-2 w-full">
                 <Button 
                   variant="secondary" 

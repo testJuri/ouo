@@ -8,12 +8,12 @@ interface WorkspaceLayoutProps {
 
 export default function WorkspaceLayout({ header, children }: WorkspaceLayoutProps) {
   return (
-    <div className="min-h-screen bg-[hsl(var(--surface))]">
+    <div className="h-screen w-screen overflow-hidden bg-[hsl(var(--surface))]">
       <Sidebar />
-      <main className="relative ml-64 min-h-screen">
+      <div className="ml-64 flex h-full flex-col">
         {header}
-        <div className="px-8 pb-12 pt-24">{children}</div>
-      </main>
+        <main className="flex-1 overflow-y-auto px-8 pb-12 pt-6">{children}</main>
+      </div>
     </div>
   )
 }

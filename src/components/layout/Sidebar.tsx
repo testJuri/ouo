@@ -14,9 +14,10 @@ import {
   ArrowLeft,
   ChevronDown,
   Plus,
-  Check
+  Check,
+  Loader2
 } from "lucide-react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useState } from "react"
 
 const navItems = [
@@ -33,10 +34,22 @@ const projects = [
 
 export default function Sidebar() {
   const [currentProject, setCurrentProject] = useState(projects[0])
+  const [isSwitching, setIsSwitching] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
 
   return (
-    <aside className="h-screen w-64 fixed left-0 top-0 bg-[hsl(var(--surface-container-low))] flex flex-col p-6 gap-y-4 z-50">
+    <>
+      {/* Loading Overlay */}
+      {isSwitching && (
+        <div className="fixed inset-0 z-[100] bg-[hsl(var(--surface))]/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 text-[hsl(var(--primary))] animate-spin" />
+            <p className="text-sm text-[hsl(var(--on-surface))] font-medium">正在切换项目...</p>
+          </div>
+        </div>
+      )}
+      <aside className="h-screen w-64 fixed left-0 top-0 bg-[hsl(var(--surface-container-low))] flex flex-col p-6 gap-y-4 z-50">
       {/* Project Selector */}
       <div className="mb-6">
         <DropdownMenu>
@@ -63,7 +76,16 @@ export default function Sidebar() {
             {projects.map((project) => (
               <DropdownMenuItem
                 key={project.id}
-                onClick={() => setCurrentProject(project)}
+                onClick={() => {
+                  if (project.id === currentProject.id) return
+                  setIsSwitching(true)
+                  setCurrentProject(project)
+                  // 2秒 loading 后跳转到项目仪表盘
+                  setTimeout(() => {
+                    setIsSwitching(false)
+                    navigate(`/project/${project.id}`)
+                  }, 2000)
+                }}
                 className="flex items-center justify-between cursor-pointer"
               >
                 <span className={project.id === currentProject.id ? "font-medium" : ""}>
@@ -129,5 +151,6 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+    </>
   )
 }

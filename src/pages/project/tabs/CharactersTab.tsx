@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Pencil } from "lucide-react"
+import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Check } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,12 @@ import type { Character } from "@/types"
 
 interface CharactersTabProps {
   onAddNew?: () => void
+  batchMode?: boolean
+  selectedIds?: number[]
+  onToggleSelect?: (id: number) => void
 }
 
-export default function CharactersTab({ onAddNew }: CharactersTabProps) {
+export default function CharactersTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: CharactersTabProps) {
   const characters = useProjectStore((state) => state.assets.characters)
   const { deleteCharacter, duplicateCharacter, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
@@ -68,7 +71,8 @@ export default function CharactersTab({ onAddNew }: CharactersTabProps) {
       {characters.map((character) => (
         <div 
           key={character.id}
-          className="group relative bg-[hsl(var(--surface-container-lowest))] rounded-lg overflow-hidden hover:shadow-lg hover:shadow-[hsl(var(--on-surface))]/5 transition-all hover:-translate-y-0.5"
+          onClick={batchMode ? () => onToggleSelect?.(character.id) : undefined}
+          className={`group relative rounded-lg overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-lg hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-0.5 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(character.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
           <div className="aspect-[4/5] w-full relative overflow-hidden">
             <img 
@@ -87,7 +91,19 @@ export default function CharactersTab({ onAddNew }: CharactersTabProps) {
                 {character.role}
               </Badge>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+            {batchMode && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleSelect?.(character.id)
+                }}
+                className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border ${selectedIds.includes(character.id) ? "border-transparent bg-[hsl(var(--primary))] text-white" : "border-white/60 bg-black/30 text-transparent"}`}
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/80 via-transparent to-transparent transition-opacity flex items-end p-3 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
               <div className="flex gap-1.5 w-full">
                 <Button 
                   variant="secondary" 

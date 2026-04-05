@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy } from "lucide-react"
+import { Plus, MoreHorizontal, Trash2, Copy, Check } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,12 @@ import type { Scene } from "@/types"
 
 interface ScenesTabProps {
   onAddNew?: () => void
+  batchMode?: boolean
+  selectedIds?: number[]
+  onToggleSelect?: (id: number) => void
 }
 
-export default function ScenesTab({ onAddNew }: ScenesTabProps) {
+export default function ScenesTab({ onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ScenesTabProps) {
   const scenes = useProjectStore((state) => state.assets.scenes)
   const { deleteScene, duplicateScene, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
@@ -64,7 +67,8 @@ export default function ScenesTab({ onAddNew }: ScenesTabProps) {
       {scenes.map((scene) => (
         <div 
           key={scene.id}
-          className="group relative bg-[hsl(var(--surface-container-lowest))] rounded-xl overflow-hidden hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 transition-all hover:-translate-y-1"
+          onClick={batchMode ? () => onToggleSelect?.(scene.id) : undefined}
+          className={`group relative rounded-xl overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-1 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(scene.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
           <div className="aspect-[4/3] w-full relative overflow-hidden">
             <img 
@@ -83,7 +87,19 @@ export default function ScenesTab({ onAddNew }: ScenesTabProps) {
                 {scene.status === "in-use" ? "使用中" : "草稿"}
               </Badge>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+            {batchMode && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleSelect?.(scene.id)
+                }}
+                className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border ${selectedIds.includes(scene.id) ? "border-transparent bg-[hsl(var(--primary))] text-white" : "border-white/60 bg-black/30 text-transparent"}`}
+              >
+                <Check className="h-4 w-4" />
+              </button>
+            )}
+            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/60 to-transparent transition-opacity flex items-end p-4 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
               <div className="flex gap-2 w-full">
                 <Button 
                   variant="secondary" 
