@@ -1,10 +1,25 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, ChevronLeft } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu"
+import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
+import { Plus, MoreHorizontal, ChevronDown, ChevronLeft, Bell, CreditCard, LogOut, Settings, Shield, User, PencilLine, Trash2, Copy, ShieldCheck } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useState } from "react"
 import ProjectCreator from "./ProjectCreator"
+import ProjectEditor, { type EditableProject } from "./ProjectEditor"
 import Sidebar from "@/components/layout/Sidebar"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 interface Project {
   id: number
@@ -60,10 +75,24 @@ const initialProjects: Project[] = [
   },
 ]
 
+const identityOptions = [
+  { id: "creator", label: "专业创作者" },
+  { id: "admin", label: "管理员" },
+] as const
+
+type IdentityOption = (typeof identityOptions)[number]["id"]
+
 export default function ProjectsList() {
   const navigate = useNavigate()
+  const { notify, confirm } = useFeedback()
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
+  const [isProjectEditorOpen, setIsProjectEditorOpen] = useState(false)
+  const [editingProject, setEditingProject] = useState<EditableProject | null>(null)
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>("creator")
+  const [notificationOpen, setNotificationOpen] = useState(false)
+  const [notificationList, setNotificationList] = useState(demoNotifications)
+  const unreadCount = notificationList.filter((item) => !item.read).length
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`)
@@ -90,17 +119,75 @@ export default function ProjectsList() {
     setProjects((prev) => [newProject, ...prev])
   }
 
+  const handleRenameProject = (project: Project) => {
+    setEditingProject(project)
+    setIsProjectEditorOpen(true)
+  }
+
+  const handlePermissions = (project: Project) => {
+    notify.info(`权限控制：${project.name}（成员与权限设置开发中）`)
+  }
+
+  const handleDuplicateProject = (project: Project) => {
+    const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1
+    const copiedProject: Project = {
+      ...project,
+      id: newId,
+      name: `${project.name} 副本`,
+      status: "draft",
+      modified: "刚刚",
+      code: `PJ_${String(newId).padStart(3, "0")}`,
+    }
+    setProjects((prev) => [copiedProject, ...prev])
+    notify.success(`已复制项目：${project.name}`)
+  }
+
+  const handleDeleteProject = async (project: Project) => {
+    const confirmed = await confirm({
+      title: "删除项目",
+      description: `删除后将无法恢复项目「${project.name}」及其相关资源。`,
+      confirmText: "删除",
+      tone: "danger",
+    })
+
+    if (!confirmed) return
+
+    setProjects((prev) => prev.filter((item) => item.id !== project.id))
+    notify.success("项目已删除")
+  }
+
+  const handleSaveProject = (updatedProject: EditableProject) => {
+    setProjects((prev) => prev.map((item) => (item.id === updatedProject.id ? updatedProject : item)))
+    setEditingProject(updatedProject)
+    notify.success(`已更新项目：${updatedProject.name}`)
+  }
+
+  const markAllAsRead = () => {
+    setNotificationList((current) => current.map((item) => ({ ...item, read: true })))
+  }
+
+  const markAsRead = (id: number) => {
+    setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
+  }
+
   return (
-    <div className="min-h-screen bg-[hsl(var(--surface))]">
+    <>
+    <div className="h-screen overflow-hidden bg-[hsl(var(--surface))]">
       <ProjectCreator
         open={isProjectDialogOpen}
         onOpenChange={setIsProjectDialogOpen}
         onCreate={handleCreateProject}
       />
+      <ProjectEditor
+        open={isProjectEditorOpen}
+        onOpenChange={setIsProjectEditorOpen}
+        project={editingProject}
+        onSave={handleSaveProject}
+      />
 
       <Sidebar />
 
-      <main className="ml-64 min-h-screen relative">
+      <main className="relative ml-64 h-screen overflow-hidden">
         {/* Header */}
         <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[hsl(var(--surface-container-lowest))]/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-[hsl(var(--outline-variant))]/15">
           <div className="flex items-center gap-4">
@@ -115,17 +202,98 @@ export default function ProjectsList() {
             <span className="text-lg font-black text-[hsl(var(--on-surface))]">项目列表</span>
           </div>
 
-          <Button
-            onClick={() => setIsProjectDialogOpen(true)}
-            className="signature-gradient text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 shadow-sm border-0 flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            新建项目
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setNotificationOpen(true)}
+              className="relative text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 ? (
+                <span className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[hsl(var(--primary))] px-1 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              ) : null}
+            </Button>
+
+            <div className="h-4 w-px bg-[hsl(var(--outline-variant))]" />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-[hsl(var(--surface-container-high))]">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                      alt="陈晓明"
+                    />
+                    <AvatarFallback>陈</AvatarFallback>
+                  </Avatar>
+                  <div className="hidden text-left md:block">
+                    <p className="text-sm font-bold text-[hsl(var(--on-surface))]">陈晓明</p>
+                    <p className="text-[10px] text-[hsl(var(--secondary))]">
+                      {identityOptions.find((option) => option.id === currentIdentity)?.label}
+                    </p>
+                  </div>
+                  <ChevronDown className="hidden h-4 w-4 text-[hsl(var(--secondary))] md:block" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>个人中心</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="px-2 pb-1 pt-0 text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--secondary))]">
+                    身份切换
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup
+                    value={currentIdentity}
+                    onValueChange={(identity) => {
+                      setCurrentIdentity(identity as IdentityOption)
+                      notify.success(`已切换为${identityOptions.find((option) => option.id === identity)?.label}`)
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="creator" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                      <User className="mr-2 h-4 w-4" />
+                      专业创作者
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="admin" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                      <Shield className="mr-2 h-4 w-4" />
+                      管理员
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => notify.info("个人中心开发中")}>
+                  <User className="mr-2 h-4 w-4" />
+                  我的主页
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => notify.info("账号设置开发中")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  账号设置
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => notify.info("订阅与积分开发中")}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  订阅与积分
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    localStorage.removeItem("manga-user")
+                    navigate("/login")
+                    notify.success("已退出登录")
+                  }}
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         {/* Content */}
-        <div className="pt-24 px-8 pb-12">
+        <div className="h-full overflow-y-auto px-8 pb-12 pt-24">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {/* Add New Project Card */}
             <div
@@ -171,28 +339,46 @@ export default function ProjectsList() {
                         : "草稿"}
                     </Badge>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <div className="flex gap-2 w-full">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleProjectClick(project.id)
-                        }}
-                        className="flex-1 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
-                      >
-                        {project.status === "draft" ? "继续编辑" : "查看详情"}
-                      </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="w-10 bg-white/20 backdrop-blur-md text-white py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
+                        onClick={(event) => event.stopPropagation()}
+                        className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full border border-white/40 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-black/35"
                       >
-                        <MoreHorizontal className="w-4 h-4" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    </div>
-                  </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      onClick={(event) => event.stopPropagation()}
+                      className="w-44"
+                    >
+                      <DropdownMenuLabel>项目操作</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleRenameProject(project)}>
+                        <PencilLine className="mr-2 h-4 w-4" />
+                        编辑项目
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handlePermissions(project)}>
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        权限控制
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        复制项目
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteProject(project)}
+                        className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        删除项目
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-extrabold text-[hsl(var(--on-surface))] mb-1">
@@ -242,5 +428,14 @@ export default function ProjectsList() {
         </footer>
       </main>
     </div>
+    <NotificationDrawer
+      open={notificationOpen}
+      onOpenChange={setNotificationOpen}
+      notifications={notificationList}
+      onMarkAllAsRead={markAllAsRead}
+      onMarkAsRead={markAsRead}
+      onClearAll={() => setNotificationList([])}
+    />
+    </>
   )
 }

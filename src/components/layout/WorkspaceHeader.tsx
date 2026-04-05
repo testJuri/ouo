@@ -6,14 +6,17 @@ import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
-import { Bell, ChevronDown, CreditCard, LogOut, Search, Settings, User } from "lucide-react"
+import { Bell, ChevronDown, CreditCard, LogOut, Search, Settings, Shield, User } from "lucide-react"
 
 interface WorkspaceHeaderProps {
   title: string
@@ -21,6 +24,13 @@ interface WorkspaceHeaderProps {
   searchPlaceholder?: string
   actions?: ReactNode
 }
+
+const identityOptions = [
+  { id: "creator", label: "专业创作者" },
+  { id: "admin", label: "管理员" },
+] as const
+
+type IdentityOption = (typeof identityOptions)[number]["id"]
 
 export default function WorkspaceHeader({
   title,
@@ -30,6 +40,7 @@ export default function WorkspaceHeader({
 }: WorkspaceHeaderProps) {
   const navigate = useNavigate()
   const { notify } = useFeedback()
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>("creator")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
   const unreadCount = notificationList.filter((item) => !item.read).length
@@ -40,6 +51,12 @@ export default function WorkspaceHeader({
 
   const markAsRead = (id: number) => {
     setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
+  }
+
+  const handleIdentityChange = (identity: string) => {
+    const nextIdentity = identity as IdentityOption
+    setCurrentIdentity(nextIdentity)
+    notify.success(`已切换为${identityOptions.find((option) => option.id === nextIdentity)?.label}`)
   }
 
   return (
@@ -90,13 +107,31 @@ export default function WorkspaceHeader({
                   </Avatar>
                   <div className="hidden text-left md:block">
                     <p className="text-sm font-bold text-[hsl(var(--on-surface))]">陈晓明</p>
-                    <p className="text-[10px] text-[hsl(var(--secondary))]">专业创作者</p>
+                    <p className="text-[10px] text-[hsl(var(--secondary))]">
+                      {identityOptions.find((option) => option.id === currentIdentity)?.label}
+                    </p>
                   </div>
                   <ChevronDown className="hidden h-4 w-4 text-[hsl(var(--secondary))] md:block" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>个人中心</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="px-2 pb-1 pt-0 text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--secondary))]">
+                    身份切换
+                  </DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={currentIdentity} onValueChange={handleIdentityChange}>
+                    <DropdownMenuRadioItem value="creator" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                      <User className="mr-2 h-4 w-4" />
+                      专业创作者
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="admin" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                      <Shield className="mr-2 h-4 w-4" />
+                      管理员
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => notify.info("个人中心开发中")}>
                   <User className="mr-2 h-4 w-4" />

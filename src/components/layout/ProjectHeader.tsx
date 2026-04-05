@@ -5,11 +5,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
-import { Search, Bell, Settings, User, LogOut } from "lucide-react"
+import { Search, Bell, Shield, User, LogOut } from "lucide-react"
 
 import type { ProjectTab } from "@/types"
 
@@ -25,7 +31,15 @@ interface ProjectHeaderProps {
   onTabChange: (tab: ProjectTab) => void
 }
 
+const identityOptions = [
+  { id: "creator", label: "专业创作者" },
+  { id: "admin", label: "管理员" },
+] as const
+
+type IdentityOption = (typeof identityOptions)[number]["id"]
+
 export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderProps) {
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>("creator")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
   
@@ -37,6 +51,10 @@ export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderP
   
   const markAsRead = (id: number) => {
     setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
+
+  const handleIdentityChange = (identity: string) => {
+    setCurrentIdentity(identity as IdentityOption)
   }
 
   return (
@@ -94,19 +112,58 @@ export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderP
               </Avatar>
               <div className="hidden md:block">
                 <p className="text-sm font-bold text-[hsl(var(--on-surface))]">陈晓明</p>
-                <p className="text-[10px] text-[hsl(var(--secondary))]">专业创作者</p>
+                <p className="text-[10px] text-[hsl(var(--secondary))]">
+                  {identityOptions.find((option) => option.id === currentIdentity)?.label}
+                </p>
               </div>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel>个人中心</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {/* 身份切换 - 当前身份显示 */}
+            <div className="px-2 py-2">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--secondary))]">
+                当前身份
+              </span>
+              <div className="mt-1 flex items-center gap-2 text-sm">
+                {currentIdentity === "creator" ? (
+                  <>
+                    <User className="h-4 w-4" />
+                    专业创作者
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4" />
+                    管理员
+                  </>
+                )}
+              </div>
+            </div>
+            <DropdownMenuSeparator />
             <DropdownMenuItem>
               <User className="w-4 h-4 mr-2" />
-              个人资料
+              我的主页
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="w-4 h-4 mr-2" />
-              账号设置
-            </DropdownMenuItem>
+            {/* 身份切换子菜单 */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer">
+                <Shield className="w-4 h-4 mr-2" />
+                切换身份
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-40">
+                <DropdownMenuRadioGroup value={currentIdentity} onValueChange={handleIdentityChange}>
+                  <DropdownMenuRadioItem value="creator">
+                    <User className="mr-2 h-4 w-4" />
+                    专业创作者
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="admin">
+                    <Shield className="mr-2 h-4 w-4" />
+                    管理员
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-600">
               <LogOut className="w-4 h-4 mr-2" />

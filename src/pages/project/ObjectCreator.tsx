@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { X, ImagePlus, Package, LayoutList, CheckCircle2, Clock, ChevronLeft } from "lucide-react"
+import { X, ImagePlus, Package, LayoutList, CheckCircle2, Clock } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 export interface ObjectCreateData {
@@ -91,7 +91,7 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
                   onClick={() => setTaskDrawerOpen(false)}
                   className="h-9 w-9 rounded-lg"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
 
