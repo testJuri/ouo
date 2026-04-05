@@ -4,7 +4,6 @@ import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, Select
 import {
   ArrowLeftOutlined,
   DownOutlined,
-  SettingOutlined,
   PlusOutlined,
   AppstoreOutlined,
   UndoOutlined,
@@ -19,8 +18,6 @@ import {
   UnlockOutlined,
   DeleteOutlined,
   DownloadOutlined,
-  SunOutlined,
-  MoonOutlined,
   DragOutlined,
   AlignLeftOutlined,
   AlignRightOutlined,
@@ -89,7 +86,7 @@ const CanvasInner: React.FC = () => {
   } = useCanvasStore();
 
   const { projects, getProjectCanvas, updateProjectCanvas, initProjects } = useProjectsStore();
-  const { isDark, toggleTheme } = useThemeStore();
+  const { isDark } = useThemeStore();
 
   const [showApiSettings, setShowApiSettings] = useState(false);
   const [showWorkflowPanel, setShowWorkflowPanel] = useState(false);
@@ -570,27 +567,7 @@ const CanvasInner: React.FC = () => {
           </button>
         </nav>
         
-        <div className="flex items-center gap-3">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
-            title={isDark ? '切换到亮色主题' : '切换到深色主题'}
-          >
-            {isDark ? <SunOutlined style={{ fontSize: 18 }} /> : <MoonOutlined style={{ fontSize: 18 }} />}
-          </button>
-          {allowApiKeyConfig && (
-            <button
-              onClick={() => setShowApiSettings(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
-              title="API 设置"
-            >
-              <SettingOutlined style={{ fontSize: 18 }} />
-            </button>
-          )}
-          <div className="ml-2 hidden h-10 items-center rounded-full bg-[hsl(var(--primary-fixed))] px-4 text-xs font-semibold text-[hsl(var(--on-primary-fixed))] md:flex">
-            片段工作区
-          </div>
-        </div>
+        {/* Header actions removed - dark mode toggle, API settings, workspace label */}
       </header>
 
       <RadialMenu onSelect={handleRadialMenuSelect} shouldOpen={shouldOpenRadialMenu}>
