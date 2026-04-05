@@ -29,6 +29,7 @@ const topTabs: { id: ProjectTab; label: string }[] = [
 interface ProjectHeaderProps {
   activeTab: ProjectTab
   onTabChange: (tab: ProjectTab) => void
+  projectTitle?: string
 }
 
 const identityOptions = [
@@ -38,7 +39,7 @@ const identityOptions = [
 
 type IdentityOption = (typeof identityOptions)[number]["id"]
 
-export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderProps) {
+export default function ProjectHeader({ activeTab, onTabChange, projectTitle = "项目" }: ProjectHeaderProps) {
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>("creator")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
@@ -61,7 +62,7 @@ export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderP
     <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[hsl(var(--surface-container-lowest))]/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-[hsl(var(--outline-variant))]/15">
       {/* Logo / Project Name */}
       <div className="flex items-center gap-4">
-        <span className="text-lg font-black text-[hsl(var(--on-surface))]">项目资源</span>
+        <span className="text-lg font-black text-[hsl(var(--on-surface))]">{projectTitle}</span>
       </div>
 
       {/* Capsule Navigation */}
@@ -120,26 +121,6 @@ export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderP
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>个人中心</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {/* 身份切换 - 当前身份显示 */}
-            <div className="px-2 py-2">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--secondary))]">
-                当前身份
-              </span>
-              <div className="mt-1 flex items-center gap-2 text-sm">
-                {currentIdentity === "creator" ? (
-                  <>
-                    <User className="h-4 w-4" />
-                    专业创作者
-                  </>
-                ) : (
-                  <>
-                    <Shield className="h-4 w-4" />
-                    管理员
-                  </>
-                )}
-              </div>
-            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <User className="w-4 h-4 mr-2" />

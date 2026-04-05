@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import Sidebar from "@/components/layout/Sidebar"
 import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -54,7 +54,15 @@ const sortOptions = [
 
 type SortOption = (typeof sortOptions)[number]["id"]
 
+const projectTitleMap: Record<string, string> = {
+  "1": "Cyberpunk Ronin 项目",
+  "2": "Spirit of Zen 项目",
+  "3": "Mech Core Series 项目",
+  "4": "Kinetic Backgrounds 项目",
+}
+
 export default function ProjectDetail() {
+  const { id: projectId } = useParams()
   const { confirm, notify } = useFeedback()
   // 从 Store 获取状态
   const activeTab = useProjectStore((state) => state.activeTab)
@@ -75,6 +83,7 @@ export default function ProjectDetail() {
   const [batchMode, setBatchMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [sortBy, setSortBy] = useState<SortOption>("recent")
+  const projectTitle = projectId ? projectTitleMap[projectId] ?? `项目 ${projectId}` : "项目"
 
   const assetType = useMemo(() => {
     switch (activeTab) {
@@ -244,7 +253,7 @@ export default function ProjectDetail() {
       {/* Main Content */}
       <main className="relative ml-64 h-screen overflow-hidden">
         {/* Header */}
-        <ProjectHeader activeTab={activeTab} onTabChange={setActiveTab} />
+        <ProjectHeader activeTab={activeTab} onTabChange={setActiveTab} projectTitle={projectTitle} />
 
         {/* Content Canvas */}
         <div className="h-full overflow-y-auto px-8 pb-12 pt-24">
