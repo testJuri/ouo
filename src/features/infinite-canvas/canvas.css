@@ -137,6 +137,7 @@ code {
   background: linear-gradient(135deg, var(--ic-primary) 0%, var(--ic-primary-dim) 100%) !important;
   box-shadow: var(--ic-shadow-primary) !important;
   border: none !important;
+  color: var(--ic-on-primary) !important;
 }
 
 .ant-btn-primary:hover,
@@ -151,6 +152,16 @@ code {
   background: linear-gradient(135deg, #c73700 0%, #e14a08 100%) !important;
   box-shadow: 0 10px 30px -5px rgba(172, 46, 0, 0.38) !important;
   border: none !important;
+  color: var(--ic-on-primary) !important;
+}
+
+.ant-btn-primary > span,
+.ant-btn-color-primary > span,
+.ant-btn-variant-solid.ant-btn-color-primary > span,
+.ant-btn-primary .anticon,
+.ant-btn-color-primary .anticon,
+.ant-btn-variant-solid.ant-btn-color-primary .anticon {
+  color: var(--ic-on-primary) !important;
 }
 
 .ant-input:focus,

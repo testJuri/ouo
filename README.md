@@ -38,6 +38,7 @@ npm run dev
 | `/dashboard` | Dashboard | 项目列表控制台 |
 | `/project/:id` | ProjectDetail | 项目详情（6大功能标签） |
 | `/project/:id/episode/:episodeId` | EpisodeDetail | 片段详情（创作入口） |
+| `/project/:projectId/episode/:episodeId/canvas` | EpisodeCanvas | 片段创作画布（Infinite Canvas） |
 
 ## 核心功能
 
@@ -83,18 +84,39 @@ npm run dev
 - 分类筛选（全部 / 场景 / 角色 / 风格参考 / 概念稿）
 - 搜索与点赞、浏览量展示
 
-### 7. 认证系统
+### 7. 片段创作画布
+- 从片段详情页进入独立创作画布
+- 基于 React Flow 的 Infinite Canvas 工作区
+- 支持文本、图片、文生图配置、视频配置、效果配置等节点
+- 支持节点拖拽、连接、撤销重做、缩放、自适应视图、框选与对齐
+- 当前已做一轮 MangaCanvas 视觉对齐：
+  - 画布壳层、工具条、浮层改为暖色浅色体系
+  - 主要节点选中态与连接点已去除蓝色主色
+  - 仍有部分 `antd` 内部弹层样式待进一步统一
+
+### 8. 认证系统
 - 登录/注册切换
 - 邮箱、Google、GitHub 登录支持
 - Mock 登录：表单提交后存储到 localStorage，跳转到 Dashboard
 - **开发便利**：登录页自动填充 Mock 数据（`demo@mangacanvas.com` / `123456`）
 
+### 9. 统一反馈系统
+- 已接入全局 `FeedbackProvider`
+- 页面级提示统一使用项目内反馈层，而不是浏览器原生 `alert/confirm`
+- 当前提供：
+  - 顶部浮层通知 `notify.info/success/warning/error`
+  - shadcn 风格确认弹窗 `confirm(...)`
+
 ## 项目结构
 
 ```
 src/
+├── api/                 # API 层（预留）
+│   └── client.ts        # axios/fetch 实例配置
 ├── components/          # 可复用组件
-│   ├── ui/             # shadcn/ui 基础组件
+│   ├── feedback/        # 全局反馈系统
+│   │   └── FeedbackProvider.tsx
+│   ├── ui/              # shadcn/ui 基础组件
 │   │   ├── button.tsx
 │   │   ├── card.tsx
 │   │   ├── input.tsx
@@ -107,35 +129,48 @@ src/
 │   │   ├── label.tsx
 │   │   ├── separator.tsx
 │   │   └── dropdown-menu.tsx  # 下拉菜单
-│   └── layout/         # 布局组件
-│       ├── Sidebar.tsx          # 侧边导航栏（项目切换）
-│       └── ProjectHeader.tsx    # 项目页面头部（胶囊导航）
-├── pages/              # 页面组件
-│   ├── auth/           # 认证相关
-│   │   └── Login.tsx          # 登录/注册页
-│   ├── project/        # 项目管理
-│   │   ├── index.tsx          # 项目详情主页面
-│   │   ├── SceneCreator.tsx   # 场景创建抽屉
-│   │   ├── CharacterCreator.tsx # 角色创建抽屉
-│   │   ├── EpisodeCreator.tsx   # 片段创建弹框
-│   │   ├── EpisodeDetail.tsx    # 片段详情页（创作入口）
-│   │   ├── ObjectCreator.tsx    # 物品创建抽屉
-│   │   └── tabs/              # 项目子标签页
-│   │       ├── EpisodesTab.tsx    # 片段管理
-│   │       ├── ScenesTab.tsx      # 场景管理
-│   │       ├── CharactersTab.tsx  # 角色管理
-│   │       ├── ObjectsTab.tsx     # 物品管理
-│   │       └── PlaceholderTab.tsx # 占位标签
-│   ├── Dashboard.tsx   # 控制台（项目列表）
-│   ├── ProjectCreator.tsx # 新建项目弹框
-│   ├── Gallery.tsx     # 创作者画廊
-│   ├── Pricing.tsx     # 价格方案页面
-│   └── App.tsx         # 主应用（首页+路由）
+│   └── layout/          # 布局组件
+│       ├── Sidebar.tsx          # 侧边导航栏
+│       └── ProjectHeader.tsx    # 项目页面头部
+├── data/                # 静态/Mock 数据
+│   └── initialData.ts   # 项目资产初始数据
+├── features/            # 功能模块
+│   └── infinite-canvas/ # 片段创作画布子系统
+│       ├── api/         # 画布相关 API
+│       ├── components/  # 画布节点组件
+│       ├── hooks/       # 画布专用 hooks
+│       └── stores/      # 画布状态管理
+├── pages/               # 页面组件
+│   ├── auth/            # 认证相关
+│   │   └── Login.tsx
+│   ├── project/         # 项目管理
+│   │   ├── index.tsx
+│   │   ├── SceneCreator.tsx
+│   │   ├── CharacterCreator.tsx
+│   │   ├── EpisodeCreator.tsx
+│   │   ├── EpisodeDetail.tsx
+│   │   ├── EpisodeCanvas.tsx
+│   │   ├── ObjectCreator.tsx
+│   │   └── tabs/
+│   │       ├── EpisodesTab.tsx
+│   │       ├── ScenesTab.tsx
+│   │       ├── CharactersTab.tsx
+│   │       ├── ObjectsTab.tsx
+│   │       └── PlaceholderTab.tsx
+│   ├── Dashboard.tsx
+│   ├── ProjectCreator.tsx
+│   ├── Gallery.tsx
+│   ├── Pricing.tsx
+│   └── App.tsx
+├── stores/              # 全局状态管理
+│   └── projectStore.ts  # 项目资产状态
+├── types/               # 全局类型定义
+│   └── index.ts         # 统一类型出口
 ├── lib/
-│   └── utils.ts        # 工具函数（cn 等）
-├── index.css           # 全局样式 + CSS 变量
-├── tailwind.config.js  # Tailwind 配置
-└── main.tsx           # 应用入口
+│   └── utils.ts         # 工具函数
+├── index.css
+├── tailwind.config.js
+└── main.tsx
 ```
 
 ## 文件分类规则
@@ -192,22 +227,47 @@ xl: 1280px  - 大屏
 
 ## 数据结构
 
-当前使用 Mock 数据，各页面通过 `useState` 管理本地状态，已实现基础的增删查改交互：
+当前采用 **分层状态管理** 架构：
 
-| 数据 | 位置 | 类型 | 说明 |
-|------|------|------|------|
-| 项目列表 | `Dashboard.tsx` | `projects[]` | 支持新建项目 |
-| 场景数据 | `ScenesTab.tsx` | `scenes[]` | 静态展示 |
-| 角色数据 | `CharactersTab.tsx` | `characters[]` | 静态展示 |
-| 片段数据 | `EpisodesTab.tsx` | `episodes[]` | 支持新建片段，可进入详情页创作 |
-| 生成任务 | `SceneCreator.tsx` | `generationTasks[]` | 模拟队列 |
+| 层级 | 技术方案 | 管理数据 | 说明 |
+|------|----------|----------|------|
+| 全局状态 | Zustand | 项目资产（场景/角色/片段/物品） | `projectStore.ts` |
+| 画布状态 | Zustand + IndexedDB | 节点/连线/视口 | `canvasStore.ts`，按 episode key 持久化 |
+| 本地状态 | useState | 组件级 UI 状态 | 抽屉开关、表单输入等 |
+| Mock 数据 | 静态文件 | 初始数据 | `data/initialData.ts` |
+
+### 项目资产 Store 使用示例
+
+```tsx
+import { useProjectStore, useScenesSelector } from "@/stores/projectStore"
+
+// 按需订阅（推荐）
+const scenes = useScenesSelector()
+
+// 或使用完整 Store
+const { createScene, deleteScene, duplicateScene } = useProjectStore()
+
+// 创建新场景
+const handleCreate = (data) => {
+  const newScene = createScene(data)
+  notify.success(`场景 "${newScene.name}" 创建成功`)
+}
+```
+
+### 类型定义
+
+所有类型统一在 `src/types/index.ts` 维护：
+
+```tsx
+import type { Scene, Character, Episode, ObjectItem } from "@/types"
+```
 
 ### API 迁移建议
 
-如需接入后端，建议：
-1. 创建 `src/api/` 目录存放接口定义
-2. 使用 React Query 管理服务端状态
-3. 将 Mock 数据替换为 `fetch` 或 `axios` 调用
+如需接入后端：
+1. 在 `src/api/` 创建接口层（axios/fetch）
+2. 在 Store 中异步化 CRUD 方法
+3. 考虑引入 React Query 管理服务端状态缓存
 
 ## 开发指南
 
@@ -234,6 +294,25 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
   </DialogContent>
 </Dialog>
 ```
+
+### 使用统一反馈
+
+```tsx
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
+
+const { notify, confirm } = useFeedback()
+
+notify.success("保存成功")
+
+const confirmed = await confirm({
+  title: "删除场景",
+  description: "删除后将无法恢复。",
+  confirmText: "删除",
+  tone: "danger",
+})
+```
+
+不要直接使用浏览器原生 `alert` / `confirm`。
 
 ### 使用抽屉
 

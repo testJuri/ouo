@@ -227,7 +227,10 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
         </div>
 
         {/* Content */}
-        <div className="p-4 space-y-2">
+        <div
+          className="p-4 space-y-2 rounded-b-lg"
+          style={{ backgroundColor: "var(--bg-primary, hsl(var(--surface-container-lowest)))" }}
+        >
           <TextArea
             value={localContent}
             onChange={(e) => setLocalContent(e.target.value)}

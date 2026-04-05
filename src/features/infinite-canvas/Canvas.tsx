@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, SelectionMode } from 'reactflow';
 import {
@@ -19,7 +19,6 @@ import {
   UnlockOutlined,
   DeleteOutlined,
   DownloadOutlined,
-  UploadOutlined,
   SunOutlined,
   MoonOutlined,
   DragOutlined,
@@ -70,7 +69,6 @@ const CanvasInner: React.FC = () => {
   const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>();
   const navigate = useNavigate();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasProjectId = projectId && episodeId ? `episode-${projectId}-${episodeId}` : undefined;
 
   const {
@@ -483,44 +481,6 @@ const CanvasInner: React.FC = () => {
     setShowProjectMenu(false);
   }, [nodes, edges, viewport, projectName]);
 
-  // 导入工作流
-  const handleImportWorkflow = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const workflow = JSON.parse(content);
-        
-        if (!workflow.nodes || !workflow.edges) {
-          message.error('无效的工作流文件');
-          return;
-        }
-
-        useCanvasStore.setState({
-          nodes: workflow.nodes,
-          edges: workflow.edges,
-          viewport: workflow.viewport || { x: 0, y: 0, zoom: 1 },
-        });
-
-        // 自动保存到项目 - 使用 getState 获取最新状态
-        setTimeout(() => {
-          useCanvasStore.getState().saveProject(updateProjectCanvas);
-        }, 100);
-
-        message.success(`工作流已导入: ${workflow.projectName || '未知'}`);
-      } catch (err) {
-        console.error('Import error:', err);
-        message.error('解析工作流文件失败');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-    setShowProjectMenu(false);
-  }, [updateProjectCanvas]);
-
   // 清空画布
   const handleClearCanvas = useCallback(() => {
     if (nodes.length === 0 && edges.length === 0) {
@@ -591,13 +551,6 @@ const CanvasInner: React.FC = () => {
                     <DownloadOutlined style={{ fontSize: 14 }} />
                     <span>导出工作流</span>
                   </button>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-colors text-left text-sm"
-                  >
-                    <UploadOutlined style={{ fontSize: 14 }} />
-                    <span>导入工作流</span>
-                  </button>
                 </div>
               </>
             )}
@@ -639,15 +592,6 @@ const CanvasInner: React.FC = () => {
           </div>
         </div>
       </header>
-
-      {/* Hidden file input for import */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        onChange={handleImportWorkflow}
-        style={{ display: 'none' }}
-      />
 
       <RadialMenu onSelect={handleRadialMenuSelect} shouldOpen={shouldOpenRadialMenu}>
         <div 
