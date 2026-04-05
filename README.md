@@ -39,6 +39,10 @@ npm run dev
 | `/project/:id` | ProjectDetail | 项目详情（6大功能标签） |
 | `/project/:id/episode/:episodeId` | EpisodeDetail | 片段详情（创作入口） |
 | `/project/:projectId/episode/:episodeId/canvas` | EpisodeCanvas | 片段创作画布（Infinite Canvas） |
+| `/terms` | Terms | 服务条款页面 |
+| `/privacy` | Privacy | 隐私政策页面 |
+| `/contact` | Contact | 联系我们页面（含表单） |
+| `/workflow` | Workflow | 创作工作流介绍页面 |
 
 ## 核心功能
 
@@ -161,6 +165,10 @@ src/
 │   ├── ProjectCreator.tsx
 │   ├── Gallery.tsx
 │   ├── Pricing.tsx
+│   ├── Terms.tsx           # 服务条款
+│   ├── Privacy.tsx         # 隐私政策
+│   ├── Contact.tsx         # 联系我们
+│   ├── Workflow.tsx        # 工作流介绍
 │   └── App.tsx
 ├── stores/              # 全局状态管理
 │   └── projectStore.ts  # 项目资产状态
