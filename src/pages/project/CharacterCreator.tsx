@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -13,20 +13,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { X, ChevronDown, ImagePlus, Copy, Check } from "lucide-react"
+import { X, ChevronDown, ImagePlus, Copy, Check, Dice5, Lock, Upload } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
-
-export interface CharacterCreateData {
-  name: string
-  gender: string
-  ageGroup: string
-  genMethod: string
-  model: string
-  description: string
-  referenceImage?: string
-  role: "main" | "support"
-  style?: string
-}
+import type { CharacterCreateData } from "@/types"
 
 interface CharacterCreatorProps {
   open: boolean
@@ -84,6 +73,16 @@ const promptTemplate = `【基础信息】
 口头禅：
 习惯性动作：`;
 
+const styleOptions = [
+  { id: "anime", label: "动漫" },
+  { id: "realistic", label: "写实" },
+]
+
+const quantityOptions = [1, 2, 3, 4, 5]
+
+const createSeed = () =>
+  `${Math.floor(10000000 + Math.random() * 90000000)}${Math.floor(10000000 + Math.random() * 90000000)}`
+
 export default function CharacterCreator({ open, onOpenChange, onCreate }: CharacterCreatorProps) {
   const { notify } = useFeedback()
   const [genMethod, setGenMethod] = useState("model")
@@ -93,9 +92,16 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
   const [characterName, setCharacterName] = useState("")
   const [description, setDescription] = useState("")
   const [referenceImage, setReferenceImage] = useState<string | null>(null)
+  const [batchArchiveName, setBatchArchiveName] = useState("")
   const [role, setRole] = useState<"main" | "support">("support")
+  const [visualStyle, setVisualStyle] = useState("anime")
+  const [seedMode, setSeedMode] = useState<"random" | "fixed">("fixed")
+  const [seed, setSeed] = useState(createSeed)
+  const [quantity, setQuantity] = useState(1)
+  const [isRealPerson, setIsRealPerson] = useState(true)
   const [copied, setCopied] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const batchFileInputRef = useRef<HTMLInputElement>(null)
 
   const generationMethods = [
     { id: "model", label: "通过模型生成角色" },
@@ -115,12 +121,36 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
     setDescription(promptTemplate)
   }
 
+  const handleGenMethodChange = (methodId: string) => {
+    setGenMethod(methodId)
+    if (methodId !== "upload") {
+      setBatchArchiveName("")
+    }
+  }
+
+  const handleGenerateSeed = () => {
+    setSeed(createSeed())
+  }
+
+  const handleBatchUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setBatchArchiveName(file.name)
+    }
+  }
+
   const handleCopySeed = () => {
-    const seed = Math.floor(Math.random() * 1000000).toString()
     navigator.clipboard.writeText(seed)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  useEffect(() => {
+    if (open) {
+      setCopied(false)
+      setSeed((current) => current || createSeed())
+    }
+  }, [open])
 
   const handleSubmit = () => {
     if (!characterName.trim()) {
@@ -135,6 +165,10 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
       notify.warning("请选择年龄段")
       return
     }
+    if (genMethod === "upload" && !referenceImage && !batchArchiveName) {
+      notify.warning("请上传已有角色图或 zip 压缩包")
+      return
+    }
     
     const newCharacter: CharacterCreateData = {
       name: characterName,
@@ -145,7 +179,12 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
       description,
       referenceImage: referenceImage || undefined,
       role,
-      style: models.find(m => m.id === selectedModel)?.name,
+      style: styleOptions.find((item) => item.id === visualStyle)?.label,
+      seed,
+      seedMode,
+      quantity,
+      isRealPerson,
+      batchReferenceArchive: batchArchiveName || undefined,
     }
     
     onCreate?.(newCharacter)
@@ -156,9 +195,15 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
     setAge("")
     setDescription("")
     setReferenceImage(null)
+    setBatchArchiveName("")
     setRole("support")
     setGenMethod("model")
     setSelectedModel("xt45")
+    setVisualStyle("anime")
+    setSeedMode("fixed")
+    setSeed(createSeed())
+    setQuantity(1)
+    setIsRealPerson(true)
     
     onOpenChange(false)
   }
@@ -181,6 +226,21 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
 
         {/* Content */}
         <div className="h-[calc(100vh-70px)] overflow-y-auto p-6 pb-28 space-y-6">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*"
+            className="hidden"
+          />
+          <input
+            type="file"
+            ref={batchFileInputRef}
+            onChange={handleBatchUpload}
+            accept=".zip,application/zip"
+            className="hidden"
+          />
+
           {/* Row 1: Name / Gender / Age */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -282,20 +342,232 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
             <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
               <span className="text-red-500 mr-1">*</span>生成方式
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="inline-flex max-w-full rounded-full bg-black p-1">
               {generationMethods.map((method) => (
                 <button
                   key={method.id}
-                  onClick={() => setGenMethod(method.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  onClick={() => handleGenMethodChange(method.id)}
+                  className={`rounded-full px-5 py-2.5 text-sm font-medium whitespace-nowrap transition-all ${
                     genMethod === method.id
                       ? "signature-gradient text-white"
-                      : "bg-[hsl(var(--surface-container-high))] text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-highest))]"
+                      : "text-white/90 hover:bg-white/8"
                   }`}
                 >
                   {method.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {genMethod === "upload" && (
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+                  <span className="text-red-500 mr-1">*</span>是否真人
+                </label>
+                <div className="flex items-center gap-8">
+                  {[
+                    { label: "是", value: true },
+                    { label: "否", value: false },
+                  ].map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() => setIsRealPerson(option.value)}
+                      className="flex items-center gap-3 text-sm text-[hsl(var(--on-surface))]"
+                    >
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
+                          isRealPerson === option.value
+                            ? "border-transparent signature-gradient"
+                            : "border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))]"
+                        }`}
+                      >
+                        {isRealPerson === option.value && <span className="h-2.5 w-2.5 rounded-full bg-white" />}
+                      </span>
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[hsl(var(--on-surface))]">上传已有角色图</label>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative"
+                  >
+                    {referenceImage ? (
+                      <>
+                        <img src={referenceImage} alt="上传已有角色图" className="absolute inset-0 h-full w-full object-cover" />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                          <span className="rounded-full bg-black/60 px-4 py-2 text-sm text-white">重新上传</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3">
+                        <ImagePlus className="h-12 w-12 text-white/90" />
+                        <div className="text-center space-y-1">
+                          <p className="text-base font-medium text-[hsl(var(--on-surface))]">上传已有角色图</p>
+                          <p className="text-sm text-[hsl(var(--secondary))]">支持 JPG / JPEG / PNG 格式</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[hsl(var(--on-surface))]">批量上传已有角色图</label>
+                  <div
+                    onClick={() => batchFileInputRef.current?.click()}
+                    className="min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group p-6"
+                  >
+                    <div className="flex h-full min-h-[172px] flex-col items-center justify-center gap-3 text-center">
+                      <Upload className="h-12 w-12 text-white/90" />
+                      <div className="space-y-1">
+                        <p className="text-base font-medium text-[hsl(var(--on-surface))]">批量上传已有角色图</p>
+                        <p className="text-sm text-[hsl(var(--secondary))]">支持上传 zip 格式的压缩包</p>
+                      </div>
+                      {batchArchiveName && (
+                        <p className="max-w-full truncate rounded-full bg-[hsl(var(--surface-container-high))] px-3 py-1 text-xs text-[hsl(var(--on-surface))]">
+                          {batchArchiveName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Style */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+              <span className="text-red-500 mr-1">*</span>风格
+            </label>
+            <div className="inline-flex rounded-full bg-[hsl(var(--surface-container-low))] p-1">
+              {styleOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => setVisualStyle(option.id)}
+                  className={`min-w-[104px] rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
+                    visualStyle === option.id
+                      ? "signature-gradient text-white shadow-sm"
+                      : "text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-high))]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Reference Image + Seed Control */}
+          <div className={`grid gap-6 ${genMethod === "upload" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
+            {genMethod !== "upload" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">角色参考图</label>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative"
+                >
+                  {referenceImage ? (
+                    <>
+                      <img src={referenceImage} alt="角色参考图" className="absolute inset-0 h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-black/35 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                        <span className="rounded-full bg-black/60 px-4 py-2 text-sm text-white">重新上传</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(var(--surface-container-high))]">
+                        <ImagePlus className="h-8 w-8 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--primary))]" />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-base font-medium text-[hsl(var(--on-surface))]">角色参考图</p>
+                        <p className="text-sm text-[hsl(var(--secondary))]">支持 JPG / JPEG / PNG 格式</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">种子控制（确保视角一致性）</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setSeedMode("random")
+                      handleGenerateSeed()
+                    }}
+                    className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      seedMode === "random"
+                        ? "bg-[hsl(var(--surface-container-high))] text-[hsl(var(--on-surface))]"
+                        : "bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))]"
+                    }`}
+                  >
+                    <Dice5 className="h-4 w-4" />
+                    随机种子
+                  </button>
+                  <button
+                    onClick={() => setSeedMode("fixed")}
+                    className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
+                      seedMode === "fixed"
+                        ? "signature-gradient text-white"
+                        : "bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))]"
+                    }`}
+                  >
+                    <Lock className="h-4 w-4" />
+                    固定种子
+                  </button>
+                </div>
+                <div className="flex items-center overflow-hidden rounded-xl border border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-low))]">
+                  <Input
+                    value={seed}
+                    onChange={(e) => setSeed(e.target.value.replace(/\D/g, "").slice(0, 18))}
+                    className="h-14 border-0 bg-transparent font-mono text-base focus-visible:ring-0"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCopySeed}
+                    className="h-14 w-14 rounded-none border-l border-[hsl(var(--outline-variant))]/20"
+                  >
+                    {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-xs text-[hsl(var(--secondary))]">
+                  {seedMode === "fixed" ? "固定种子可以复现相同的生成结果" : "切换随机种子会刷新当前的生成种子"}
+                </p>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+                  <span className="text-red-500 mr-1">*</span>生成数量
+                </label>
+                <div className="flex flex-wrap gap-5">
+                  {quantityOptions.map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setQuantity(item)}
+                      className="flex items-center gap-3 text-sm text-[hsl(var(--on-surface))]"
+                    >
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-full border transition-all ${
+                          quantity === item
+                            ? "border-transparent signature-gradient text-white"
+                            : "border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))]"
+                        }`}
+                      >
+                        {quantity === item ? <span className="text-[11px] font-bold">{item}</span> : ""}
+                      </span>
+                      <span className={quantity === item ? "font-medium" : "text-[hsl(var(--secondary))]"}>{item}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -322,72 +594,26 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
             </div>
           </div>
 
-          {/* Seed Control */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-[hsl(var(--on-surface))]">随机种子</label>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 px-4 py-3 rounded-xl bg-[hsl(var(--surface-container-low))] text-sm font-mono text-[hsl(var(--secondary))]">
-                {Math.floor(Math.random() * 1000000)}
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleCopySeed}
-                className="w-11 h-11 rounded-xl border-[hsl(var(--outline-variant))]"
+          {/* Description */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+                <span className="text-red-500 mr-1">*</span>描述
+              </label>
+              <Badge
+                onClick={handleApplyTemplate}
+                className="signature-gradient text-white border-0 text-[10px] px-2 py-0.5 rounded-full cursor-pointer hover:opacity-90"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-              </Button>
+                一键填入提示词框架
+              </Badge>
             </div>
-            {copied && <p className="text-xs text-emerald-500">已复制到剪贴板</p>}
-          </div>
-
-          {/* Description + Upload */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
-                  <span className="text-red-500 mr-1">*</span>描述
-                </label>
-                <Badge 
-                  onClick={handleApplyTemplate}
-                  className="signature-gradient text-white border-0 text-[10px] px-2 py-0.5 rounded-full cursor-pointer hover:opacity-90"
-                >
-                  一键填入提示词框架
-                </Badge>
-              </div>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="从多角度对角色进行详细描述，如身份、体型、身高、发型、发色、脸型、眼睛颜色、肤色、服装、饰品、鞋子等角度"
-                rows={6}
-                className="rounded-xl bg-[hsl(var(--surface-container-low))] border-none text-sm placeholder:text-[hsl(var(--secondary))] resize-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--primary))]"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[hsl(var(--on-surface))]">上传参考图</label>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
-                className="hidden"
-              />
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className="h-full min-h-[160px] bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:bg-[hsl(var(--surface-container-high))] transition-colors cursor-pointer group overflow-hidden relative"
-              >
-                {referenceImage ? (
-                  <img src={referenceImage} alt="参考图" className="w-full h-full object-cover absolute inset-0" />
-                ) : (
-                  <>
-                    <ImagePlus className="w-10 h-10 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--primary))] transition-colors" />
-                    <span className="text-sm text-[hsl(var(--on-surface))]">上传参考图</span>
-                    <span className="text-xs text-[hsl(var(--secondary))]">支持JPG / JPEG / PNG格式</span>
-                  </>
-                )}
-              </div>
-            </div>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="从多角度对角色进行详细描述，如身份、体型、身高、发型、发色、脸型、眼睛颜色、肤色、服装、饰品、鞋子等角度"
+              rows={6}
+              className="rounded-xl bg-[hsl(var(--surface-container-low))] border-none text-sm placeholder:text-[hsl(var(--secondary))] resize-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--primary))]"
+            />
           </div>
         </div>
 

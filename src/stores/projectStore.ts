@@ -32,7 +32,6 @@ import {
   initialObjects,
   modelImages,
   objectTypeImages,
-  objectTypeLabels,
 } from '@/data/initialData'
 
 // ==================== Store State 类型 ====================
@@ -396,10 +395,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const newObject: ObjectItem = {
       id: newId,
       name: data.name,
-      image: data.referenceImage || objectTypeImages[data.type] || objectTypeImages.prop,
-      type: objectTypeLabels[data.type] || '道具',
+      image: data.referenceImage || objectTypeImages.prop,
+      type: data.genMethod === 'model' ? 'AI生成' : '上传',
       status: 'draft',
-      scene: data.scene || '未关联场景',
+      scene: '未关联场景',
       modified: '刚刚',
     }
     

@@ -10,6 +10,7 @@
  * - projectStore.ts: 资产数据（episodes/scenes/characters/objects）
  */
 
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
@@ -39,11 +40,12 @@ const secondaryTabs: { id: ProjectTab; label: string }[] = [
 ]
 
 export default function ProjectDetail() {
-  const { notify } = useFeedback()
+  const { confirm, notify } = useFeedback()
   // 从 Store 获取状态
   const activeTab = useProjectStore((state) => state.activeTab)
   const currentPage = useProjectStore((state) => state.currentPage)
   const ui = useProjectStore((state) => state.ui)
+  const assets = useProjectStore((state) => state.assets)
   const { 
     setActiveTab, 
     setCurrentPage, 
@@ -53,26 +55,109 @@ export default function ProjectDetail() {
     createScene,
     createCharacter,
     createObject,
+    bulkDelete,
   } = useProjectStore()
+  const [batchMode, setBatchMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+
+  const assetType = useMemo(() => {
+    switch (activeTab) {
+      case "episodes":
+        return "episodes" as const
+      case "characters":
+        return "characters" as const
+      case "scenes":
+        return "scenes" as const
+      case "objects":
+        return "objects" as const
+      default:
+        return "scenes" as const
+    }
+  }, [activeTab])
+
+  useEffect(() => {
+    setBatchMode(false)
+    setSelectedIds([])
+  }, [activeTab])
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    )
+  }
+
+  const handleBatchDelete = async () => {
+    if (!batchMode) {
+      setBatchMode(true)
+      return
+    }
+
+    if (selectedIds.length === 0) {
+      notify.info("请先选择要删除的内容")
+      return
+    }
+
+    const confirmed = await confirm({
+      title: `删除所选${selectedIds.length}项`,
+      description: `当前页共 ${assets[assetType].length} 项，删除后无法恢复。确定继续吗？`,
+      confirmText: "确认删除",
+      tone: "danger",
+    })
+
+    if (!confirmed) return
+
+    bulkDelete(assetType, selectedIds)
+    notify.success(`已删除 ${selectedIds.length} 项`)
+    setSelectedIds([])
+    setBatchMode(false)
+  }
 
   // Tab 内容渲染
   const renderTabContent = () => {
     switch (activeTab) {
       case "episodes":
-        return <EpisodesTab onAddNew={() => openDrawer('episode')} />
+        return (
+          <EpisodesTab
+            onAddNew={() => openDrawer('episode')}
+            batchMode={batchMode}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+          />
+        )
       case "scenes":
-        return <ScenesTab onAddNew={() => openDrawer('scene')} />
+        return (
+          <ScenesTab
+            onAddNew={() => openDrawer('scene')}
+            batchMode={batchMode}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+          />
+        )
       case "characters":
-        return <CharactersTab onAddNew={() => openDrawer('character')} />
+        return (
+          <CharactersTab
+            onAddNew={() => openDrawer('character')}
+            batchMode={batchMode}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+          />
+        )
       case "objects":
-        return <ObjectsTab onAddNew={() => openDrawer('object')} />
+        return (
+          <ObjectsTab
+            onAddNew={() => openDrawer('object')}
+            batchMode={batchMode}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+          />
+        )
       default:
         return <PlaceholderTab label={secondaryTabs.find(t => t.id === activeTab)?.label || ""} />
     }
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--surface))]">
+    <div className="h-screen overflow-hidden bg-[hsl(var(--surface))]">
       {/* Episode Creator Dialog */}
       <EpisodeCreator 
         open={ui.isEpisodeDrawerOpen} 
@@ -105,12 +190,12 @@ export default function ProjectDetail() {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="ml-64 min-h-screen relative">
+      <main className="relative ml-64 h-screen overflow-hidden">
         {/* Header */}
         <ProjectHeader activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Content Canvas */}
-        <div className="pt-24 px-8 pb-12">
+        <div className="h-full overflow-y-auto px-8 pb-12 pt-24">
           {/* Secondary Toolbar */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-2">
@@ -119,15 +204,34 @@ export default function ProjectDetail() {
                 <span>最近</span>
                 <ChevronRight className="w-3 h-3 rotate-90" />
               </div>
+              {batchMode && (
+                <span className="rounded-full bg-[hsl(var(--surface-container-low))] px-3 py-2 text-xs font-medium text-[hsl(var(--primary))]">
+                  已选 {selectedIds.length} 项
+                </span>
+              )}
             </div>
-            
-            <Button 
-              onClick={() => notify.info("批量删除功能开发中")}
-              className="bg-[hsl(var(--primary))] text-white flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 shadow-sm border-0"
-            >
-              <Trash2 className="w-4 h-4" />
-              批量删除
-            </Button>
+
+            <div className="flex items-center gap-3">
+              {batchMode && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setBatchMode(false)
+                    setSelectedIds([])
+                  }}
+                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))]"
+                >
+                  取消
+                </Button>
+              )}
+              <Button
+                onClick={handleBatchDelete}
+                className="bg-[hsl(var(--primary))] text-white flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 shadow-sm border-0"
+              >
+                <Trash2 className="w-4 h-4" />
+                {batchMode ? `删除所选${selectedIds.length ? ` (${selectedIds.length})` : ""}` : "批量删除"}
+              </Button>
+            </div>
           </div>
 
           {/* Tab Content */}

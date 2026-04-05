@@ -9,7 +9,7 @@ export type EntityStatus = 'draft' | 'in-progress' | 'completed' | 'in-use' | 'a
 
 export type CharacterRole = '主角' | '配角'
 
-export type ObjectType = '武器' | '道具' | '服装' | '场景装饰'
+export type ObjectType = '武器' | '道具' | '服装' | '场景装饰' | 'AI生成' | '上传'
 
 export type GenerationMethod = 'ai' | 'upload' | 'mix'
 
@@ -83,6 +83,11 @@ export interface CharacterCreateData {
   style?: string
   description: string
   referenceImage?: string
+  seed?: string
+  seedMode?: 'random' | 'fixed'
+  quantity?: number
+  isRealPerson?: boolean
+  batchReferenceArchive?: string
 }
 
 // ==================== 物品 (Object) ====================
@@ -100,11 +105,7 @@ export interface ObjectItem {
 
 export interface ObjectCreateData {
   name: string
-  type: 'weapon' | 'prop' | 'clothing' | 'decoration'
-  genMethod: string
-  model?: string
-  scene?: string
-  description: string
+  genMethod: 'model' | 'upload'
   referenceImage?: string
 }
 

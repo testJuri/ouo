@@ -1,23 +1,17 @@
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
-  LayoutGrid, 
-  FolderOpen, 
-  Users, 
-  Settings, 
   Plus, 
-  Search, 
   MoreVertical,
-  PlusCircle,
   History,
-  ArrowLeft
 } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useState } from "react"
 import ProjectCreator from "./ProjectCreator"
+import WorkspaceHeader from "@/components/layout/WorkspaceHeader"
+import WorkspaceLayout from "@/components/layout/WorkspaceLayout"
 
 const initialProjects = [
   {
@@ -73,13 +67,6 @@ const activities = [
   }
 ]
 
-const navItems = [
-  { icon: LayoutGrid, label: "项目", href: "#", active: true },
-  { icon: FolderOpen, label: "资源", href: "#" },
-  { icon: Users, label: "团队", href: "#" },
-  { icon: Settings, label: "设置", href: "#" },
-]
-
 export default function Dashboard() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState(initialProjects)
@@ -94,6 +81,7 @@ export default function Dashboard() {
     password?: string
     mode: string
     description: string
+    scriptFile?: File | null
   }) => {
     const newProject = {
       id: Date.now(),
@@ -106,95 +94,49 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--surface))]">
+    <>
       <ProjectCreator
         open={isProjectDialogOpen}
         onOpenChange={setIsProjectDialogOpen}
         onCreate={handleCreateProject}
       />
-      {/* Side Navigation */}
-      <aside className="h-screen w-64 fixed left-0 top-0 bg-[hsl(var(--surface-container-low))] flex flex-col p-6 gap-y-4 z-40">
-        {/* Logo & Project Info */}
-        <div className="mb-8 px-2">
-          <Link to="/" className="text-xl font-bold text-[hsl(var(--primary))] hover:opacity-80 transition-opacity">
-            MangaCanvas
-          </Link>
-          <div className="mt-6 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[hsl(var(--surface-container-highest))] overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" 
-                alt="用户头像" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-[hsl(var(--primary))]">Project Alpha</p>
-              <p className="text-[10px] text-[hsl(var(--secondary))] font-medium uppercase tracking-wider">编辑阶段</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-col gap-y-2">
-          {navItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                item.active 
-                  ? "bg-[hsl(var(--surface-container-high))] text-[hsl(var(--primary))] translate-x-1" 
-                  : "text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))]"
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="text-sm font-semibold uppercase tracking-widest">{item.label}</span>
-            </a>
-          ))}
-        </nav>
-
-        {/* Back to Home */}
-        <div className="mt-4">
-          <Link to="/">
-            <Button variant="ghost" className="w-full justify-start gap-2 text-[hsl(var(--on-secondary-fixed-variant))]">
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">返回首页</span>
-            </Button>
-          </Link>
-        </div>
-
-        {/* New Asset Button */}
-        <div className="mt-auto">
-          <Button className="w-full py-6 signature-gradient text-white rounded-xl font-bold text-sm tracking-widest uppercase shadow-lg hover:scale-[1.02] transition-transform active:scale-95 border-0">
-            新建资源
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="ml-64 min-h-screen bg-[hsl(var(--surface))] p-12">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-16">
-          <div className="space-y-1">
-            <h2 className="text-4xl font-extrabold tracking-tighter text-[hsl(var(--on-surface))]">控制台</h2>
-            <p className="text-[hsl(var(--secondary))] font-medium">欢迎回到你的动态工作区。</p>
-          </div>
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-grow md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[hsl(var(--secondary))] w-4 h-4" />
-              <Input 
-                placeholder="搜索项目..." 
-                className="w-full pl-12 pr-4 py-3 bg-[hsl(var(--surface-container-low))] border-none rounded-xl focus:ring-0 focus:bg-[hsl(var(--surface-container-lowest))] transition-colors text-sm font-medium placeholder:text-[hsl(var(--secondary))]/50"
-              />
-            </div>
-            <Button
-              onClick={() => setIsProjectDialogOpen(true)}
-              className="signature-gradient text-white px-6 py-6 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg hover:scale-[1.02] transition-transform active:scale-95 border-0"
-            >
-              <Plus className="w-5 h-5" />
-              新建项目
-            </Button>
-          </div>
-        </header>
+      <WorkspaceLayout
+        header={
+          <WorkspaceHeader
+            title="控制台"
+            subtitle="欢迎回到你的动态工作区。"
+            searchPlaceholder="搜索项目..."
+            actions={
+              <Button
+                onClick={() => setIsProjectDialogOpen(true)}
+                className="signature-gradient rounded-xl border-0 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                新建项目
+              </Button>
+            }
+          />
+        }
+      >
+        <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">项目总览</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">{projects.length}</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">当前工作区项目总数</p>
+          </Card>
+          <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">进行中</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">
+              {projects.filter((project) => project.status === "in-progress").length}
+            </p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">正在推进的创作项目</p>
+          </Card>
+          <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">最近更新</p>
+            <p className="mt-3 text-lg font-black text-[hsl(var(--on-surface))]">{projects[0]?.name ?? "暂无项目"}</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">刚刚更新于工作区</p>
+          </Card>
+        </section>
 
         {/* Recent Projects Section */}
         <div className="flex items-end justify-between mb-8">
@@ -244,18 +186,6 @@ export default function Dashboard() {
               </div>
             </Card>
           ))}
-
-          {/* Create New Project Card */}
-          <Card
-            onClick={() => setIsProjectDialogOpen(true)}
-            className="group cursor-pointer bg-[hsl(var(--surface-container-low))] rounded-xl p-4 flex flex-col items-center justify-center border-2 border-dashed border-[hsl(var(--outline-variant))]/30 hover:border-[hsl(var(--primary))]/50 transition-all min-h-[320px] border-0 shadow-none"
-          >
-            <div className="w-16 h-16 rounded-full bg-[hsl(var(--surface-container))] flex items-center justify-center text-[hsl(var(--primary))] mb-4 group-hover:scale-110 transition-transform">
-              <PlusCircle className="w-8 h-8" />
-            </div>
-            <p className="text-[hsl(var(--on-surface))] font-bold">创建新项目</p>
-            <p className="text-xs text-[hsl(var(--secondary))] mt-1">开始一个新的编辑板</p>
-          </Card>
         </div>
 
         {/* Activity Feed */}
@@ -290,28 +220,26 @@ export default function Dashboard() {
             ))}
           </div>
         </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="ml-64 bg-[hsl(var(--surface))] w-[calc(100%-16rem)] py-12 px-8 border-t border-[hsl(var(--outline-variant))]/15">
-        <div className="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto">
-          <div className="mb-4 md:mb-0">
-            <span className="font-bold text-[hsl(var(--on-surface))] text-lg">MangaCanvas</span>
-            <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
+        <footer className="mt-24 border-t border-[hsl(var(--outline-variant))]/15 py-10">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div>
+              <span className="text-lg font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
+              <p className="mt-1 text-xs text-[hsl(var(--on-secondary-fixed-variant))]">© 2024 Kinetic Gallery. 保留所有权利。</p>
+            </div>
+            <div className="flex gap-8">
+              <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] transition-opacity hover:text-[hsl(var(--primary))]">
+                隐私政策
+              </Link>
+              <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] transition-opacity hover:text-[hsl(var(--primary))]">
+                服务条款
+              </Link>
+              <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] transition-opacity hover:text-[hsl(var(--primary))]">
+                联系我们
+              </Link>
+            </div>
           </div>
-          <div className="flex gap-8">
-            <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
-              隐私政策
-            </Link>
-            <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
-              服务条款
-            </Link>
-            <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
-              联系我们
-            </Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </WorkspaceLayout>
+    </>
   )
 }

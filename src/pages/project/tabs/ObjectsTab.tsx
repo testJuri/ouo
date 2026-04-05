@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Eye, Link } from "lucide-react"
+import { Plus, MoreHorizontal, Trash2, Copy, Link } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,8 @@ const typeColors: Record<ObjectType, string> = {
   "道具": "bg-blue-500",
   "服装": "bg-purple-500",
   "场景装饰": "bg-emerald-500",
+  "AI生成": "bg-orange-500",
+  "上传": "bg-cyan-500",
 }
 
 export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
@@ -117,10 +119,6 @@ export default function ObjectsTab({ onAddNew }: ObjectsTabProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem onClick={() => notify.info(`查看详情：${object.name}`)}>
-                      <Eye className="w-4 h-4 mr-2" />
-                      查看详情
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleDuplicate(object)}>
                       <Copy className="w-4 h-4 mr-2" />
                       复制

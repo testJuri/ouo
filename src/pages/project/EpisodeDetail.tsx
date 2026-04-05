@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { 
   ChevronLeft, 
-  Play, 
+  CheckCircle2, 
   Users, 
   Image as ImageIcon, 
   Package, 
@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useProjectStore } from "@/stores/projectStore"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -69,12 +70,20 @@ const storyboard = [
 export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
   const { notify } = useFeedback()
-  
-  // eslint-disable-next-line no-console
-  console.log("Episode ID:", episodeId)
   const navigate = useNavigate()
+  const { assets, updateEpisode } = useProjectStore()
+  
+  // 从 store 获取当前片段
+  const episode = assets.episodes.find((ep) => ep.id === Number(episodeId))
+  
   const handleContinueCreate = () => {
     navigate(`/project/${projectId}/episode/${episodeId}/canvas`)
+  }
+  
+  const handleMarkComplete = () => {
+    if (!episode) return
+    updateEpisode(episode.id, { status: "completed" })
+    notify.success("片段已标记为完成")
   }
 
   const getStatusBadge = (status: string) => {
@@ -122,30 +131,32 @@ export default function EpisodeDetail() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-bold text-[hsl(var(--on-surface))]">{mockEpisode.name}</h1>
-                  {getStatusBadge(mockEpisode.status)}
+                  <h1 className="text-2xl font-bold text-[hsl(var(--on-surface))]">{episode?.name || mockEpisode.name}</h1>
+                  {getStatusBadge(episode?.status || mockEpisode.status)}
                 </div>
                 <div className="flex items-center gap-4 text-sm text-[hsl(var(--secondary))]">
-                  <span className="font-mono">{mockEpisode.code}</span>
+                  <span className="font-mono">{episode?.code || mockEpisode.code}</span>
                   <span>·</span>
-                  <span>{mockEpisode.sceneCount} 个场景</span>
+                  <span>{episode?.count || mockEpisode.sceneCount} 个场景</span>
                   <span>·</span>
                   <span>预计 {mockEpisode.duration}</span>
                   <span>·</span>
-                  <span>修改于 {mockEpisode.modified}</span>
+                  <span>修改于 {episode?.modified || mockEpisode.modified}</span>
                 </div>
               </div>
               
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="rounded-lg"
-                  onClick={() => notify.info("预览功能开发中")}
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  预览
-                </Button>
+                {episode?.status !== "completed" && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="rounded-lg border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                    onClick={handleMarkComplete}
+                  >
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    标记完成
+                  </Button>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-lg">
@@ -177,7 +188,7 @@ export default function EpisodeDetail() {
                     <span className="text-sm font-medium opacity-90">AI 辅助创作</span>
                   </div>
                   <h2 className="text-3xl font-bold mb-2">
-                    {mockEpisode.status === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
+                    {(episode?.status || mockEpisode.status) === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
                   </h2>
                   <p className="text-white/80 mb-6 max-w-md">
                     已完场 {mockEpisode.progress}%，还有 {storyboard.filter(s => s.status !== "completed").length} 个镜头等待制作
@@ -188,7 +199,7 @@ export default function EpisodeDetail() {
                     onClick={handleContinueCreate}
                   >
                     <Wand2 className="w-5 h-5 mr-2" />
-                    {mockEpisode.status === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
+                    {(episode?.status || mockEpisode.status) === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
                   </Button>
                 </div>
                 {/* Decorative elements */}
@@ -205,7 +216,7 @@ export default function EpisodeDetail() {
               <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
                 <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] mb-3 uppercase tracking-wider">剧情简介</h3>
                 <p className="text-[hsl(var(--on-surface-variant))] leading-relaxed">
-                  {mockEpisode.description}
+                  {episode?.description || mockEpisode.description}
                 </p>
               </div>
 

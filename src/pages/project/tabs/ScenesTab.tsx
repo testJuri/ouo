@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Eye } from "lucide-react"
+import { Plus, MoreHorizontal, Trash2, Copy } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,10 +103,6 @@ export default function ScenesTab({ onAddNew }: ScenesTabProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem onClick={() => notify.info(`查看详情：${scene.name}`)}>
-                      <Eye className="w-4 h-4 mr-2" />
-                      查看详情
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleDuplicate(scene)}>
                       <Copy className="w-4 h-4 mr-2" />
                       复制

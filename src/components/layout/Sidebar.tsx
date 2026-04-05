@@ -16,12 +16,12 @@ import {
   Plus,
   Check
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { useState } from "react"
 
 const navItems = [
-  { icon: LayoutGrid, label: "仪表盘", href: "#", active: true },
-  { icon: FolderOpen, label: "项目", href: "#" },
+  { icon: LayoutGrid, label: "仪表盘", href: "/dashboard" },
+  { icon: FolderOpen, label: "项目", href: "/projects" },
 ]
 
 const projects = [
@@ -33,6 +33,7 @@ const projects = [
 
 export default function Sidebar() {
   const [currentProject, setCurrentProject] = useState(projects[0])
+  const location = useLocation()
 
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-[hsl(var(--surface-container-low))] flex flex-col p-6 gap-y-4 z-50">
@@ -84,20 +85,24 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-2">
-        {navItems.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
-              item.active 
-                ? "text-[hsl(var(--primary))] font-semibold bg-[hsl(var(--surface-container-high))]" 
-                : "text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))]"
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            <span>{item.label}</span>
-          </a>
-        ))}
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.href || 
+            (item.href !== "/dashboard" && location.pathname.startsWith(item.href))
+          return (
+            <Link
+              key={item.label}
+              to={item.href}
+              className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-colors ${
+                isActive
+                  ? "text-[hsl(var(--primary))] font-semibold bg-[hsl(var(--surface-container-high))]" 
+                  : "text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))]"
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          )
+        })}
       </nav>
 
       {/* User Section */}
