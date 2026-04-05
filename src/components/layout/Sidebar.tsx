@@ -10,6 +10,7 @@ import {
 import { 
   LayoutGrid, 
   FolderOpen,
+  Users,
   Settings,
   ArrowLeft,
   ChevronDown,
@@ -24,6 +25,7 @@ import ApiKeySettings from "./ApiKeySettings"
 const navItems = [
   { icon: LayoutGrid, label: "仪表盘", href: "/dashboard" },
   { icon: FolderOpen, label: "项目", href: "/projects" },
+  { icon: Users, label: "成员管理", href: "/members" },
 ]
 
 const projects = [
@@ -39,6 +41,7 @@ export default function Sidebar() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const isDashboard = location.pathname === "/dashboard"
 
   return (
     <>
@@ -63,7 +66,7 @@ export default function Sidebar() {
                     {currentProject.name}
                   </h1>
                   <p className="text-xs text-[hsl(var(--secondary))]">
-                    编辑阶段
+                    组织
                   </p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--on-surface))]" />
@@ -131,12 +134,14 @@ export default function Sidebar() {
 
       {/* User Section */}
       <div className="pt-6 mt-6 border-t border-[hsl(var(--outline-variant))]/30">
-        <Link to="/dashboard">
-          <Button variant="ghost" className="w-full justify-start gap-2 text-[hsl(var(--on-secondary-fixed-variant))] mb-4">
-            <ArrowLeft className="w-4 h-4" />
-            <span>返回控制台</span>
-          </Button>
-        </Link>
+        {!isDashboard && (
+          <Link to="/dashboard">
+            <Button variant="ghost" className="mb-4 w-full justify-start gap-2 text-[hsl(var(--on-secondary-fixed-variant))]">
+              <ArrowLeft className="w-4 h-4" />
+              <span>返回控制台</span>
+            </Button>
+          </Link>
+        )}
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))] transition-colors"

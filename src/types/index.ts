@@ -13,6 +13,9 @@ export type ObjectType = '武器' | '道具' | '服装' | '场景装饰' | 'AI�
 
 export type GenerationMethod = 'ai' | 'upload' | 'mix'
 
+export type WorkflowSourceType = 'blank' | 'episode' | 'scene' | 'character' | 'object'
+export type WorkflowStatus = 'draft' | 'active' | 'archived'
+
 // ==================== 片段 (Episode) ====================
 
 export interface Episode {
@@ -124,4 +127,14 @@ export interface ProjectFilters {
   searchQuery: string
   sortBy: 'recent' | 'name' | 'status'
   statusFilter: EntityStatus | 'all'
+}
+
+export interface Workflow {
+  id: string
+  projectId: string
+  name: string
+  sourceType: WorkflowSourceType
+  sourceAssetId?: number
+  status: WorkflowStatus
+  modified: string
 }

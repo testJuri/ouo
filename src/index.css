@@ -48,9 +48,14 @@
   * {
     @apply border-border;
   }
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-[hsl(var(--surface))] text-[hsl(var(--on-surface))];
     font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-y: scroll;
   }
   
   /* Custom scrollbar */

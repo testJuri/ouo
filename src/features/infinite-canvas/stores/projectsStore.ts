@@ -69,6 +69,50 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
     return newProject.id;
   },
 
+  createWorkflowDocument: ({ id, name, projectId, sourceType, sourceAssetId }) => {
+    const existingProject = get().projects.find((p) => p.id === id);
+    if (existingProject) {
+      set({
+        projects: get().projects.map((project) =>
+          project.id === id
+            ? {
+                ...project,
+                name,
+                projectId,
+                sourceType,
+                sourceAssetId,
+                updatedAt: new Date(),
+              }
+            : project
+        ),
+      });
+      get().saveProjects();
+      return;
+    }
+
+    const workflowProject: Project = {
+      id,
+      name,
+      thumbnail: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      projectId,
+      sourceType,
+      sourceAssetId,
+      canvasData: {
+        nodes: [],
+        edges: [],
+        viewport: { x: 100, y: 50, zoom: 0.8 },
+      },
+    };
+
+    const newProjects = [workflowProject, ...get().projects];
+    set({ projects: newProjects });
+    db.saveAllProjects(newProjects).catch((error) => {
+      console.error('Failed to save workflow document:', error);
+    });
+  },
+
   // Update project
   updateProject: (id: string, data: Partial<Project>) => {
     set({
@@ -77,6 +121,10 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
       ),
     });
     get().saveProjects();
+  },
+
+  getProjectById: (id: string) => {
+    return get().projects.find((project) => project.id === id) || null;
   },
 
   // Update project canvas
@@ -88,7 +136,9 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
         projects: [
           {
             id,
-            name: `片段画布 ${id.replace(/^episode-/, "")}`,
+            name: id.startsWith('episode-')
+              ? `片段工作流 ${id.replace(/^episode-/, "")}`
+              : `工作流 ${id.replace(/^workflow_/, "")}`,
             thumbnail: '',
             createdAt: new Date(),
             updatedAt: new Date(),

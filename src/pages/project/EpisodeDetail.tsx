@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useWorkflowLauncher } from "@/hooks/useWorkflowLauncher"
 import { useProjectStore } from "@/stores/projectStore"
 import {
   DropdownMenu,
@@ -74,13 +75,22 @@ export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
   const { notify } = useFeedback()
   const navigate = useNavigate()
+  const launchWorkflow = useWorkflowLauncher()
   const { assets, updateEpisode } = useProjectStore()
   
   // 从 store 获取当前片段
   const episode = assets.episodes.find((ep) => ep.id === Number(episodeId))
   
   const handleContinueCreate = () => {
-    navigate(`/project/${projectId}/episode/${episodeId}/canvas`)
+    if (!projectId) return
+
+    launchWorkflow({
+      projectId,
+      sourceType: "episode",
+      sourceName: episode?.name || mockEpisode.name,
+      sourceAssetId: Number(episodeId),
+      successMessage: "已创建片段工作流",
+    })
   }
   
   const handleMarkComplete = () => {

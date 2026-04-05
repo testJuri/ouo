@@ -19,11 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useLocation, useParams } from "react-router-dom"
 import Sidebar from "@/components/layout/Sidebar"
 import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useWorkflowLauncher } from "@/hooks/useWorkflowLauncher"
 import { useProjectStore } from "@/stores/projectStore"
+import type { WorkflowSourceType } from "@/types"
 import type { ProjectTab } from "@/types"
 
 // Tabs
@@ -63,8 +65,9 @@ const projectTitleMap: Record<string, string> = {
 
 export default function ProjectDetail() {
   const { id: projectId } = useParams()
-  const navigate = useNavigate()
+  const location = useLocation()
   const { confirm, notify } = useFeedback()
+  const launchWorkflow = useWorkflowLauncher()
   // 从 Store 获取状态
   const activeTab = useProjectStore((state) => state.activeTab)
   const currentPage = useProjectStore((state) => state.currentPage)
@@ -105,6 +108,12 @@ export default function ProjectDetail() {
     setBatchMode(false)
     setSelectedIds([])
   }, [activeTab])
+
+  useEffect(() => {
+    const nextTab = location.state?.activeTab as ProjectTab | undefined
+    if (!nextTab || nextTab === activeTab) return
+    setActiveTab(nextTab)
+  }, [activeTab, location.state, setActiveTab])
 
   const sortItemsByName = <T extends { name: string }>(items: T[], direction: "asc" | "desc") => {
     const multiplier = direction === "asc" ? 1 : -1
@@ -170,16 +179,15 @@ export default function ProjectDetail() {
     setBatchMode(false)
   }
 
-  const handleOpenInfiniteCanvas = () => {
+  const handleOpenInfiniteCanvas = (sourceType: WorkflowSourceType, sourceName?: string, sourceAssetId?: number) => {
     if (!projectId) return
 
-    const targetEpisode = assets.episodes[0]
-    if (!targetEpisode) {
-      notify.info("请先创建一个片段，再进入无限画布")
-      return
-    }
-
-    navigate(`/project/${projectId}/episode/${targetEpisode.id}/canvas`)
+    launchWorkflow({
+      projectId,
+      sourceType,
+      sourceName,
+      sourceAssetId,
+    })
   }
 
   // Tab 内容渲染
@@ -200,6 +208,7 @@ export default function ProjectDetail() {
           <ScenesTab
             scenes={sortedAssets.scenes}
             onAddNew={() => openDrawer('scene')}
+            onOpenCanvas={() => handleOpenInfiniteCanvas("scene")}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -210,7 +219,7 @@ export default function ProjectDetail() {
           <CharactersTab
             characters={sortedAssets.characters}
             onAddNew={() => openDrawer('character')}
-            onOpenCanvas={handleOpenInfiniteCanvas}
+            onOpenCanvas={() => handleOpenInfiniteCanvas("character")}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -221,6 +230,7 @@ export default function ProjectDetail() {
           <ObjectsTab
             objects={sortedAssets.objects}
             onAddNew={() => openDrawer('object')}
+            onOpenCanvas={() => handleOpenInfiniteCanvas("object")}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -324,9 +334,11 @@ export default function ProjectDetail() {
               </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex flex-1 flex-col">
               {/* Tab Content */}
-              {renderTabContent()}
+              <div className="flex-1">
+                {renderTabContent()}
+              </div>
 
               {/* Pagination */}
               <div className="mt-16 flex justify-center">
@@ -363,7 +375,7 @@ export default function ProjectDetail() {
             </div>
 
             {/* Footer */}
-            <footer className="mt-12 border-t border-[hsl(var(--outline-variant))]/15 py-8">
+            <footer className="mt-auto border-t border-[hsl(var(--outline-variant))]/15 py-8">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div>
                   <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>

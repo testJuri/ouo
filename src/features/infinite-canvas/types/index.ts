@@ -50,6 +50,9 @@ export interface Project {
   thumbnail: string;
   createdAt: Date;
   updatedAt: Date;
+  projectId?: string;
+  sourceType?: string;
+  sourceAssetId?: number;
   canvasData: {
     nodes: CustomNode[];
     edges: CustomEdge[];
@@ -194,7 +197,15 @@ export interface ProjectsStore {
   initProjects: () => void;
   saveProjects: () => void;
   createProject: (name?: string) => string;
+  createWorkflowDocument: (workflow: {
+    id: string;
+    name: string;
+    projectId: string;
+    sourceType: string;
+    sourceAssetId?: number;
+  }) => void;
   updateProject: (id: string, data: Partial<Project>) => void;
+  getProjectById: (id: string) => Project | null;
   updateProjectCanvas: (id: string, canvasData: Partial<Project['canvasData']>) => void;
   getProjectCanvas: (id: string) => Project['canvasData'] | null;
   deleteProject: (id: string) => void;

@@ -63,10 +63,14 @@ const edgeTypes = {
 };
 
 const CanvasInner: React.FC = () => {
-  const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>();
+  const { projectId, workflowId, episodeId } = useParams<{
+    projectId: string;
+    workflowId?: string;
+    episodeId?: string;
+  }>();
   const navigate = useNavigate();
   const { zoomIn, zoomOut, fitView } = useReactFlow();
-  const canvasProjectId = projectId && episodeId ? `episode-${projectId}-${episodeId}` : undefined;
+  const canvasDocumentId = workflowId || (projectId && episodeId ? `episode-${projectId}-${episodeId}` : undefined);
 
   const {
     nodes,
@@ -85,7 +89,7 @@ const CanvasInner: React.FC = () => {
     canRedo,
   } = useCanvasStore();
 
-  const { projects, getProjectCanvas, updateProjectCanvas, initProjects } = useProjectsStore();
+  const { projects, getProjectById, getProjectCanvas, updateProjectCanvas, initProjects } = useProjectsStore();
   const { isDark } = useThemeStore();
 
   const [showApiSettings, setShowApiSettings] = useState(false);
@@ -96,7 +100,59 @@ const CanvasInner: React.FC = () => {
   const [showProjectMenu, setShowProjectMenu] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
-  const projectName = projects.find((p) => p.id === canvasProjectId)?.name || `片段 ${episodeId || ''} 画布`;
+  const currentWorkflow = canvasDocumentId ? getProjectById(canvasDocumentId) : null;
+  const workflowName =
+    currentWorkflow?.name ||
+    (workflowId ? `工作流 ${workflowId.slice(-6)}` : `片段工作流 ${episodeId || ''}`);
+  const workflowContextLabel =
+    currentWorkflow?.sourceType === 'scene'
+      ? '场景工作流'
+      : currentWorkflow?.sourceType === 'character'
+      ? '角色工作流'
+      : currentWorkflow?.sourceType === 'object'
+      ? '物品工作流'
+      : currentWorkflow?.sourceType === 'episode'
+      ? '片段工作流'
+      : '项目工作流'
+
+  const backTarget = useMemo(() => {
+    if (!projectId) {
+      return { label: '返回项目', action: () => navigate('/projects') };
+    }
+
+    if (currentWorkflow?.sourceType === 'episode' && currentWorkflow.sourceAssetId) {
+      return {
+        label: '返回片段',
+        action: () => navigate(`/project/${projectId}/episode/${currentWorkflow.sourceAssetId}`),
+      };
+    }
+
+    if (currentWorkflow?.sourceType === 'scene') {
+      return {
+        label: '返回场景',
+        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'scenes' } }),
+      };
+    }
+
+    if (currentWorkflow?.sourceType === 'character') {
+      return {
+        label: '返回角色',
+        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'characters' } }),
+      };
+    }
+
+    if (currentWorkflow?.sourceType === 'object') {
+      return {
+        label: '返回物品',
+        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'objects' } }),
+      };
+    }
+
+    return {
+      label: '返回项目',
+      action: () => navigate(`/project/${projectId}`),
+    };
+  }, [currentWorkflow?.sourceAssetId, currentWorkflow?.sourceType, navigate, projectId]);
 
   // 直接从 nodes 中计算选中的节点
   const selectedNodes = useMemo(() => {
@@ -398,18 +454,18 @@ const CanvasInner: React.FC = () => {
   }, [initProjects]);
 
   useEffect(() => {
-    if (canvasProjectId && projects.length > 0) {
-      loadProject(canvasProjectId, getProjectCanvas);
+    if (canvasDocumentId && projects.length > 0) {
+      loadProject(canvasDocumentId, getProjectCanvas);
     }
-  }, [canvasProjectId, projects.length, loadProject, getProjectCanvas]);
+  }, [canvasDocumentId, projects.length, loadProject, getProjectCanvas]);
 
   useEffect(() => {
-    if (!canvasProjectId) return;
+    if (!canvasDocumentId) return;
     const timer = setInterval(() => {
       saveProject(updateProjectCanvas);
     }, 5000);
     return () => clearInterval(timer);
-  }, [canvasProjectId, nodes, edges, saveProject, updateProjectCanvas]);
+  }, [canvasDocumentId, nodes, edges, saveProject, updateProjectCanvas]);
 
   const handleAddNode = (type: string) => {
     const viewportCenterX = -viewport.x / viewport.zoom + (window.innerWidth / 2) / viewport.zoom;
@@ -459,7 +515,7 @@ const CanvasInner: React.FC = () => {
     const workflow = {
       version: '1.0',
       exportedAt: new Date().toISOString(),
-      projectName,
+      workflowName,
       nodes,
       edges,
       viewport,
@@ -469,14 +525,14 @@ const CanvasInner: React.FC = () => {
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;
-    link.download = `workflow_${projectName}_${Date.now()}.json`;
+    link.download = `workflow_${workflowName}_${Date.now()}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(blobUrl);
     message.success('工作流已导出');
     setShowProjectMenu(false);
-  }, [nodes, edges, viewport, projectName]);
+  }, [nodes, edges, viewport, workflowName]);
 
   // 清空画布
   const handleClearCanvas = useCallback(() => {
@@ -515,7 +571,7 @@ const CanvasInner: React.FC = () => {
       <header className="h-16 flex items-center justify-between px-6 bg-[hsl(var(--surface))]/95 backdrop-blur-md border-b border-[hsl(var(--outline-variant))]/20 z-50">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => navigate(`/project/${projectId}/episode/${episodeId}`)}
+            onClick={backTarget.action}
             className="w-9 h-9 flex items-center justify-center rounded-xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
             <ArrowLeftOutlined style={{ fontSize: 16 }} />
@@ -529,8 +585,8 @@ const CanvasInner: React.FC = () => {
                 <PictureOutlined style={{ fontSize: 16 }} />
               </div>
               <div className="text-left leading-tight">
-                <div className="text-[11px] uppercase tracking-[0.22em] text-[hsl(var(--secondary))]">创作画布</div>
-                <span className="text-sm font-bold tracking-tight text-[hsl(var(--on-surface))]">{projectName}</span>
+                <div className="text-[11px] uppercase tracking-[0.22em] text-[hsl(var(--secondary))]">{workflowContextLabel}</div>
+                <span className="text-sm font-bold tracking-tight text-[hsl(var(--on-surface))]">{workflowName}</span>
               </div>
               <DownOutlined style={{ fontSize: 12, color: 'hsl(var(--secondary))' }} />
             </button>
@@ -560,10 +616,10 @@ const CanvasInner: React.FC = () => {
             画布
           </button>
           <button 
-            onClick={() => navigate(`/project/${projectId}/episode/${episodeId}`)}
+            onClick={backTarget.action}
             className="px-3 py-2 text-xs tracking-[0.2em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
-            返回片段
+            {backTarget.label}
           </button>
         </nav>
         

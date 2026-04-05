@@ -13,9 +13,10 @@ import {
 import Dashboard from "./pages/Dashboard"
 import ProjectsList from "./pages/ProjectsList"
 import ProjectPermissions from "./pages/ProjectPermissions"
+import Members from "./pages/Members"
 import ProjectDetail from "./pages/project"
 import EpisodeDetail from "./pages/project/EpisodeDetail"
-import EpisodeCanvas from "./pages/project/EpisodeCanvas"
+import WorkflowCanvas from "./pages/project/WorkflowCanvas"
 import Login from "./pages/auth/Login"
 import Pricing from "./pages/Pricing"
 import Gallery from "./pages/Gallery"
@@ -245,7 +246,7 @@ function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[hsl(var(--surface))] w-full py-12 px-8 border-t border-[hsl(var(--outline-variant))]/15">
+      <footer className="bg-[hsl(var(--surface))] w-full pt-8 pb-0 px-8 border-t border-[hsl(var(--outline-variant))]/15">
         <div className="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
           <div className="flex flex-col items-center md:items-start gap-4">
             <span className="font-bold text-[hsl(var(--on-surface))] text-xl">MangaCanvas</span>
@@ -285,12 +286,14 @@ function App() {
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
-        <Route path="/project/:projectId/episode/:episodeId/canvas" element={<EpisodeCanvas />} />
+        <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
+        <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/workflow" element={<Workflow />} />
         <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
+        <Route path="/members" element={<Members />} />
       </Routes>
     </BrowserRouter>
   )

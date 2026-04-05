@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
-import { Plus, Check } from "lucide-react"
+import { Check, ArrowRight, Wand2, Workflow } from "lucide-react"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 import { useProjectStore } from "@/stores/projectStore"
 import type { ObjectItem, ObjectType } from "@/types"
@@ -7,6 +8,7 @@ import type { ObjectItem, ObjectType } from "@/types"
 interface ObjectsTabProps {
   objects?: ObjectItem[]
   onAddNew?: () => void
+  onOpenCanvas?: () => void
   batchMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
@@ -21,9 +23,17 @@ const typeColors: Record<ObjectType, string> = {
   "上传": "bg-cyan-500",
 }
 
-export default function ObjectsTab({ objects: objectsProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ObjectsTabProps) {
+export default function ObjectsTab({
+  objects: objectsProp,
+  onAddNew,
+  onOpenCanvas,
+  batchMode = false,
+  selectedIds = [],
+  onToggleSelect,
+}: ObjectsTabProps) {
   const objects = useProjectStore((state) => objectsProp ?? state.assets.objects)
   const { openDrawer } = useProjectStore()
+  const { notify } = useFeedback()
 
   const handleAddNew = () => {
     if (onAddNew) {
@@ -33,18 +43,63 @@ export default function ObjectsTab({ objects: objectsProp, onAddNew, batchMode =
     }
   }
 
+  const handleOpenCanvas = () => {
+    if (onOpenCanvas) {
+      onOpenCanvas()
+      return
+    }
+
+    notify.info("无限画布创作模式正在接入物品工作流")
+  }
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10 gap-4">
       {/* Add New Object Card */}
       <div
-        onClick={handleAddNew}
-        className="aspect-square bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
+        className="aspect-square rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))] bg-[linear-gradient(180deg,hsl(var(--surface-container))_0%,hsl(var(--surface-container-low))_100%)] p-3 transition-all hover:border-[hsl(var(--primary))]/35 hover:shadow-lg hover:shadow-[hsl(var(--primary))]/5"
       >
-        <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-          <Plus className="w-6 h-6 text-[hsl(var(--primary))]" />
+        <div className="mb-3">
+          <h3 className="text-sm font-bold text-[hsl(var(--on-surface))]">添加物品</h3>
+          <p className="mt-1 text-[10px] text-[hsl(var(--secondary))]">
+            选择创作方式
+          </p>
         </div>
-        <span className="text-sm font-bold text-[hsl(var(--on-surface-variant))]">添加物品</span>
-        <span className="text-[10px] text-[hsl(var(--secondary))] mt-1">武器 / 道具 / 装饰</span>
+
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="flex w-full items-center justify-between rounded-xl bg-[hsl(var(--surface-container-high))] px-3 py-2.5 text-left transition-all hover:bg-[hsl(var(--surface-container-highest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--primary))]/12 text-[hsl(var(--primary))]">
+                <Wand2 className="h-3.5 w-3.5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">快捷创作</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">快速建物品</div>
+              </div>
+            </div>
+            <ArrowRight className="h-3.5 w-3.5 text-[hsl(var(--secondary))]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCanvas}
+            className="flex w-full items-center justify-between rounded-xl border border-[hsl(var(--outline-variant))]/60 bg-[hsl(var(--surface))]/75 px-3 py-2.5 text-left transition-all hover:border-[hsl(var(--primary))]/30 hover:bg-[hsl(var(--surface-container-lowest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[hsl(var(--secondary-container))] text-[hsl(var(--on-secondary-container))]">
+                <Workflow className="h-3.5 w-3.5" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">无限画布</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">自由编排</div>
+              </div>
+            </div>
+            <ArrowRight className="h-3.5 w-3.5 text-[hsl(var(--secondary))]" />
+          </button>
+        </div>
       </div>
 
       {/* Object Cards */}

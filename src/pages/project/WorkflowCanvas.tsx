@@ -4,6 +4,6 @@ import "@/features/infinite-canvas/canvas.css"
 
 import Canvas from "@/features/infinite-canvas/Canvas"
 
-export default function EpisodeCanvas() {
+export default function WorkflowCanvas() {
   return <Canvas />
 }

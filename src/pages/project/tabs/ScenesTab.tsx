@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Check } from "lucide-react"
+import { MoreHorizontal, Trash2, Copy, Check, ArrowRight, Wand2, Workflow } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,12 +14,20 @@ import type { Scene } from "@/types"
 interface ScenesTabProps {
   scenes?: Scene[]
   onAddNew?: () => void
+  onOpenCanvas?: () => void
   batchMode?: boolean
   selectedIds?: number[]
   onToggleSelect?: (id: number) => void
 }
 
-export default function ScenesTab({ scenes: scenesProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ScenesTabProps) {
+export default function ScenesTab({
+  scenes: scenesProp,
+  onAddNew,
+  onOpenCanvas,
+  batchMode = false,
+  selectedIds = [],
+  onToggleSelect,
+}: ScenesTabProps) {
   const scenes = useProjectStore((state) => scenesProp ?? state.assets.scenes)
   const { deleteScene, duplicateScene, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
@@ -50,18 +58,63 @@ export default function ScenesTab({ scenes: scenesProp, onAddNew, batchMode = fa
     }
   }
 
+  const handleOpenCanvas = () => {
+    if (onOpenCanvas) {
+      onOpenCanvas()
+      return
+    }
+
+    notify.info("无限画布创作模式正在接入场景工作流")
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       {/* Add New Scene Card */}
-      <div 
-        onClick={handleAddNew}
-        className="aspect-[4/3] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
+      <div
+        className="aspect-[4/3] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))] bg-[linear-gradient(180deg,hsl(var(--surface-container))_0%,hsl(var(--surface-container-low))_100%)] p-4 transition-all hover:border-[hsl(var(--primary))]/35 hover:shadow-lg hover:shadow-[hsl(var(--primary))]/5"
       >
-        <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-          <Plus className="w-6 h-6 text-[hsl(var(--primary))]" />
+        <div className="mb-4 pt-1">
+          <h3 className="text-base font-bold text-[hsl(var(--on-surface))]">添加场景</h3>
+          <p className="mt-1 text-xs leading-5 text-[hsl(var(--secondary))]">
+            选择创作方式。
+          </p>
         </div>
-        <span className="text-sm font-bold text-[hsl(var(--on-surface-variant))]">添加新场景</span>
-        <span className="text-[10px] text-[hsl(var(--secondary))] mt-1 uppercase tracking-tighter">初始化资源画布</span>
+
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="flex w-full items-center justify-between rounded-xl bg-[hsl(var(--surface-container-high))] px-3 py-3 text-left transition-all hover:bg-[hsl(var(--surface-container-highest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--primary))]/12 text-[hsl(var(--primary))]">
+                <Wand2 className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">快捷创作</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">快速建场景</div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[hsl(var(--secondary))]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCanvas}
+            className="flex w-full items-center justify-between rounded-xl border border-[hsl(var(--outline-variant))]/60 bg-[hsl(var(--surface))]/75 px-3 py-3 text-left transition-all hover:border-[hsl(var(--primary))]/30 hover:bg-[hsl(var(--surface-container-lowest))]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--secondary-container))] text-[hsl(var(--on-secondary-container))]">
+                <Workflow className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[hsl(var(--on-surface))]">无限画布</div>
+                <div className="text-[10px] text-[hsl(var(--secondary))]">自由编排</div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[hsl(var(--secondary))]" />
+          </button>
+        </div>
       </div>
 
       {/* Scene Cards */}
