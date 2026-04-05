@@ -276,7 +276,10 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         className={`rounded-lg shadow-lg border-2 ${
           selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } min-w-[320px] transition-colors relative`}
-        style={{ backgroundColor: 'var(--bg-primary)' }}
+        style={{ 
+          backgroundColor: 'var(--bg-primary, var(--ic-surface-container-lowest, #ffffff))',
+          borderColor: selected ? undefined : 'var(--border-color, var(--ic-outline-variant, rgba(26,26,26,0.18)))',
+        }}
       >
         {/* Handles */}
         <Handle type="target" position={Position.Left} className="!bg-[hsl(var(--primary))]" />
@@ -289,7 +292,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               ? 'text-white'
               : ''
           }`}
-          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))', color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
         >
           {isEditingLabel ? (
             <Input
@@ -316,6 +319,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               onClick={handleDelete}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="删除"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <DeleteOutlined style={{ fontSize: 14 }} />
             </button>
@@ -323,6 +327,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               onClick={handleDuplicate}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="复制"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <CopyOutlined style={{ fontSize: 14 }} />
             </button>
@@ -332,7 +337,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
       <div className="p-4 space-y-3 nodrag">
         {/* Model Selection */}
         <div>
-          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+          <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
             模型
           </label>
           <Select
@@ -346,7 +351,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
 
         {/* Aspect Ratio Selection */}
         <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
             画面比例
           </label>
           <div className="flex gap-1.5">
@@ -375,22 +380,23 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                     isSelected
                       ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]'
                       : isSupported
-                        ? 'bg-transparent border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
-                        : 'bg-transparent border-[var(--border-color)] opacity-30 cursor-not-allowed'
+                        ? 'border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
+                        : 'border-[var(--border-color)] opacity-30 cursor-not-allowed'
                   }`}
+                  style={!isSelected ? { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))' } : undefined}
                 >
                   <div
                     className="rounded-sm border-2"
                     style={{ 
                       width: iconSize.w, 
                       height: iconSize.h,
-                      borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
+                      borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))',
                     }}
                   />
                   <span 
                     className="text-xs"
                     style={{ 
-                      color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
+                      color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))',
                       fontWeight: isSelected ? 500 : 400,
                     }}
                   >

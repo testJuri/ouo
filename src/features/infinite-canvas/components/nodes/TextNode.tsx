@@ -173,7 +173,10 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
         className={`rounded-lg shadow-lg border-2 ${
           selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } min-w-[280px] transition-colors relative`}
-        style={{ backgroundColor: 'var(--bg-primary)' }}
+        style={{ 
+          backgroundColor: 'var(--bg-primary, var(--ic-surface-container-lowest, #ffffff))',
+          borderColor: selected ? undefined : 'var(--border-color, var(--ic-outline-variant, rgba(26,26,26,0.18)))',
+        }}
       >
         {/* Handles */}
         <Handle type="target" position={Position.Left} className="!bg-[hsl(var(--primary))]" />
@@ -186,7 +189,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
               ? 'text-white'
               : ''
           }`}
-          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))', color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
         >
           {isEditingLabel ? (
             <Input
@@ -213,6 +216,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
               onClick={handleDelete}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="删除"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <DeleteOutlined style={{ fontSize: 14 }} />
             </button>
@@ -220,6 +224,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
               onClick={handleDuplicate}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="复制"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <CopyOutlined style={{ fontSize: 14 }} />
             </button>
@@ -229,7 +234,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
         {/* Content */}
         <div
           className="p-4 space-y-2 rounded-b-lg"
-          style={{ backgroundColor: "var(--bg-primary, hsl(var(--surface-container-lowest)))" }}
+          style={{ backgroundColor: "var(--bg-primary, var(--ic-surface-container-lowest, hsl(var(--surface-container-lowest))))" }}
         >
           <TextArea
             value={localContent}
@@ -249,7 +254,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
             {polishing ? 'AI 润色中...' : 'AI 润色'}
           </Button>
 
-          <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>字符数: {localContent.length}</div>
+          <div className="text-xs" style={{ color: 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))' }}>字符数: {localContent.length}</div>
         </div>
       </div>
       

@@ -306,7 +306,10 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         className={`rounded-lg shadow-lg border-2 ${
           selected ? 'border-[hsl(var(--primary))] shadow-[0_0_0_1px_rgba(172,46,0,0.24)]' : 'border-[var(--border-color)]'
         } min-w-[320px] transition-colors relative`}
-        style={{ backgroundColor: 'var(--bg-primary)' }}
+        style={{ 
+          backgroundColor: 'var(--bg-primary, var(--ic-surface-container-lowest, #ffffff))',
+          borderColor: selected ? undefined : 'var(--border-color, var(--ic-outline-variant, rgba(26,26,26,0.18)))',
+        }}
       >
         {/* Handles */}
         {isKF2VModel ? (
@@ -347,7 +350,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               ? 'text-white'
               : ''
           }`}
-          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+          style={selected ? { background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, #d73b00 100%)' } : { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))', color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
         >
           {isEditingLabel ? (
             <Input
@@ -374,6 +377,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               onClick={handleDelete}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="删除"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <DeleteOutlined style={{ fontSize: 14 }} />
             </button>
@@ -381,6 +385,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
               onClick={handleDuplicate}
               className="p-1 hover:bg-black/10 rounded transition-colors cursor-pointer"
               title="复制"
+              style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}
             >
               <CopyOutlined style={{ fontSize: 14 }} />
             </button>
@@ -390,7 +395,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         <div className="p-4 space-y-3 nodrag">
           {/* Model Selection */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
               模型
             </label>
             <Select
@@ -406,10 +411,10 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
           {isKF2VModel && (
             <div className="space-y-1">
               <div className="h-6 flex items-center">
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>首帧</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))' }}>首帧</span>
               </div>
               <div className="h-6 flex items-center">
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>尾帧</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))' }}>尾帧</span>
               </div>
             </div>
           )}
@@ -419,7 +424,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
             <>
               {/* 分辨率选择 */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
                   分辨率
                 </label>
                 <div className="flex gap-2">
@@ -430,8 +435,9 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                       className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                         t2vResolution === res
                           ? 'bg-white text-black border-white'
-                          : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-white/60'
+                          : 'text-[var(--text-secondary)] border-[var(--border-color)] hover:border-white/60'
                       }`}
+                      style={t2vResolution !== res ? { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))' } : undefined}
                     >
                       {res}
                     </button>
@@ -441,7 +447,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
 
               {/* 画面比例选择 */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
                   画面比例
                 </label>
                 <div className="flex gap-1.5">
@@ -466,21 +472,22 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                         className={`flex-1 flex flex-col items-center gap-1 py-2 px-1 rounded-lg transition-all border ${
                           isSelected
                             ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]'
-                            : 'bg-transparent border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
+                            : 'border-[var(--border-color)] hover:border-[hsl(var(--primary))]/40'
                         }`}
+                        style={!isSelected ? { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))' } : undefined}
                       >
                         <div
                           className="rounded-sm border-2"
                           style={{ 
                             width: iconSize.w, 
                             height: iconSize.h,
-                            borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
+                            borderColor: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))',
                           }}
                         />
                         <span 
                           className="text-xs"
                           style={{ 
-                            color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary)',
+                            color: isSelected ? 'hsl(var(--primary))' : 'var(--text-secondary, var(--ic-on-surface-variant, #6b6b6b))',
                             fontWeight: isSelected ? 500 : 400,
                           }}
                         >
@@ -494,7 +501,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
             </>
           ) : (
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
                 分辨率
               </label>
               <div className="flex gap-2">
@@ -505,9 +512,9 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
                     className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all border ${
                       localResolution === res
                         ? 'text-white border-[hsl(var(--primary))]'
-                        : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-color)] hover:border-white/60'
+                        : 'text-[var(--text-secondary)] border-[var(--border-color)] hover:border-white/60'
                     }`}
-                    style={localResolution === res ? { backgroundColor: 'hsl(var(--primary))' } : undefined}
+                    style={localResolution === res ? { backgroundColor: 'hsl(var(--primary))' } : { backgroundColor: 'var(--bg-secondary, var(--ic-surface-container-low, #f4efe9))' }}
                   >
                     {res}
                   </button>
@@ -518,7 +525,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
 
           {/* Duration Selection */}
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+            <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-primary, var(--ic-on-surface, #1f1f1f))' }}>
               时长
             </label>
             <Select
