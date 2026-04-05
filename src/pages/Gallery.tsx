@@ -278,15 +278,15 @@ export default function Gallery() {
             </p>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               隐私政策
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            </Link>
+            <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               服务条款
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            </Link>
+            <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               联系我们
-            </a>
+            </Link>
           </div>
           <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))]">
             © 2024 Kinetic Gallery. All rights reserved.

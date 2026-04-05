@@ -45,7 +45,7 @@ interface ProjectState {
   // === 抽屉/弹框开关状态 ===
   ui: {
     isSceneDrawerOpen: boolean
-    isEpisodeDialogOpen: boolean
+    isEpisodeDrawerOpen: boolean
     isCharacterDrawerOpen: boolean
     isObjectDrawerOpen: boolean
   }
@@ -125,7 +125,7 @@ const initialState: ProjectState = {
   currentPage: 1,
   ui: {
     isSceneDrawerOpen: false,
-    isEpisodeDialogOpen: false,
+    isEpisodeDrawerOpen: false,
     isCharacterDrawerOpen: false,
     isObjectDrawerOpen: false,
   },
@@ -165,7 +165,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   closeAllDrawers: () => set({
     ui: {
       isSceneDrawerOpen: false,
-      isEpisodeDialogOpen: false,
+      isEpisodeDrawerOpen: false,
       isCharacterDrawerOpen: false,
       isObjectDrawerOpen: false,
     },
@@ -184,6 +184,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       status: 'draft',
       modified: '刚刚',
       code: generateCode('EP', newId),
+      description: data.description,
     }
     
     set((state) => ({

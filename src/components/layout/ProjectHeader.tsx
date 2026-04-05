@@ -9,8 +9,6 @@ const topTabs: { id: ProjectTab; label: string }[] = [
   { id: "characters", label: "角色管理" },
   { id: "scenes", label: "场景管理" },
   { id: "objects", label: "物品管理" },
-  { id: "fusion", label: "融合生图" },
-  { id: "remix", label: "图片改创" },
 ]
 
 interface ProjectHeaderProps {

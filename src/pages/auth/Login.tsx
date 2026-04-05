@@ -205,9 +205,9 @@ export default function Login() {
         {/* Footer */}
         <p className="text-center text-xs text-[hsl(var(--secondary))] mt-8">
           登录即表示你同意我们的
-          <Link to="#" className="text-[hsl(var(--primary))] hover:underline">服务条款</Link>
+          <Link to="/terms" className="text-[hsl(var(--primary))] hover:underline">服务条款</Link>
           和
-          <Link to="#" className="text-[hsl(var(--primary))] hover:underline">隐私政策</Link>
+          <Link to="/privacy" className="text-[hsl(var(--primary))] hover:underline">隐私政策</Link>
         </p>
       </div>
     </div>

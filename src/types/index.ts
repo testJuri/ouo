@@ -22,6 +22,7 @@ export interface Episode {
   status: 'completed' | 'in-progress' | 'draft'
   modified: string
   code: string
+  description?: string
 }
 
 export interface EpisodeCreateData {
@@ -109,7 +110,7 @@ export interface ObjectCreateData {
 
 // ==================== 项目工作台状态 ====================
 
-export type ProjectTab = 'episodes' | 'scenes' | 'characters' | 'objects' | 'fusion' | 'remix'
+export type ProjectTab = 'episodes' | 'scenes' | 'characters' | 'objects'
 
 export interface ProjectAssets {
   episodes: Episode[]

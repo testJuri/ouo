@@ -36,8 +36,6 @@ const secondaryTabs: { id: ProjectTab; label: string }[] = [
   { id: "characters", label: "角色管理" },
   { id: "scenes", label: "场景管理" },
   { id: "objects", label: "物品管理" },
-  { id: "fusion", label: "融合生图" },
-  { id: "remix", label: "图片改创" },
 ]
 
 export default function ProjectDetail() {
@@ -77,7 +75,7 @@ export default function ProjectDetail() {
     <div className="min-h-screen bg-[hsl(var(--surface))]">
       {/* Episode Creator Dialog */}
       <EpisodeCreator 
-        open={ui.isEpisodeDialogOpen} 
+        open={ui.isEpisodeDrawerOpen} 
         onOpenChange={(open) => open ? openDrawer('episode') : closeDrawer('episode')} 
         onCreate={createEpisode} 
       />

@@ -300,15 +300,15 @@ export default function Dashboard() {
             <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
+            <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
               隐私政策
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
+            </Link>
+            <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
               服务条款
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
+            </Link>
+            <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] opacity-80 hover:opacity-100 transition-opacity">
               联系我们
-            </a>
+            </Link>
           </div>
         </div>
       </footer>

@@ -17,6 +17,10 @@ import EpisodeCanvas from "./pages/project/EpisodeCanvas"
 import Login from "./pages/auth/Login"
 import Pricing from "./pages/Pricing"
 import Gallery from "./pages/Gallery"
+import Terms from "./pages/Terms"
+import Privacy from "./pages/Privacy"
+import Contact from "./pages/Contact"
+import Workflow from "./pages/Workflow"
 
 function Home() {
   return (
@@ -32,7 +36,7 @@ function Home() {
               <Link to="/gallery" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
                 画廊
               </Link>
-              <Link to="#" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
+              <Link to="/workflow" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
                 工作流
               </Link>
               <Link to="/pricing" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
@@ -248,15 +252,15 @@ function Home() {
             </p>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               隐私政策
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            </Link>
+            <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               服务条款
-            </a>
-            <a href="#" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
+            </Link>
+            <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
               联系我们
-            </a>
+            </Link>
           </div>
           <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))]">
             © 2024 Kinetic Gallery. 保留所有权利。
@@ -279,6 +283,10 @@ function App() {
         <Route path="/project/:id" element={<ProjectDetail />} />
         <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
         <Route path="/project/:projectId/episode/:episodeId/canvas" element={<EpisodeCanvas />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/workflow" element={<Workflow />} />
       </Routes>
     </BrowserRouter>
   )
