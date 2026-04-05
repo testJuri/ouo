@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,45 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, Bell, Settings, User, LogOut, X, Check } from "lucide-react"
+import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
+import { Search, Bell, Settings, User, LogOut } from "lucide-react"
 
 import type { ProjectTab } from "@/types"
-
-// 示例通知数据
-const notifications = [
-  {
-    id: 1,
-    title: "片段渲染完成",
-    message: "序章：觉醒 的片段已完成渲染",
-    time: "2 分钟前",
-    read: false,
-    type: "success",
-  },
-  {
-    id: 2,
-    title: "角色创建成功",
-    message: "新角色 龙崎真治 已创建",
-    time: "1 小时前",
-    read: false,
-    type: "info",
-  },
-  {
-    id: 3,
-    title: "AI 生成任务完成",
-    message: "3 个物品图片已生成",
-    time: "3 小时前",
-    read: true,
-    type: "success",
-  },
-  {
-    id: 4,
-    title: "团队成员邀请",
-    message: "李明邀请你加入项目 赛博武士",
-    time: "昨天",
-    read: true,
-    type: "warning",
-  },
-]
 
 const topTabs: { id: ProjectTab; label: string }[] = [
   { id: "episodes", label: "片段管理" },
@@ -63,7 +27,7 @@ interface ProjectHeaderProps {
 
 export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderProps) {
   const [notificationOpen, setNotificationOpen] = useState(false)
-  const [notificationList, setNotificationList] = useState(notifications)
+  const [notificationList, setNotificationList] = useState(demoNotifications)
   
   const unreadCount = notificationList.filter((n) => !n.read).length
   
@@ -152,97 +116,14 @@ export default function ProjectHeader({ activeTab, onTabChange }: ProjectHeaderP
         </DropdownMenu>
       </div>
 
-      {/* Notification Sidebar */}
-      {notificationOpen && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/20 z-40"
-            onClick={() => setNotificationOpen(false)}
-          />
-          {/* Sidebar */}
-          <div className="fixed top-0 right-0 h-full w-96 bg-[hsl(var(--surface))] shadow-2xl z-50 animate-in slide-in-from-right duration-300 flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20">
-              <div>
-                <h2 className="text-lg font-bold text-[hsl(var(--on-surface))]">消息通知</h2>
-                <p className="text-xs text-[hsl(var(--secondary))]">
-                  {unreadCount > 0 ? `${unreadCount} 条未读消息` : "没有新消息"}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
-                    onClick={markAllAsRead}
-                  >
-                    <Check className="w-3.5 h-3.5 mr-1" />
-                    全部已读
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setNotificationOpen(false)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            
-            {/* Notification List */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-3">
-                {notificationList.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-[hsl(var(--secondary))]">
-                    <Bell className="w-12 h-12 mb-3 opacity-30" />
-                    <p className="text-sm">暂无通知</p>
-                  </div>
-                ) : (
-                  notificationList.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 rounded-xl cursor-pointer transition-all ${
-                        notification.read 
-                          ? "bg-[hsl(var(--surface-container-low))]" 
-                          : "bg-[hsl(var(--primary))]/5 border border-[hsl(var(--primary))]/20"
-                      }`}
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className={`text-sm font-semibold ${notification.read ? "text-[hsl(var(--on-surface))]" : "text-[hsl(var(--primary))]"}`}>
-                          {notification.title}
-                        </h3>
-                        {!notification.read && (
-                          <span className="w-2 h-2 bg-[hsl(var(--primary))] rounded-full" />
-                        )}
-                      </div>
-                      <p className="text-xs text-[hsl(var(--on-surface-variant))] mb-2 leading-relaxed">
-                        {notification.message}
-                      </p>
-                      <span className="text-[10px] text-[hsl(var(--secondary))]">{notification.time}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-            
-            {/* Footer */}
-            <div className="p-4 border-t border-[hsl(var(--outline-variant))]/20">
-              <Button 
-                variant="ghost" 
-                className="w-full text-xs text-[hsl(var(--secondary))]"
-                onClick={() => setNotificationOpen(false)}
-              >
-                查看全部消息
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+      <NotificationDrawer
+        open={notificationOpen}
+        onOpenChange={setNotificationOpen}
+        notifications={notificationList}
+        onMarkAllAsRead={markAllAsRead}
+        onMarkAsRead={markAsRead}
+        onClearAll={() => setNotificationList([])}
+      />
     </header>
   )
 }
