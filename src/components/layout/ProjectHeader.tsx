@@ -134,11 +134,11 @@ export default function ProjectHeader({ activeTab, onTabChange, projectTitle = "
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-40">
                 <DropdownMenuRadioGroup value={currentIdentity} onValueChange={handleIdentityChange}>
-                  <DropdownMenuRadioItem value="creator">
+                  <DropdownMenuRadioItem value="creator" className="data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
                     <User className="mr-2 h-4 w-4" />
                     专业创作者
                   </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="admin">
+                  <DropdownMenuRadioItem value="admin" className="data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
                     <Shield className="mr-2 h-4 w-4" />
                     管理员
                   </DropdownMenuRadioItem>

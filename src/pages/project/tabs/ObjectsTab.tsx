@@ -1,13 +1,6 @@
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Trash2, Copy, Link, Check } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { Plus, Check } from "lucide-react"
+
 import { useProjectStore } from "@/stores/projectStore"
 import type { ObjectItem, ObjectType } from "@/types"
 
@@ -30,30 +23,7 @@ const typeColors: Record<ObjectType, string> = {
 
 export default function ObjectsTab({ objects: objectsProp, onAddNew, batchMode = false, selectedIds = [], onToggleSelect }: ObjectsTabProps) {
   const objects = useProjectStore((state) => objectsProp ?? state.assets.objects)
-  const { deleteObject, duplicateObject, openDrawer } = useProjectStore()
-  const { confirm, notify } = useFeedback()
-
-  const handleDelete = async (id: number) => {
-    const confirmed = await confirm({
-      title: "删除物品",
-      description: "删除后将无法恢复这个物品资料。",
-      confirmText: "删除",
-      tone: "danger",
-    })
-
-    if (confirmed) {
-      deleteObject(id)
-      notify.success("物品已删除")
-    }
-  }
-
-  const handleDuplicate = (object: ObjectItem) => {
-    duplicateObject(object.id)
-  }
-
-  const handleLinkScene = (object: ObjectItem) => {
-    notify.info(`关联场景：${object.name}（场景选择功能开发中）`)
-  }
+  const { openDrawer } = useProjectStore()
 
   const handleAddNew = () => {
     if (onAddNew) {
@@ -114,43 +84,7 @@ export default function ObjectsTab({ objects: objectsProp, onAddNew, batchMode =
                 <Check className="h-4 w-4" />
               </button>
             )}
-            <div className={`absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/70 to-transparent transition-opacity flex items-end p-3 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
-              <div className="flex gap-2 w-full">
-                <Button 
-                  variant="secondary" 
-                  size="sm"
-                  onClick={() => handleLinkScene(object)}
-                  className="flex-1 bg-white/20 backdrop-blur-md text-white text-[9px] font-bold py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
-                >
-                  <Link className="w-3 h-3 mr-1" />
-                  关联场景
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="secondary"
-                      size="icon"
-                      className="w-9 bg-white/20 backdrop-blur-md text-white py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-36">
-                    <DropdownMenuItem onClick={() => handleDuplicate(object)}>
-                      <Copy className="w-4 h-4 mr-2" />
-                      复制
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleDelete(object.id)}
-                      className="text-red-600 focus:text-red-600"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      删除
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+
           </div>
           <div className="p-3">
             <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] mb-1 truncate">{object.name}</h3>

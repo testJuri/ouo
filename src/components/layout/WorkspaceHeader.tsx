@@ -122,11 +122,11 @@ export default function WorkspaceHeader({
                     身份切换
                   </DropdownMenuLabel>
                   <DropdownMenuRadioGroup value={currentIdentity} onValueChange={handleIdentityChange}>
-                    <DropdownMenuRadioItem value="creator" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                    <DropdownMenuRadioItem value="creator" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))] data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
                       <User className="mr-2 h-4 w-4" />
                       专业创作者
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="admin" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))]">
+                    <DropdownMenuRadioItem value="admin" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))] data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
                       <Shield className="mr-2 h-4 w-4" />
                       管理员
                     </DropdownMenuRadioItem>

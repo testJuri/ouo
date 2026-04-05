@@ -7,10 +7,9 @@ import {
   Users, 
   Image as ImageIcon, 
   Package, 
-  Clock,
   MoreHorizontal,
   Wand2,
-  Film,
+
   Sparkles
 } from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
@@ -22,6 +21,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+
+type StoryboardItem = {
+  id: number
+  status: "completed" | "in-progress" | "pending"
+}
 
 // Mock 片段数据
 const mockEpisode = {
@@ -57,14 +61,13 @@ const relatedObjects = [
   { id: 2, name: "古董怀表", image: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=200&h=200&fit=crop", type: "道具" },
 ]
 
-// Mock 分镜时间线
-const storyboard = [
-  { id: 1, scene: "开场", description: "主角在梦中漂浮", duration: "0:15", status: "completed" },
-  { id: 2, scene: "转场", description: "意识回归现实", duration: "0:08", status: "completed" },
-  { id: 3, scene: "教室内", description: "发现异常能量波动", duration: "0:45", status: "in-progress" },
-  { id: 4, scene: "走廊", description: "追逐神秘身影", duration: "0:30", status: "pending" },
-  { id: 5, scene: "屋顶", description: "首次展现能力", duration: "1:20", status: "pending" },
-  { id: 6, scene: "结尾", description: "接到神秘电话", duration: "0:22", status: "pending" },
+const storyboard: StoryboardItem[] = [
+  { id: 1, status: "completed" },
+  { id: 2, status: "completed" },
+  { id: 3, status: "in-progress" },
+  { id: 4, status: "pending" },
+  { id: 5, status: "pending" },
+  { id: 6, status: "pending" },
 ]
 
 export default function EpisodeDetail() {
@@ -97,16 +100,11 @@ export default function EpisodeDetail() {
     }
   }
 
-  const getStoryboardStatus = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <span className="text-[10px] text-emerald-500 font-medium">✓ 已完成</span>
-      case "in-progress":
-        return <span className="text-[10px] text-[hsl(var(--primary))] font-medium">⟳ 制作中</span>
-      default:
-        return <span className="text-[10px] text-[hsl(var(--secondary))] font-medium">○ 待开始</span>
-    }
-  }
+  const pendingShotCount = storyboard.filter((item) => item.status !== "completed").length
+  const completedShotCount = storyboard.filter((item) => item.status === "completed").length
+  const inProgressShotCount = storyboard.filter((item) => item.status === "in-progress").length
+  const notStartedShotCount = storyboard.filter((item) => item.status === "pending").length
+
 
   return (
     <div className="min-h-screen bg-[hsl(var(--surface))]">
@@ -191,7 +189,7 @@ export default function EpisodeDetail() {
                     {(episode?.status || mockEpisode.status) === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
                   </h2>
                   <p className="text-white/80 mb-6 max-w-md">
-                    已完场 {mockEpisode.progress}%，还有 {storyboard.filter(s => s.status !== "completed").length} 个镜头等待制作
+                    已完场 {mockEpisode.progress}%，还有 {pendingShotCount} 个镜头等待制作
                   </p>
                   <Button 
                     size="lg"
@@ -220,58 +218,6 @@ export default function EpisodeDetail() {
                 </p>
               </div>
 
-              {/* Storyboard Timeline */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] uppercase tracking-wider flex items-center gap-2">
-                    <Film className="w-4 h-4" />
-                    分镜时间线
-                  </h3>
-                  <span className="text-xs text-[hsl(var(--secondary))]">
-                    {storyboard.filter(s => s.status === "completed").length} / {storyboard.length} 已完成
-                  </span>
-                </div>
-                
-                <div className="space-y-3">
-                  {storyboard.map((shot, index) => (
-                    <div 
-                      key={shot.id}
-                      className={`flex items-center gap-4 p-4 rounded-xl transition-all cursor-pointer ${
-                        shot.status === "in-progress" 
-                          ? "bg-[hsl(var(--surface-container-high))] ring-1 ring-[hsl(var(--primary))]/30" 
-                          : "bg-[hsl(var(--surface-container))] hover:bg-[hsl(var(--surface-container-high))]"
-                      }`}
-                      onClick={() => notify.info(`编辑镜头：${shot.scene}`)}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[hsl(var(--surface-container-highest))] flex items-center justify-center text-xs font-bold text-[hsl(var(--secondary))]">
-                        {index + 1}
-                      </div>
-                      <div className="w-16 h-12 rounded-lg bg-[hsl(var(--surface-container-highest))] flex items-center justify-center">
-                        <ImageIcon className="w-5 h-5 text-[hsl(var(--secondary))]" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-sm text-[hsl(var(--on-surface))]">{shot.scene}</span>
-                          {getStoryboardStatus(shot.status)}
-                        </div>
-                        <p className="text-xs text-[hsl(var(--secondary))]">{shot.description}</p>
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-[hsl(var(--secondary))]">
-                        <Clock className="w-3 h-3" />
-                        {shot.duration}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  className="w-full mt-4 py-3 border-2 border-dashed border-[hsl(var(--outline-variant))] hover:border-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/5"
-                  onClick={() => notify.info("添加新镜头功能开发中")}
-                >
-                  + 添加镜头
-                </Button>
-              </div>
             </div>
 
             {/* Right Column - Assets */}
@@ -391,21 +337,15 @@ export default function EpisodeDetail() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-emerald-500">
-                        {storyboard.filter(s => s.status === "completed").length}
-                      </div>
+                      <div className="text-lg font-bold text-emerald-500">{completedShotCount}</div>
                       <div className="text-[10px] text-[hsl(var(--secondary))]">已完成</div>
                     </div>
                     <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-[hsl(var(--primary))]">
-                        {storyboard.filter(s => s.status === "in-progress").length}
-                      </div>
+                      <div className="text-lg font-bold text-[hsl(var(--primary))]">{inProgressShotCount}</div>
                       <div className="text-[10px] text-[hsl(var(--secondary))]">制作中</div>
                     </div>
                     <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-[hsl(var(--secondary))]">
-                        {storyboard.filter(s => s.status === "pending").length}
-                      </div>
+                      <div className="text-lg font-bold text-[hsl(var(--secondary))]">{notStartedShotCount}</div>
                       <div className="text-[10px] text-[hsl(var(--secondary))]">待开始</div>
                     </div>
                   </div>
