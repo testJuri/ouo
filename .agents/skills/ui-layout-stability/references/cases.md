@@ -84,3 +84,57 @@ Add a global override in `src/index.css` for `body[data-scroll-locked]` so body 
 - `src/index.css`
 - `src/pages/project/index.tsx`
 - `src/components/feedback/FeedbackProvider.tsx`
+
+## Case 004: Workspace fixed headers jump when dialogs open
+
+### Symptom
+
+In workspace pages with a fixed top header and internal scroll container, opening a dialog kept the overlay visible but made the right edge and header width jump. The content area felt like the viewport briefly widened.
+
+### Root cause
+
+Radix dialog scroll lock still exposes `--removed-body-scroll-bar-size`, and fixed workspace shells sized directly from the viewport did not consume that gap. As a result, the shell and fixed header reflowed when the scrollbar compensation changed.
+
+### Fix
+
+Add shared `workspace-shell` and `workspace-fixed-header` classes in `src/index.css`. Apply the scrollbar compensation variable to the shell padding and fixed header right inset so workspace pages keep the same visual width while dialogs and sheets are open.
+
+### Why this fix fit the project
+
+- The issue affected multiple workspace pages, not one dialog implementation.
+- The product layout consistently uses a 16rem sidebar plus fixed top headers.
+- Reusing the scroll-lock variable keeps the current modal system intact and avoids page-specific hacks.
+
+### Implementation reference
+
+- `src/index.css`
+- `src/components/layout/WorkspaceLayout.tsx`
+- `src/components/layout/WorkspaceHeader.tsx`
+- `src/components/layout/ProjectHeader.tsx`
+- `src/pages/project/index.tsx`
+- `src/pages/ProjectsList.tsx`
+
+## Case 005: Profile hover menu intermittently fails to open
+
+### Symptom
+
+In the top-right profile area, moving the cursor over the personal-center trigger would sometimes fail to keep the dropdown open. The issue was more obvious when the cursor moved quickly from the trigger toward the menu surface or the nested identity switcher.
+
+### Root cause
+
+The shared hover menu rendered its content through a portal with a `sideOffset`, which created a small physical hover gap between the trigger and the menu. At the same time, the close timer was short, so the menu could close before the pointer reached the floating content. The nested identity panel also had an under-sized invisible bridge that did not fully cover its offset gap.
+
+### Fix
+
+Update `src/components/ui/hover-menu.tsx` to use a shared hover-open controller with reliable timer cleanup, a slightly longer close delay, `modal={false}`, and `sideOffset={0}` for the simple profile menu. In `src/components/layout/UserProfileMenu.tsx`, add delayed close handling for the identity panel and widen the invisible hover bridge so the pointer can cross into the submenu without dropping the open state.
+
+### Why this fix fit the project
+
+- The instability came from the shared hover interaction mechanics, not the menu visuals.
+- The project already uses hover-driven profile affordances, so improving tolerance preserved the intended interaction.
+- Fixing the shared primitive plus the local submenu bridge solved both the main menu and the nested panel without redesigning the component.
+
+### Implementation reference
+
+- `src/components/ui/hover-menu.tsx`
+- `src/components/layout/UserProfileMenu.tsx`

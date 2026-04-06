@@ -4,6 +4,40 @@ import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { cn } from "@/lib/utils"
 
+const useHoverOpenState = (closeDelay = 180) => {
+  const [open, setOpen] = React.useState(false)
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearCloseTimer = React.useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }, [])
+
+  const handleMouseEnter = React.useCallback(() => {
+    clearCloseTimer()
+    setOpen(true)
+  }, [clearCloseTimer])
+
+  const handleMouseLeave = React.useCallback(() => {
+    clearCloseTimer()
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false)
+      timeoutRef.current = null
+    }, closeDelay)
+  }, [clearCloseTimer, closeDelay])
+
+  React.useEffect(() => clearCloseTimer, [clearCloseTimer])
+
+  return {
+    open,
+    setOpen,
+    handleMouseEnter,
+    handleMouseLeave,
+  }
+}
+
 const HoverMenuTrigger = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Trigger>
@@ -92,21 +126,7 @@ interface HoverSubMenuProps {
 }
 
 const HoverSubMenu = ({ children, trigger, className }: HoverSubMenuProps) => {
-  const [open, setOpen] = React.useState(false)
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    setOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setOpen(false)
-    }, 150)
-  }
+  const { open, setOpen, handleMouseEnter, handleMouseLeave } = useHoverOpenState(220)
 
   return (
     <DropdownMenuPrimitive.Sub open={open} onOpenChange={setOpen}>
@@ -156,24 +176,10 @@ interface HoverMenuContainerProps {
 }
 
 const HoverMenuContainer = ({ children, className }: HoverMenuContainerProps) => {
-  const [open, setOpen] = React.useState(false)
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    setOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setOpen(false)
-    }, 200)
-  }
+  const { open, setOpen, handleMouseEnter, handleMouseLeave } = useHoverOpenState(220)
 
   return (
-    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen}>
+    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen} modal={false}>
       <div
         className={cn("relative inline-block", className)}
         onMouseEnter={handleMouseEnter}
@@ -201,24 +207,10 @@ const SimpleHoverMenu = ({
   className,
   contentClassName,
 }: SimpleHoverMenuProps) => {
-  const [open, setOpen] = React.useState(false)
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-
-  const handleMouseEnter = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    setOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setOpen(false)
-    }, 150)
-  }
+  const { open, setOpen, handleMouseEnter, handleMouseLeave } = useHoverOpenState(220)
 
   return (
-    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen}>
+    <DropdownMenuPrimitive.Root open={open} onOpenChange={setOpen} modal={false}>
       <div
         className={cn("relative inline-block", className)}
         onMouseEnter={handleMouseEnter}
@@ -230,7 +222,7 @@ const SimpleHoverMenu = ({
         <DropdownMenuPrimitive.Portal>
           <DropdownMenuPrimitive.Content
             align={align}
-            sideOffset={4}
+            sideOffset={0}
             className={cn(
               "z-50 min-w-[8rem] overflow-hidden rounded-xl border border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-lowest))] p-1.5 text-[hsl(var(--on-surface))] shadow-xl shadow-black/10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
               contentClassName,

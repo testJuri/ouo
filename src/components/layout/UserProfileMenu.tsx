@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { SimpleHoverMenu } from "@/components/ui/hover-menu"
@@ -30,6 +30,33 @@ export default function UserProfileMenu({
   const { notify } = useFeedback()
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
   const [identityPanelOpen, setIdentityPanelOpen] = useState(false)
+  const identityLeaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const openIdentityPanel = () => {
+    if (identityLeaveTimeoutRef.current) {
+      clearTimeout(identityLeaveTimeoutRef.current)
+      identityLeaveTimeoutRef.current = null
+    }
+    setIdentityPanelOpen(true)
+  }
+
+  const closeIdentityPanel = () => {
+    if (identityLeaveTimeoutRef.current) {
+      clearTimeout(identityLeaveTimeoutRef.current)
+    }
+    identityLeaveTimeoutRef.current = setTimeout(() => {
+      setIdentityPanelOpen(false)
+      identityLeaveTimeoutRef.current = null
+    }, 180)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (identityLeaveTimeoutRef.current) {
+        clearTimeout(identityLeaveTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleIdentityChange = (identity: string) => {
     const nextIdentity = identity as IdentityOption
@@ -76,38 +103,38 @@ export default function UserProfileMenu({
         </div>
       }
     >
-      <div className="w-[214px] rounded-[22px] border border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))] p-3.5 shadow-[0_14px_32px_rgba(15,23,42,0.10)]">
-        <div className="px-1.5 pb-3.5 text-[14px] font-medium tracking-[0.04em] text-[hsl(var(--on-surface))]">
+      <div className="w-[196px] rounded-[20px] border border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))] p-3 shadow-[0_12px_28px_rgba(15,23,42,0.10)]">
+        <div className="px-1 pb-3 text-[13px] font-medium tracking-[0.03em] text-[hsl(var(--on-surface))]">
           个人中心
         </div>
         <div className="h-px bg-[hsl(var(--outline-variant))]/20" />
 
         <button
           onClick={() => notify.info("个人中心开发中")}
-          className="mt-3.5 flex w-full items-center gap-3 rounded-[16px] px-3.5 py-2.5 text-left text-[14px] font-medium text-[hsl(var(--on-surface))] transition-colors hover:bg-[hsl(var(--surface-container-high))]"
+          className="mt-3 flex w-full items-center gap-2.5 rounded-[14px] px-3 py-2 text-left text-[13px] font-medium text-[hsl(var(--on-surface))] transition-colors hover:bg-[hsl(var(--surface-container-high))]"
         >
-          <User className="h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
+          <User className="h-4 w-4 shrink-0" strokeWidth={2.2} />
           <span>我的主页</span>
         </button>
 
         <div
-          className="relative mt-2.5"
-          onMouseEnter={() => setIdentityPanelOpen(true)}
-          onMouseLeave={() => setIdentityPanelOpen(false)}
+          className="relative mt-2"
+          onMouseEnter={openIdentityPanel}
+          onMouseLeave={closeIdentityPanel}
         >
-          <button className="flex w-full items-center rounded-[16px] bg-[hsl(var(--surface-container-high))] px-3.5 py-2.5 text-left text-[14px] font-medium text-[hsl(var(--on-surface))]">
-            <Shield className="mr-3 h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
+          <button className="flex w-full items-center rounded-[14px] bg-[hsl(var(--surface-container-high))] px-3 py-2 text-left text-[13px] font-medium text-[hsl(var(--on-surface))]">
+            <Shield className="mr-2.5 h-4 w-4 shrink-0" strokeWidth={2.2} />
             <span className="flex-1">切换身份</span>
-            <ChevronDown className="h-[14px] w-[14px] shrink-0 -rotate-90 text-[hsl(var(--secondary))]" strokeWidth={2.4} />
+            <ChevronDown className="h-[13px] w-[13px] shrink-0 -rotate-90 text-[hsl(var(--secondary))]" strokeWidth={2.4} />
           </button>
 
           {identityPanelOpen ? (
             <>
               <div
                 aria-hidden="true"
-                className="absolute right-full top-0 z-[59] h-full w-3"
+                className="absolute right-full top-0 z-[59] h-full w-2"
               />
-              <div className="absolute right-[calc(100%+6px)] top-0 z-[60] w-[182px] rounded-[20px] border border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))] p-2.5 shadow-[0_14px_32px_rgba(15,23,42,0.10)]">
+              <div className="absolute right-[calc(100%+6px)] top-0 z-[60] w-[168px] rounded-[18px] border border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))] p-2 shadow-[0_12px_28px_rgba(15,23,42,0.10)]">
                 {identityOptions.map((option, index) => {
                   const Icon = getIdentityIcon(option.id)
                   const isActive = currentIdentity === option.id
@@ -120,16 +147,16 @@ export default function UserProfileMenu({
                         setIdentityPanelOpen(false)
                       }}
                       className={cn(
-                        "flex w-full items-center gap-3 rounded-[16px] px-3.5 py-2.5 text-left text-[14px] font-medium transition-colors",
+                        "flex w-full items-center gap-2.5 rounded-[14px] px-3 py-2 text-left text-[13px] font-medium transition-colors",
                         isActive
                           ? "bg-[hsl(var(--primary))] text-white"
                           : "text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-high))]",
                         index > 0 && "mt-2",
                       )}
                     >
-                      <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
+                      <Icon className="h-4 w-4 shrink-0" strokeWidth={2.2} />
                       <span className="flex-1">{option.label}</span>
-                      {isActive ? <Check className="h-[13px] w-[13px] shrink-0" strokeWidth={2.6} /> : null}
+                      {isActive ? <Check className="h-3 w-3 shrink-0" strokeWidth={2.6} /> : null}
                     </button>
                   )
                 })}
@@ -138,7 +165,7 @@ export default function UserProfileMenu({
           ) : null}
         </div>
 
-        <div className="mt-3.5 h-px bg-[hsl(var(--outline-variant))]/20" />
+        <div className="mt-3 h-px bg-[hsl(var(--outline-variant))]/20" />
 
         <button
           onClick={() => {
@@ -146,9 +173,9 @@ export default function UserProfileMenu({
             navigate("/login")
             notify.success("已退出登录")
           }}
-          className="mt-3.5 flex w-full items-center gap-3 rounded-[16px] px-3.5 py-2.5 text-left text-[14px] font-medium text-[#ff4d4f] transition-colors hover:bg-[#fff1f0]"
+          className="mt-3 flex w-full items-center gap-2.5 rounded-[14px] px-3 py-2 text-left text-[13px] font-medium text-[#ff4d4f] transition-colors hover:bg-[#fff1f0]"
         >
-          <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2.2} />
+          <LogOut className="h-4 w-4 shrink-0" strokeWidth={2.2} />
           <span>退出登录</span>
         </button>
       </div>
