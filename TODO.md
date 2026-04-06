@@ -1,6 +1,8 @@
 # MangaCanvas 待办清单
 
-> 当前策略：**纯前端 Mock 闭环**，暂不接入真实 API。以下按优先级与模块组织。
+> 当前策略：**纯前端 Mock 闭环**，暂不接入真实 API。
+> 
+> **状态说明**: 后端开发中，所有数据操作均为本地模拟（localStorage + Zustand Store），接口已预留但暂未对接真实服务。
 > 
 > **后端开发请参考**: [`BACKEND_API_SPEC.md`](./BACKEND_API_SPEC.md)
 
@@ -95,6 +97,46 @@
 ### 3. 批量操作
 - [ ] 批量删除 - 点击进入选择模式，卡片显示复选框，确认删除
 
+### 4. `antd` 渐进替代方案
+
+> 目标：保持无限画布功能可用，逐步收敛到 `shadcn/ui + Radix + Tailwind`，避免一次性重写引入大回归。
+
+#### Phase 1 - 先清理全局副作用与反馈层
+- [ ] 移除 `src/pages/project/WorkflowCanvas.tsx` 中的 `antd/dist/reset.css`
+- [ ] 为无限画布接入项目统一反馈层，替代 `antd message`
+- [ ] 将 `Canvas.tsx` 中的 `Modal.confirm` 替换为项目内确认弹层
+- [ ] 将 `Canvas.tsx` / 节点工具栏中的 `Tooltip` 替换为项目内 tooltip / title 方案
+- [ ] 约束原则：先替代全局弹层和 portal，优先消除遮挡、点击失效、body scroll lock 一类问题
+
+#### Phase 2 - 替换画布外层弹窗与面板
+- [ ] 替换 `src/features/infinite-canvas/components/ApiSettings.tsx` 的 `antd Modal/Form/Input/Button`
+- [ ] 替换 `src/features/infinite-canvas/components/DownloadModal.tsx`
+- [ ] 替换 `src/features/infinite-canvas/components/PreviewModal.tsx`
+- [ ] 替换 `src/features/infinite-canvas/components/SaveToMaterialsModal.tsx`
+- [ ] 收敛画布页顶部与侧边面板的图标来源，优先改用 `lucide-react`
+
+#### Phase 3 - 替换节点内部表单控件
+- [ ] 替换 `nodes/TextNode.tsx` 的 `Input/Button/Tooltip`
+- [ ] 替换 `nodes/ImageNode.tsx` 的 `Input/Upload/Spin/Tooltip`
+- [ ] 替换 `nodes/ImageConfigNode.tsx` 的 `Input/Select/Button`
+- [ ] 替换 `nodes/VideoConfigNode.tsx` 的 `Input/Select/Button`
+- [ ] 替换 `nodes/EffectConfigNode.tsx` 的 `Input/Select`
+- [ ] 替换 `nodes/TemplateEffectNode.tsx` 的 `Input/Select/Button`
+- [ ] 替换 `nodes/VideoNode.tsx` 的 `Input`
+
+#### Phase 4 - 收尾与依赖下线
+- [ ] 全仓搜索确认无 `from "antd"` / `from 'antd'`
+- [ ] 全仓搜索确认无 `@ant-design/icons`
+- [ ] 删除 `package.json` 中 `antd` 与 `@ant-design/icons`
+- [ ] 跑通 `npm run build` 与关键交互回归
+- [ ] 补一份迁移记录：哪些交互用 shadcn，哪些保留为自定义画布原生 UI
+
+#### 迁移原则
+- [ ] 不在同一轮同时重写节点逻辑与视觉样式
+- [ ] 每次只替换一类 primitive，先保证行为一致，再做视觉统一
+- [ ] 优先替换会创建 portal / overlay / body 锁定的组件
+- [ ] 新增交互一律不再引入 `antd`
+
 ---
 
 ## 🟡 P2 — 认证与首页交互
@@ -145,13 +187,22 @@
 
 ---
 
-## ⚪ P6 — 后端接入（长期搁置）
+## ⚪ P6 — 后端接入（等待后端开发完成）
 
-- [ ] 替换 Mock 数据为真实 API
-- [ ] 接入 React Query
-- [ ] 用户认证状态全局管理
-- [ ] 真实 AI 生成服务
-- [ ] 文件上传接口（OSS / S3）
+> **当前状态**: 后端开发中，前端已完成接口预留和 Mock 实现
+
+- [ ] 替换 Mock 数据为真实 API (`src/api/*` 已预留接口)
+- [ ] 接入 React Query / TanStack Query
+- [ ] 用户认证 JWT 全局管理
+- [ ] 真实 AI 生成服务对接
+- [ ] 文件上传接口（OSS / S3 直传）
+
+### 已预留但未对接的 API 模块
+| 模块 | 文件 | 说明 |
+|------|------|------|
+| 项目 API | `src/api/projectApi.ts` | 增删改查接口已定义，使用 mockPromise 模拟 |
+| 用户 API | `src/api/hooks.ts` | useUser/useProjects hooks 已预留，返回假数据 |
+| 场景/角色/物品 | `src/stores/projectStore.ts` | createScene/createCharacter/createObject 待接入真实 POST 请求 |
 
 ---
 
@@ -178,6 +229,7 @@
 ## 📝 更新日志
 
 ### 2026-04-05
+- ✅ 补充无限画布 `antd` 渐进替代方案（分阶段迁移计划）
 - ✅ 片段详情页添加「标记完成」功能
 - ✅ 创建项目列表页 (`/projects`)
 - ✅ 新建项目支持剧本模式文件上传

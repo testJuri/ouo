@@ -114,7 +114,7 @@ export interface ObjectCreateData {
 
 // ==================== 项目工作台状态 ====================
 
-export type ProjectTab = 'episodes' | 'scenes' | 'characters' | 'objects'
+export type ProjectTab = 'episodes' | 'scenes' | 'characters' | 'objects' | 'workflows'
 
 export interface ProjectAssets {
   episodes: Episode[]

@@ -19,6 +19,7 @@ import {
   UnlockOutlined,
   DeleteOutlined,
   DownloadOutlined,
+  SettingOutlined,
   DragOutlined,
   AlignLeftOutlined,
   AlignRightOutlined,
@@ -46,8 +47,8 @@ import PromptOrderEdge from './components/edges/PromptOrderEdge';
 import ImageRoleEdge from './components/edges/ImageRoleEdge';
 import ApiSettings from './components/ApiSettings';
 import WorkflowPanel from './components/WorkflowPanel';
-import MaterialPanel from './components/MaterialPanel';
-import { RadialMenu, MenuItem } from './components/RadialMenu';
+import MaterialPanel, { MATERIAL_DRAG_MIME } from './components/MaterialPanel';
+import type { CanvasMaterialItem } from './types';
 
 const nodeTypes = {
   text: TextNode,
@@ -71,7 +72,7 @@ const CanvasInner: React.FC = () => {
     episodeId?: string;
   }>();
   const navigate = useNavigate();
-  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoomIn, zoomOut, fitView, screenToFlowPosition } = useReactFlow();
   const canvasDocumentId = workflowId || (projectId && episodeId ? `episode-${projectId}-${episodeId}` : undefined);
 
   const {
@@ -101,7 +102,7 @@ const CanvasInner: React.FC = () => {
   const showGrid = true;
   const [isLocked, setIsLocked] = useState(false);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [isCanvasMaterialDragOver, setIsCanvasMaterialDragOver] = useState(false);
 
   const currentWorkflow = canvasDocumentId ? getProjectById(canvasDocumentId) : null;
   const workflowName =
@@ -133,29 +134,60 @@ const CanvasInner: React.FC = () => {
     if (currentWorkflow?.sourceType === 'scene') {
       return {
         label: '返回场景',
-        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'scenes' } }),
+        action: () => navigate(`/project/${projectId}/scenes`),
       };
     }
 
     if (currentWorkflow?.sourceType === 'character') {
       return {
         label: '返回角色',
-        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'characters' } }),
+        action: () => navigate(`/project/${projectId}/characters`),
       };
     }
 
     if (currentWorkflow?.sourceType === 'object') {
       return {
         label: '返回物品',
-        action: () => navigate(`/project/${projectId}`, { state: { activeTab: 'objects' } }),
+        action: () => navigate(`/project/${projectId}/objects`),
       };
     }
 
     return {
       label: '返回项目',
-      action: () => navigate(`/project/${projectId}`),
+      action: () => navigate(`/project/${projectId}/scenes`),
     };
   }, [currentWorkflow?.sourceAssetId, currentWorkflow?.sourceType, navigate, projectId]);
+
+  const cleanupCanvasTransientUi = useCallback(() => {
+    setShowApiSettings(false);
+    setShowWorkflowPanel(false);
+    setShowMaterialPanel(false);
+    setShowNodeMenu(false);
+    setShowProjectMenu(false);
+    setIsCanvasMaterialDragOver(false);
+
+    Modal.destroyAll();
+    message.destroy();
+
+    if (typeof document !== 'undefined') {
+      document.body.style.removeProperty('pointer-events');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+      document.documentElement.style.removeProperty('overflow');
+      document.documentElement.style.removeProperty('padding-right');
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      cleanupCanvasTransientUi();
+    };
+  }, [cleanupCanvasTransientUi]);
+
+  const handleBackNavigation = useCallback(() => {
+    cleanupCanvasTransientUi();
+    backTarget.action();
+  }, [backTarget, cleanupCanvasTransientUi]);
 
   // 直接从 nodes 中计算选中的节点
   const selectedNodes = useMemo(() => {
@@ -477,30 +509,82 @@ const CanvasInner: React.FC = () => {
     setShowNodeMenu(false);
   };
 
-  // Handle radial menu selection
-  const handleRadialMenuSelect = useCallback((item: MenuItem, clickPosition: { x: number; y: number }) => {
-    // 计算画布坐标
-    const canvasX = (clickPosition.x - viewport.x) / viewport.zoom;
-    const canvasY = (clickPosition.y - viewport.y - 48) / viewport.zoom; // 48 是 header 高度
-    addNode(item.type, { x: canvasX - 140, y: canvasY - 50 });
-  }, [addNode, viewport]);
+  const createImageNodeFromMaterial = useCallback(
+    (item: CanvasMaterialItem, position?: { x: number; y: number }) => {
+      if (!item.cover) {
+        message.info('该素材暂不支持插入到图片节点');
+        return;
+      }
 
-  // 检查是否应该打开轮盘菜单（排除工具栏和弹窗）
-  const shouldOpenRadialMenu = useCallback((event: React.MouseEvent) => {
-    const target = event.target as HTMLElement;
-    // 排除左侧工具栏、节点菜单、底部控制栏等
-    if (target.closest('aside') || 
-        target.closest('.ant-modal') || 
-        target.closest('.ant-drawer') ||
-        target.closest('[class*="absolute"]')) {
-      return false;
-    }
-    return true;
-  }, []);
+      const viewportCenterX = -viewport.x / viewport.zoom + (window.innerWidth / 2) / viewport.zoom;
+      const viewportCenterY = -viewport.y / viewport.zoom + (window.innerHeight / 2) / viewport.zoom;
+      const targetPosition = position || { x: viewportCenterX - 140, y: viewportCenterY - 100 };
+
+      addNode('image', targetPosition, {
+        url: item.cover,
+        thumbnail: item.cover,
+        label: item.title,
+        loading: false,
+        sourceType: item.category,
+        sourceAssetId: item.id,
+        sourceLibrary: item.library,
+      });
+    },
+    [addNode, viewport]
+  );
 
   // 点击画布空白区域时关闭节点菜单
   const handlePaneClick = useCallback(() => {
     setShowNodeMenu(false);
+  }, []);
+
+  const handleMaterialSelect = useCallback((item: CanvasMaterialItem) => {
+    createImageNodeFromMaterial(item);
+    message.success(`已将“${item.title}”插入画布`);
+  }, [createImageNodeFromMaterial]);
+
+  const handleCanvasDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (isLocked || !event.dataTransfer.types.includes(MATERIAL_DRAG_MIME)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    setIsCanvasMaterialDragOver(true);
+  }, [isLocked]);
+
+  const handleCanvasDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsCanvasMaterialDragOver(false);
+    }
+  }, []);
+
+  const handleCanvasDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    const raw = event.dataTransfer.getData(MATERIAL_DRAG_MIME);
+    setIsCanvasMaterialDragOver(false);
+    if (isLocked || !raw) return;
+
+    event.preventDefault();
+
+    try {
+      const item = JSON.parse(raw) as CanvasMaterialItem;
+      const flowPosition = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      createImageNodeFromMaterial(item, { x: flowPosition.x - 140, y: flowPosition.y - 100 });
+      message.success(`已将“${item.title}”拖入画布`);
+    } catch {
+      message.error('素材读取失败');
+    }
+  }, [createImageNodeFromMaterial, isLocked, screenToFlowPosition]);
+
+  useEffect(() => {
+    const clearCanvasMaterialDragState = () => {
+      setIsCanvasMaterialDragOver(false);
+    };
+
+    window.addEventListener('dragend', clearCanvasMaterialDragState);
+    window.addEventListener('drop', clearCanvasMaterialDragState);
+
+    return () => {
+      window.removeEventListener('dragend', clearCanvasMaterialDragState);
+      window.removeEventListener('drop', clearCanvasMaterialDragState);
+    };
   }, []);
 
   const nodeTypeOptions = [
@@ -536,6 +620,36 @@ const CanvasInner: React.FC = () => {
     message.success('工作流已导出');
     setShowProjectMenu(false);
   }, [nodes, edges, viewport, workflowName]);
+
+  // 导出 IndexedDB 原始数据
+  const handleExportDatabase = useCallback(async () => {
+    try {
+      const { getAllProjects } = await import('./utils/indexedDB');
+      const data = await getAllProjects();
+      
+      const exportData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        count: data.length,
+        projects: data,
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `canvas-database-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      message.success(`已导出 ${data.length} 个项目`);
+      setShowProjectMenu(false);
+    } catch (error) {
+      console.error('导出失败:', error);
+      message.error('导出失败');
+    }
+  }, []);
 
   // 清空画布
   const handleClearCanvas = useCallback(() => {
@@ -574,7 +688,7 @@ const CanvasInner: React.FC = () => {
       <header className="h-16 flex items-center justify-between px-6 bg-[hsl(var(--surface))]/95 backdrop-blur-md border-b border-[hsl(var(--outline-variant))]/20 z-50">
         <div className="flex items-center gap-4">
           <button 
-            onClick={backTarget.action}
+            onClick={handleBackNavigation}
             className="w-9 h-9 flex items-center justify-center rounded-xl text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
             <ArrowLeftOutlined style={{ fontSize: 16 }} />
@@ -607,6 +721,13 @@ const CanvasInner: React.FC = () => {
                     <DownloadOutlined style={{ fontSize: 14 }} />
                     <span>导出工作流</span>
                   </button>
+                  <button
+                    onClick={handleExportDatabase}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-colors text-left text-sm"
+                  >
+                    <DownloadOutlined style={{ fontSize: 14 }} />
+                    <span>导出数据库</span>
+                  </button>
                 </div>
               </>
             )}
@@ -619,26 +740,55 @@ const CanvasInner: React.FC = () => {
             画布
           </button>
           <button 
-            onClick={backTarget.action}
+            onClick={handleBackNavigation}
             className="px-3 py-2 text-xs tracking-[0.2em] text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))] transition-colors"
           >
             {backTarget.label}
           </button>
         </nav>
         
-        {/* Header actions removed - dark mode toggle, API settings, workspace label */}
+        <div className="flex items-center gap-2">
+          {allowApiKeyConfig && (
+            <Tooltip title="API 设置" placement="bottom">
+              <button
+                onClick={() => setShowApiSettings(true)}
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[hsl(var(--outline-variant))]/30 bg-[hsl(var(--surface-container-low))] text-[hsl(var(--secondary))] transition-colors hover:bg-[hsl(var(--surface-container-high))] hover:text-[hsl(var(--on-surface))]"
+                title="API 设置"
+              >
+                <SettingOutlined style={{ fontSize: 16 }} />
+              </button>
+            </Tooltip>
+          )}
+          <button
+            onClick={handleClearCanvas}
+            className="flex items-center gap-2 rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10"
+            title="清空画布"
+          >
+            <DeleteOutlined style={{ fontSize: 15 }} />
+            <span>清空画布</span>
+          </button>
+        </div>
       </header>
 
-      <RadialMenu onSelect={handleRadialMenuSelect} shouldOpen={shouldOpenRadialMenu}>
-        <div 
-          className="flex-1 relative overflow-hidden h-full cursor-grab"
-          style={{
-            backgroundImage: 'radial-gradient(circle at top right, rgba(172, 46, 0, 0.08), transparent 28%), radial-gradient(circle at left 20%, rgba(215, 59, 0, 0.06), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,244,240,0.94))',
-            backgroundBlendMode: 'normal',
-            backgroundSize: '40px 40px',
-            backgroundColor: 'hsl(var(--surface))'
-          }}
-        >
+      <div 
+        className="flex-1 relative overflow-hidden h-full cursor-grab"
+        onDragOver={handleCanvasDragOver}
+        onDragLeave={handleCanvasDragLeave}
+        onDrop={handleCanvasDrop}
+        style={{
+          backgroundImage: 'radial-gradient(circle at top right, rgba(172, 46, 0, 0.08), transparent 28%), radial-gradient(circle at left 20%, rgba(215, 59, 0, 0.06), transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.9), rgba(248,244,240,0.94))',
+          backgroundBlendMode: 'normal',
+          backgroundSize: '40px 40px',
+          backgroundColor: 'hsl(var(--surface))'
+        }}
+      >
+        {isCanvasMaterialDragOver && (
+          <div className="pointer-events-none absolute inset-5 z-30 flex items-center justify-center rounded-[28px] border-2 border-dashed border-[hsl(var(--primary))]/45 bg-[hsl(var(--primary))]/8">
+            <div className="rounded-2xl bg-[hsl(var(--surface-container-lowest))]/95 px-5 py-3 text-sm font-semibold text-[hsl(var(--primary))] shadow-lg backdrop-blur">
+              松手即可在画布中创建图片节点
+            </div>
+          </div>
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -659,10 +809,11 @@ const CanvasInner: React.FC = () => {
           nodesDraggable={!isLocked}
           nodesConnectable={!isLocked}
           elementsSelectable={!isLocked}
-          selectionMode={isSelectionMode ? SelectionMode.Partial : undefined}
-          selectionOnDrag={isSelectionMode}
-          panOnDrag={!isSelectionMode}
-          selectionKeyCode={null}
+          selectionMode={SelectionMode.Partial}
+          selectionOnDrag={!isLocked}
+          panOnDrag={false}
+          panActivationKeyCode="Space"
+          multiSelectionKeyCode={['Meta', 'Control']}
         >
           {showGrid && <Background gap={20} size={1} />}
           <MiniMap position="bottom-right" pannable zoomable />
@@ -777,27 +928,11 @@ const CanvasInner: React.FC = () => {
             {isLocked ? <LockOutlined style={{ fontSize: 16 }} /> : <UnlockOutlined style={{ fontSize: 16 }} />}
           </button>
           <button
-            onClick={handleClearCanvas}
-            className="rounded-xl p-2 text-[hsl(var(--secondary))] hover:bg-red-500/10 hover:text-red-600 transition-colors"
-            title="清空画布"
-          >
-            <DeleteOutlined style={{ fontSize: 16 }} />
-          </button>
-          <div className="h-5 w-px bg-[hsl(var(--outline-variant))]/40" />
-          <button
             onClick={() => {
-              setIsSelectionMode(prev => {
-                const newState = !prev;
-                message.info(newState ? '框选模式已开启' : '框选模式已关闭');
-                return newState;
-              });
+              message.info('左键拖拽空白区可框选节点，按住 Space 再拖拽可移动画布');
             }}
-            className={`p-2 rounded transition-colors ${
-              isSelectionMode 
-                ? 'bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/15' 
-                : 'text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))]'
-            }`}
-            title={isSelectionMode ? '关闭框选模式' : '开启框选模式'}
+            className="p-2 rounded text-[hsl(var(--secondary))] hover:bg-[hsl(var(--surface-container-low))] hover:text-[hsl(var(--on-surface))] transition-colors"
+            title="左键拖拽空白区框选，按住 Space 拖动画布"
           >
             <DragOutlined style={{ fontSize: 16 }} />
           </button>
@@ -861,12 +996,15 @@ const CanvasInner: React.FC = () => {
             </button>
           </div>
         )}
-        </div>
-      </RadialMenu>
+      </div>
 
       {/* Modals */}
       <WorkflowPanel visible={showWorkflowPanel} onClose={() => setShowWorkflowPanel(false)} />
-      <MaterialPanel visible={showMaterialPanel} onClose={() => setShowMaterialPanel(false)} />
+      <MaterialPanel
+        visible={showMaterialPanel}
+        onClose={() => setShowMaterialPanel(false)}
+        onSelectMaterial={handleMaterialSelect}
+      />
       {allowApiKeyConfig && <ApiSettings visible={showApiSettings} onClose={() => setShowApiSettings(false)} />}
     </div>
   );

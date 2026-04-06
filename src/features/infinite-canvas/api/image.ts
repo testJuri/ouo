@@ -2,8 +2,8 @@ import axios from 'axios';
 import { message } from 'antd';
 import type { ImageGenerationParams, DashScopeSubmitResponse, DashScopeTaskResult } from '../types';
 
-// DashScope API base URL (通过 Vite 代理)
-const DASHSCOPE_BASE_URL = '/dashscope-api';
+// DashScope API base URL (阿里百炼正式地址)
+const DASHSCOPE_BASE_URL = 'https://dashscope.aliyuncs.com/api/v1';
 
 // 错误消息映射表 - 将服务端英文错误转换为中文
 const errorMessageMap: Record<string, string> = {

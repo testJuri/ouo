@@ -1,23 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CloseOutlined, InboxOutlined, SoundOutlined } from '@ant-design/icons';
+import type { CanvasMaterialItem } from '../types';
 
 interface MaterialPanelProps {
   visible: boolean;
   onClose: () => void;
+  onSelectMaterial: (item: CanvasMaterialItem) => void;
 }
 
 type LibraryTab = 'materials' | 'subjects';
 type CategoryTab = 'all' | 'character' | 'scene' | 'object' | 'style' | 'sound' | 'other';
-
-interface MaterialItem {
-  id: string;
-  library: LibraryTab;
-  category: Extract<CategoryTab, 'character' | 'scene' | 'object' | 'sound'>;
-  title: string;
-  subtitle: string;
-  status: string;
-  cover?: string;
-}
 
 const libraryTabs: Array<{ key: LibraryTab; label: string }> = [
   { key: 'materials', label: '我的素材' },
@@ -32,7 +24,7 @@ const categoryTabs: Array<{ key: CategoryTab; label: string }> = [
   { key: 'sound', label: '音效' },
 ];
 
-const mockItems: MaterialItem[] = [
+const mockItems: CanvasMaterialItem[] = [
   {
     id: 'material-character-1',
     library: 'materials',
@@ -149,7 +141,9 @@ const mockItems: MaterialItem[] = [
   },
 ];
 
-const MaterialPanel: React.FC<MaterialPanelProps> = ({ visible, onClose }) => {
+const MATERIAL_DRAG_MIME = 'application/x-mangacanvas-material';
+
+const MaterialPanel: React.FC<MaterialPanelProps> = ({ visible, onClose, onSelectMaterial }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [activeLibrary, setActiveLibrary] = useState<LibraryTab>('materials');
   const [activeCategory, setActiveCategory] = useState<CategoryTab>('character');
@@ -184,6 +178,12 @@ const MaterialPanel: React.FC<MaterialPanelProps> = ({ visible, onClose }) => {
       return item.category === activeCategory;
     });
   }, [activeCategory, activeLibrary]);
+
+  const handleItemDragStart = (event: React.DragEvent<HTMLButtonElement>, item: CanvasMaterialItem) => {
+    if (!item.cover) return;
+    event.dataTransfer.setData(MATERIAL_DRAG_MIME, JSON.stringify(item));
+    event.dataTransfer.effectAllowed = 'copy';
+  };
 
   if (!visible) return null;
 
@@ -244,8 +244,11 @@ const MaterialPanel: React.FC<MaterialPanelProps> = ({ visible, onClose }) => {
               {visibleItems.map((item) => (
                 <button
                   key={item.id}
-                  className="group text-left"
+                  className={`group text-left ${item.cover ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
                   title={`${item.title} · ${item.subtitle}`}
+                  onClick={() => item.cover && onSelectMaterial(item)}
+                  draggable={Boolean(item.cover)}
+                  onDragStart={(event) => handleItemDragStart(event, item)}
                 >
                   {item.cover ? (
                     <div className="overflow-hidden rounded-2xl border border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-low))] transition-all group-hover:-translate-y-0.5 group-hover:border-[hsl(var(--outline-variant))]/30 group-hover:shadow-md">
@@ -302,3 +305,4 @@ const MaterialPanel: React.FC<MaterialPanelProps> = ({ visible, onClose }) => {
 };
 
 export default MaterialPanel;
+export { MATERIAL_DRAG_MIME };

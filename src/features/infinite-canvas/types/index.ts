@@ -15,10 +15,23 @@ export interface NodeData {
   executed?: boolean;
   outputNodeId?: string;
   autoExecute?: boolean;
+  sourceType?: string;
+  sourceAssetId?: string;
+  sourceLibrary?: string;
   createdAt?: number;
   updatedAt?: number;
   thumbnail?: string;
   [key: string]: any;
+}
+
+export interface CanvasMaterialItem {
+  id: string;
+  library: 'materials' | 'subjects';
+  category: 'character' | 'scene' | 'object' | 'sound';
+  title: string;
+  subtitle: string;
+  status: string;
+  cover?: string;
 }
 
 export interface CustomNode {

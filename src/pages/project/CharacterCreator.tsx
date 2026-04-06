@@ -73,11 +73,6 @@ const promptTemplate = `【基础信息】
 口头禅：
 习惯性动作：`;
 
-const styleOptions = [
-  { id: "anime", label: "动漫" },
-  { id: "realistic", label: "写实" },
-]
-
 const quantityOptions = [1, 2, 3, 4, 5]
 
 const createSeed = () =>
@@ -94,7 +89,6 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
   const [referenceImage, setReferenceImage] = useState<string | null>(null)
   const [batchArchiveName, setBatchArchiveName] = useState("")
   const [role, setRole] = useState<"main" | "support">("support")
-  const [visualStyle, setVisualStyle] = useState("anime")
   const [seedMode, setSeedMode] = useState<"random" | "fixed">("fixed")
   const [seed, setSeed] = useState(createSeed)
   const [quantity, setQuantity] = useState(1)
@@ -179,7 +173,6 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
       description,
       referenceImage: referenceImage || undefined,
       role,
-      style: styleOptions.find((item) => item.id === visualStyle)?.label,
       seed,
       seedMode,
       quantity,
@@ -439,28 +432,6 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
               </div>
             </div>
           )}
-
-          {/* Style */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
-              <span className="text-red-500 mr-1">*</span>风格
-            </label>
-            <div className="inline-flex rounded-full bg-[hsl(var(--surface-container-low))] p-1">
-              {styleOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => setVisualStyle(option.id)}
-                  className={`min-w-[104px] rounded-full px-5 py-2.5 text-sm font-medium transition-all ${
-                    visualStyle === option.id
-                      ? "signature-gradient text-white shadow-sm"
-                      : "text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-high))]"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Reference Image + Seed Control */}
           <div className={`grid gap-6 ${genMethod === "upload" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>

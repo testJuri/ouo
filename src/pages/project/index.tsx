@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
-import { Link, useLocation, useParams } from "react-router-dom"
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
 import Sidebar from "@/components/layout/Sidebar"
 import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -34,6 +34,7 @@ import CharactersTab from "./tabs/CharactersTab"
 import EpisodesTab from "./tabs/EpisodesTab"
 import ObjectsTab from "./tabs/ObjectsTab"
 import PlaceholderTab from "./tabs/PlaceholderTab"
+import WorkflowsTab from "./tabs/WorkflowsTab"
 
 // Creators
 import SceneCreator from "./SceneCreator"
@@ -41,11 +42,15 @@ import EpisodeCreator from "./EpisodeCreator"
 import CharacterCreator from "./CharacterCreator"
 import ObjectCreator from "./ObjectCreator"
 
+const projectTabs: ProjectTab[] = ["episodes", "characters", "scenes", "objects", "workflows"]
+const defaultProjectTab: ProjectTab = "scenes"
+
 const secondaryTabs: { id: ProjectTab; label: string }[] = [
   { id: "episodes", label: "片段管理" },
   { id: "characters", label: "角色管理" },
   { id: "scenes", label: "场景管理" },
   { id: "objects", label: "物品管理" },
+  { id: "workflows", label: "工作流" },
 ]
 
 const sortOptions = [
@@ -63,13 +68,17 @@ const projectTitleMap: Record<string, string> = {
   "4": "Kinetic Backgrounds 项目",
 }
 
+const isProjectTab = (value?: string): value is ProjectTab =>
+  Boolean(value && projectTabs.includes(value as ProjectTab))
+
 export default function ProjectDetail() {
-  const { id: projectId } = useParams()
+  const { id: projectId, tab: tabParam } = useParams()
   const location = useLocation()
+  const navigate = useNavigate()
   const { confirm, notify } = useFeedback()
   const launchWorkflow = useWorkflowLauncher()
   // 从 Store 获取状态
-  const activeTab = useProjectStore((state) => state.activeTab)
+  const storeActiveTab = useProjectStore((state) => state.activeTab)
   const currentPage = useProjectStore((state) => state.currentPage)
   const ui = useProjectStore((state) => state.ui)
   const assets = useProjectStore((state) => state.assets)
@@ -88,6 +97,8 @@ export default function ProjectDetail() {
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [sortBy, setSortBy] = useState<SortOption>("recent")
   const projectTitle = projectId ? projectTitleMap[projectId] ?? `项目 ${projectId}` : "项目"
+  const routeTab = isProjectTab(tabParam) ? tabParam : undefined
+  const activeTab = routeTab ?? storeActiveTab
 
   const assetType = useMemo(() => {
     switch (activeTab) {
@@ -99,6 +110,8 @@ export default function ProjectDetail() {
         return "scenes" as const
       case "objects":
         return "objects" as const
+      case "workflows":
+        return null
       default:
         return "scenes" as const
     }
@@ -110,10 +123,29 @@ export default function ProjectDetail() {
   }, [activeTab])
 
   useEffect(() => {
-    const nextTab = location.state?.activeTab as ProjectTab | undefined
-    if (!nextTab || nextTab === activeTab) return
-    setActiveTab(nextTab)
-  }, [activeTab, location.state, setActiveTab])
+    if (!projectId) return
+
+    const stateTab = location.state?.activeTab
+    if (isProjectTab(stateTab) && stateTab !== routeTab) {
+      navigate(`/project/${projectId}/${stateTab}`, { replace: true })
+      return
+    }
+
+    if (!routeTab) {
+      navigate(`/project/${projectId}/${defaultProjectTab}`, { replace: true })
+    }
+  }, [location.state, navigate, projectId, routeTab])
+
+  useEffect(() => {
+    if (storeActiveTab !== activeTab) {
+      setActiveTab(activeTab)
+    }
+  }, [activeTab, setActiveTab, storeActiveTab])
+
+  const handleTabChange = (tab: ProjectTab) => {
+    if (!projectId || tab === activeTab) return
+    navigate(`/project/${projectId}/${tab}`)
+  }
 
   const sortItemsByName = <T extends { name: string }>(items: T[], direction: "asc" | "desc") => {
     const multiplier = direction === "asc" ? 1 : -1
@@ -154,6 +186,11 @@ export default function ProjectDetail() {
   }
 
   const handleBatchDelete = async () => {
+    if (!assetType) {
+      notify.info("工作流暂不支持批量删除")
+      return
+    }
+    
     if (!batchMode) {
       setBatchMode(true)
       return
@@ -236,6 +273,8 @@ export default function ProjectDetail() {
             onToggleSelect={handleToggleSelect}
           />
         )
+      case "workflows":
+        return <WorkflowsTab />
       default:
         return <PlaceholderTab label={secondaryTabs.find(t => t.id === activeTab)?.label || ""} />
     }
@@ -277,10 +316,14 @@ export default function ProjectDetail() {
       {/* Main Content */}
       <main className="relative ml-64 flex h-screen flex-col overflow-hidden">
         {/* Header */}
-        <ProjectHeader activeTab={activeTab} onTabChange={setActiveTab} projectTitle={projectTitle} />
+        <ProjectHeader
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          projectTitle={projectTitle}
+        />
 
         {/* Content Canvas */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto [scrollbar-gutter:stable]">
           <div className="flex min-h-full flex-col px-8 pb-12 pt-24">
             {/* Secondary Toolbar */}
             <div className="mb-8 flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
@@ -312,7 +355,7 @@ export default function ProjectDetail() {
               </div>
 
               <div className="flex items-center gap-3">
-                {batchMode && (
+                {batchMode && assetType && (
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -324,13 +367,15 @@ export default function ProjectDetail() {
                     取消
                   </Button>
                 )}
-                <Button
-                  onClick={handleBatchDelete}
-                  className="flex items-center gap-2 rounded-xl border-0 bg-[hsl(var(--primary))] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-90"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {batchMode ? `删除所选${selectedIds.length ? ` (${selectedIds.length})` : ""}` : "批量删除"}
-                </Button>
+                {assetType && (
+                  <Button
+                    onClick={handleBatchDelete}
+                    className="flex items-center gap-2 rounded-xl border-0 bg-[hsl(var(--primary))] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:opacity-90"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    {batchMode ? `删除所选${selectedIds.length ? ` (${selectedIds.length})` : ""}` : "批量删除"}
+                  </Button>
+                )}
               </div>
             </div>
 

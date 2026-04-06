@@ -56,8 +56,6 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
   const generationMethods = [
     { id: "model", label: "通过模型生成场景" },
     { id: "upload", label: "自己上传图片" },
-    { id: "angle", label: "巨日禄机位转换器" },
-    { id: "custom", label: "巨日禄自定义机位" },
   ]
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,9 +242,9 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
                   accept="image/*"
                   className="hidden"
                 />
-                <div 
+                <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:bg-[hsl(var(--surface-container-high))] transition-colors cursor-pointer group overflow-hidden relative"
+                  className="relative flex h-60 w-full max-w-[320px] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] group"
                 >
                   {referenceImage ? (
                     <img src={referenceImage} alt="参考图" className="w-full h-full object-cover" />

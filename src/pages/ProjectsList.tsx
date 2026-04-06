@@ -13,7 +13,7 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
-import { Plus, MoreHorizontal, ChevronDown, ChevronLeft, Bell, CreditCard, LogOut, Settings, Shield, User, PencilLine, Trash2, Copy, ShieldCheck } from "lucide-react"
+import { Plus, ChevronDown, ChevronLeft, Bell, CreditCard, LogOut, Settings, Shield, User } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useState } from "react"
 import ProjectCreator from "./ProjectCreator"
@@ -187,7 +187,7 @@ export default function ProjectsList() {
 
       <Sidebar />
 
-      <main className="relative ml-64 h-screen overflow-hidden">
+      <main className="relative ml-64 h-screen flex flex-col overflow-hidden">
         {/* Header */}
         <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[hsl(var(--surface-container-lowest))]/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-[hsl(var(--outline-variant))]/15">
           <div className="flex items-center gap-4">
@@ -293,8 +293,8 @@ export default function ProjectsList() {
         </header>
 
         {/* Content */}
-        <div className="h-full overflow-y-auto px-8 pb-12 pt-24">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="flex-1 overflow-y-auto px-8 pt-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Add New Project Card */}
             <div
               onClick={() => setIsProjectDialogOpen(true)}
@@ -339,46 +339,6 @@ export default function ProjectsList() {
                         : "草稿"}
                     </Badge>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={(event) => event.stopPropagation()}
-                        className="absolute right-3 top-3 z-10 h-9 w-9 rounded-full border border-white/40 bg-black/20 text-white backdrop-blur-md transition-colors hover:bg-black/35"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      onClick={(event) => event.stopPropagation()}
-                      className="w-44"
-                    >
-                      <DropdownMenuLabel>项目操作</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleRenameProject(project)}>
-                        <PencilLine className="mr-2 h-4 w-4" />
-                        编辑项目
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handlePermissions(project)}>
-                        <ShieldCheck className="mr-2 h-4 w-4" />
-                        权限控制
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
-                        <Copy className="mr-2 h-4 w-4" />
-                        复制项目
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteProject(project)}
-                        className="text-red-600 focus:bg-red-50 focus:text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        删除项目
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-extrabold text-[hsl(var(--on-surface))] mb-1">
@@ -407,7 +367,7 @@ export default function ProjectsList() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-16 py-8 border-t border-[hsl(var(--outline-variant))]/15">
+        <footer className="py-6 border-t border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface))] shrink-0">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
               <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>

@@ -285,6 +285,7 @@ function App() {
         <Route path="/projects" element={<ProjectsList />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/project/:id" element={<ProjectDetail />} />
+        <Route path="/project/:id/:tab" element={<ProjectDetail />} />
         <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
         <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
         <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
