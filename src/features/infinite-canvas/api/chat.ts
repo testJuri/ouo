@@ -1,20 +1,19 @@
+import {
+  buildBearerAuthHeader,
+  getResponseReader,
+  getAppApiConfig,
+  getDashScopeCompatibleConfig,
+  needBrowserAuthHeader,
+  parseJsonResponse,
+} from '@/api';
 import type { ChatCompletionParams } from '../types';
 
-// 判断是否需要前端携带 Authorization header
-const needAuthHeader = (): boolean => {
-  return (import.meta as any).env?.DEV || window.location.protocol === 'https:';
-};
+const getOptionalAuthHeader = (apiKey: string): Record<string, string> => {
+  if (!apiKey) {
+    return {};
+  }
 
-const getApiConfig = () => {
-  const apiKey = localStorage.getItem('apiKey') || '';
-  const apiBaseUrl = localStorage.getItem('apiBaseUrl') || '/v1';
-  return { apiKey, apiBaseUrl };
-};
-
-const getDashScopeConfig = () => {
-  const apiKey = localStorage.getItem('dashscopeApiKey') || '';
-  const apiBaseUrl = '/dashscope-compatible'; // 通过 Vite 代理
-  return { apiKey, apiBaseUrl };
+  return buildBearerAuthHeader(apiKey, '请先配置 API Key');
 };
 
 // 获取 DashScope 请求 headers
@@ -22,12 +21,9 @@ const getDashScopeHeaders = (): Record<string, string> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  if (needAuthHeader()) {
-    const { apiKey } = getDashScopeConfig();
-    if (!apiKey) {
-      throw new Error('请在设置中配置 DashScope API Key');
-    }
-    headers['Authorization'] = `Bearer ${apiKey}`;
+  if (needBrowserAuthHeader()) {
+    const { apiKey } = getDashScopeCompatibleConfig();
+    Object.assign(headers, buildBearerAuthHeader(apiKey, '请在设置中配置 DashScope API Key'));
   }
   return headers;
 };
@@ -37,25 +33,16 @@ export async function* streamDashScopeChatCompletions(
   data: ChatCompletionParams,
   signal?: AbortSignal
 ): AsyncGenerator<string, void, undefined> {
-  const { apiBaseUrl } = getDashScopeConfig();
+  const { baseURL } = getDashScopeCompatibleConfig();
   const headers = getDashScopeHeaders();
 
-  const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+  const response = await fetch(`${baseURL}/chat/completions`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ ...data, stream: true }),
     signal,
   });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`请求失败: ${response.status} - ${errorText}`);
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error('Response body is not readable');
-  }
+  const reader = await getResponseReader(response, 'DashScope 流式请求失败');
 
   const decoder = new TextDecoder();
 
@@ -93,26 +80,18 @@ export async function* streamChatCompletions(
   data: ChatCompletionParams,
   signal?: AbortSignal
 ): AsyncGenerator<string, void, undefined> {
-  const { apiKey, apiBaseUrl } = getApiConfig();
+  const { apiKey, baseURL } = getAppApiConfig();
 
-  const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+  const response = await fetch(`${baseURL}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+      ...getOptionalAuthHeader(apiKey),
     },
     body: JSON.stringify({ ...data, stream: true }),
     signal,
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const reader = response.body?.getReader();
-  if (!reader) {
-    throw new Error('Response body is not readable');
-  }
+  const reader = await getResponseReader(response, '聊天流式请求失败');
 
   const decoder = new TextDecoder();
 
@@ -147,21 +126,19 @@ export async function* streamChatCompletions(
 }
 
 export async function chatCompletions(data: ChatCompletionParams): Promise<string> {
-  const { apiKey, apiBaseUrl } = getApiConfig();
+  const { apiKey, baseURL } = getAppApiConfig();
 
-  const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+  const response = await fetch(`${baseURL}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+      ...getOptionalAuthHeader(apiKey),
     },
     body: JSON.stringify({ ...data, stream: false }),
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const json = await response.json();
+  const json = await parseJsonResponse<{ choices?: Array<{ message?: { content?: string } }> }>(
+    response,
+    '聊天请求失败'
+  );
   return json.choices?.[0]?.message?.content || '';
 }

@@ -1,67 +1,5 @@
-import axios from 'axios';
+import { dashscopeClient, translateDashScopeErrorMessage } from '@/api';
 import type { VideoGenerationParams } from '../types';
-
-// DashScope API base URL (阿里百炼正式地址)
-const DASHSCOPE_BASE_URL = 'https://dashscope.aliyuncs.com/api/v1';
-
-// 错误消息映射表 - 将服务端英文错误转换为中文
-const errorMessageMap: Record<string, string> = {
-  'rate limit exceeded': '请求过于频繁，请稍后重试',
-  'invalid api key': 'API Key 无效，请检查配置',
-  'insufficient quota': '配额不足，请检查账户余额',
-  'InvalidParameter': '参数无效',
-  'Throttling': '请求过于频繁，请稍后重试',
-  'inappropriate content': '输入内容可能包含不当内容，请修改后重试',
-  'Input data may contain inappropriate content': '输入内容可能包含不当内容，请修改后重试',
-  'DataInspectionFailed': '内容审核未通过，请修改后重试',
-};
-
-// 翻译错误消息
-const translateErrorMessage = (msg: string): string => {
-  if (!msg) return '请求失败';
-  // 完全匹配
-  if (errorMessageMap[msg]) {
-    return errorMessageMap[msg];
-  }
-  // 部分匹配
-  for (const [key, value] of Object.entries(errorMessageMap)) {
-    if (msg.toLowerCase().includes(key.toLowerCase())) {
-      return value;
-    }
-  }
-  return msg;
-};
-
-// Create DashScope axios instance
-const dashscopeRequest = axios.create({
-  baseURL: DASHSCOPE_BASE_URL,
-  timeout: 60000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Get API key from localStorage
-const getDashScopeApiKey = (): string => {
-  return localStorage.getItem('dashscopeApiKey') || '';
-};
-
-// 判断是否需要前端携带 Authorization header
-const needAuthHeader = (): boolean => {
-  return (import.meta as any).env?.DEV || window.location.protocol === 'https:';
-};
-
-// 获取请求 headers
-const getAuthHeaders = (): Record<string, string> => {
-  if (!needAuthHeader()) {
-    return {};
-  }
-  const apiKey = getDashScopeApiKey();
-  if (!apiKey) {
-    throw new Error('请在设置中配置 DashScope API Key');
-  }
-  return { Authorization: `Bearer ${apiKey}` };
-};
 
 // DashScope 图生视频响应类型
 interface DashScopeVideoSubmitResponse {
@@ -119,9 +57,7 @@ export async function submitDashScopeVideoTask(
   duration: number = 5,
   model: string = 'wan2.6-i2v-flash'
 ): Promise<string> {
-  const authHeaders = getAuthHeaders();
-
-  const response = await dashscopeRequest.post<DashScopeVideoSubmitResponse>(
+  const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
       model,
@@ -138,7 +74,6 @@ export async function submitDashScopeVideoTask(
     },
     {
       headers: {
-        ...authHeaders,
         'X-DashScope-Async': 'enable',
       },
     }
@@ -157,18 +92,11 @@ export async function pollDashScopeVideoTask(
   taskId: string,
   onProgress?: (status: string) => void
 ): Promise<string> {
-  const authHeaders = getAuthHeaders();
-
   const maxAttempts = 180; // Max 15 minutes with 5s interval
   const pollInterval = 5000; // 5 seconds
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const response = await dashscopeRequest.get<DashScopeVideoTaskResult>(
-      `/tasks/${taskId}`,
-      {
-        headers: authHeaders,
-      }
-    );
+    const response = await dashscopeClient.get<DashScopeVideoTaskResult>(`/tasks/${taskId}`);
 
     const result = response.data;
     const status = result.output?.task_status;
@@ -185,7 +113,7 @@ export async function pollDashScopeVideoTask(
 
     if (status === 'FAILED') {
       const rawMessage = result.output?.message || '视频生成失败';
-      throw new Error(translateErrorMessage(rawMessage));
+      throw new Error(translateDashScopeErrorMessage(rawMessage));
     }
 
     // Wait before next poll
@@ -220,9 +148,7 @@ export async function submitDashScopeT2VTask(
   duration: number = 5,
   model: string = 'wan2.6-t2v'
 ): Promise<string> {
-  const authHeaders = getAuthHeaders();
-
-  const response = await dashscopeRequest.post<DashScopeVideoSubmitResponse>(
+  const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
       model,
@@ -238,7 +164,6 @@ export async function submitDashScopeT2VTask(
     },
     {
       headers: {
-        ...authHeaders,
         'X-DashScope-Async': 'enable',
       },
     }
@@ -277,9 +202,7 @@ export async function submitDashScopeKF2VTask(
   resolution: string = '720P',
   model: string = 'wan2.2-kf2v-flash'
 ): Promise<string> {
-  const authHeaders = getAuthHeaders();
-
-  const response = await dashscopeRequest.post<DashScopeVideoSubmitResponse>(
+  const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/image2video/video-synthesis',
     {
       model,
@@ -295,7 +218,6 @@ export async function submitDashScopeKF2VTask(
     },
     {
       headers: {
-        ...authHeaders,
         'X-DashScope-Async': 'enable',
       },
     }
@@ -334,9 +256,7 @@ export async function submitDashScopeTemplateEffectTask(
   resolution: string = '720P',
   model: string = 'wan2.6-i2v-flash'
 ): Promise<string> {
-  const authHeaders = getAuthHeaders();
-
-  const response = await dashscopeRequest.post<DashScopeVideoSubmitResponse>(
+  const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
       model,
@@ -350,7 +270,6 @@ export async function submitDashScopeTemplateEffectTask(
     },
     {
       headers: {
-        ...authHeaders,
         'X-DashScope-Async': 'enable',
       },
     }

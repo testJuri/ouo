@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { 
   Plus, 
-  MoreVertical,
   History,
+  FolderOpen,
+  Sparkles,
 } from "lucide-react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { useState } from "react"
 import ProjectCreator from "./ProjectCreator"
 import WorkspaceHeader from "@/components/layout/WorkspaceHeader"
@@ -53,8 +53,7 @@ const activities = [
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
     ],
     text: "Elena 和 Marcus",
-    action: "上传了 12 个新资源到",
-    target: "Cyberpunk Ronin",
+    action: "上传了 12 个新场景",
     time: "12:45"
   },
   {
@@ -62,19 +61,77 @@ const activities = [
     type: "review",
     text: "编辑审核",
     action: "完成了第 04 章的审核",
-    target: "Spirit of Zen",
     time: "昨天"
+  },
+  {
+    id: 3,
+    type: "upload",
+    users: ["https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"],
+    text: "陈晓明",
+    action: "创建了新角色",
+    time: "2 小时前"
   }
 ]
 
+// 空状态组件
+function EmptyState({ onCreate }: { onCreate: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <div className="w-24 h-24 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-6">
+        <FolderOpen className="w-12 h-12 text-[hsl(var(--secondary))]" />
+      </div>
+      <h2 className="text-2xl font-black text-[hsl(var(--on-surface))] mb-3">
+        还没有项目
+      </h2>
+      <p className="text-[hsl(var(--secondary))] max-w-md mb-8">
+        创建你的第一个项目，开始漫画创作之旅。你可以管理片段、场景、角色和工作流。
+      </p>
+      <Button
+        onClick={onCreate}
+        className="signature-gradient rounded-xl border-0 px-8 py-4 text-base font-bold text-white shadow-lg hover:opacity-90 hover:scale-105 transition-all"
+      >
+        <Plus className="mr-2 h-5 w-5" />
+        创建第一个项目
+      </Button>
+      
+      <div className="mt-12 grid grid-cols-3 gap-6 max-w-2xl">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="w-6 h-6 text-[hsl(var(--primary))]" />
+          </div>
+          <p className="text-xs font-bold text-[hsl(var(--on-surface))]">AI 辅助创作</p>
+          <p className="text-[10px] text-[hsl(var(--secondary))] mt-1">智能生成场景和角色</p>
+        </div>
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center mx-auto mb-3">
+            <FolderOpen className="w-6 h-6 text-[hsl(var(--primary))]" />
+          </div>
+          <p className="text-xs font-bold text-[hsl(var(--on-surface))]">资产管理</p>
+          <p className="text-[10px] text-[hsl(var(--secondary))] mt-1">统一管理所有资源</p>
+        </div>
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center mx-auto mb-3">
+            <History className="w-6 h-6 text-[hsl(var(--primary))]" />
+          </div>
+          <p className="text-xs font-bold text-[hsl(var(--on-surface))]">工作流编排</p>
+          <p className="text-[10px] text-[hsl(var(--secondary))] mt-1">可视化编辑流程</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
+  const { id: projectId } = useParams<{ id: string }>()
   const [projects, setProjects] = useState(initialProjects)
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
 
-  const handleProjectClick = (projectId: number) => {
-    navigate(`/project/${projectId}`)
-  }
+  // 获取当前项目
+  const currentProject = projects.find(p => p.id === Number(projectId)) || projects[0]
+  
+  // 是否有项目
+  const hasProjects = projects.length > 0
 
   const handleCreateProject = (data: {
     name: string
@@ -103,89 +160,95 @@ export default function Dashboard() {
       <WorkspaceLayout
         header={
           <WorkspaceHeader
-            title="控制台"
-            subtitle="欢迎回到你的动态工作区。"
-            searchPlaceholder="搜索项目..."
+            title={hasProjects ? `${currentProject?.name || '项目'} 看板` : '欢迎'}
+            subtitle={hasProjects ? "项目概览与活动动态" : "开始你的创作之旅"}
+            searchPlaceholder="搜索..."
             actions={
-              <Button
-                onClick={() => setIsProjectDialogOpen(true)}
-                className="signature-gradient rounded-xl border-0 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                新建项目
-              </Button>
+              hasProjects ? (
+                <Button
+                  onClick={() => navigate(`/project/${currentProject?.id || projectId}`)}
+                  className="signature-gradient rounded-xl border-0 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90"
+                >
+                  进入工作台
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setIsProjectDialogOpen(true)}
+                  className="signature-gradient rounded-xl border-0 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:opacity-90"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  新建项目
+                </Button>
+              )
             }
           />
         }
       >
-        <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {!hasProjects ? (
+          <EmptyState onCreate={() => setIsProjectDialogOpen(true)} />
+        ) : (
+        <>
+        <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-4">
           <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">项目总览</p>
-            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">{projects.length}</p>
-            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">当前工作区项目总数</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">片段</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">12</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">项目中的片段总数</p>
           </Card>
           <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">进行中</p>
-            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">
-              {projects.filter((project) => project.status === "in-progress").length}
-            </p>
-            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">正在推进的创作项目</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">场景</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">48</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">已创建的场景</p>
           </Card>
           <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">最近更新</p>
-            <p className="mt-3 text-lg font-black text-[hsl(var(--on-surface))]">{projects[0]?.name ?? "暂无项目"}</p>
-            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">刚刚更新于工作区</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">角色</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">8</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">项目角色数</p>
+          </Card>
+          <Card className="border-0 bg-[hsl(var(--surface-container-lowest))] p-5 shadow-none">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[hsl(var(--secondary))]">物品</p>
+            <p className="mt-3 text-3xl font-black text-[hsl(var(--on-surface))]">24</p>
+            <p className="mt-1 text-sm text-[hsl(var(--secondary))]">道具和素材</p>
           </Card>
         </section>
 
-        {/* Recent Projects Section */}
+        {/* Quick Access */}
         <div className="flex items-end justify-between mb-8">
           <h3 className="text-xl font-bold tracking-tight text-[hsl(var(--on-surface))] flex items-center gap-2">
-            最近项目
+            快速访问
             <span className="w-2 h-2 rounded-full bg-[hsl(var(--primary))]"></span>
           </h3>
-          <Button variant="link" className="text-[hsl(var(--primary))] font-bold text-xs uppercase tracking-widest hover:underline p-0">
-            查看全部
-          </Button>
         </div>
 
-        {/* Project Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project) => (
-            <Card 
-              key={project.id}
-              onClick={() => handleProjectClick(project.id)}
-              className="group bg-[hsl(var(--surface-container-lowest))] rounded-xl p-4 transition-all duration-300 hover:bg-[hsl(var(--surface-container-highest))] hover:scale-[1.02] border-0 shadow-none cursor-pointer"
-            >
-              <div className="aspect-[16/10] rounded-lg overflow-hidden mb-5 bg-[hsl(var(--surface-container))] relative">
-                <img 
-                  src={project.image} 
-                  alt={project.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <div className="absolute top-3 right-3">
-                  <Badge 
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border-0 ${
-                      project.status === "in-progress" 
-                        ? "bg-[hsl(var(--primary))] text-white" 
-                        : "bg-[hsl(var(--secondary))] text-white"
-                    }`}
-                  >
-                    {project.status === "in-progress" ? "进行中" : "已完成"}
-                  </Badge>
-                </div>
-              </div>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-lg font-bold text-[hsl(var(--on-surface))] leading-tight mb-1">{project.name}</h4>
-                  <p className="text-xs text-[hsl(var(--secondary))] font-medium">更新于 {project.updated}</p>
-                </div>
-                <Button variant="ghost" size="icon" className="text-[hsl(var(--on-surface-variant))] hover:text-[hsl(var(--primary))] transition-colors h-8 w-8">
-                  <MoreVertical className="w-5 h-5" />
-                </Button>
-              </div>
-            </Card>
-          ))}
+        {/* Quick Links Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card 
+            onClick={() => navigate(`/project/${projectId}`)}
+            className="group bg-[hsl(var(--surface-container-lowest))] rounded-xl p-5 transition-all duration-300 hover:bg-[hsl(var(--surface-container-highest))] border-0 shadow-none cursor-pointer"
+          >
+            <h4 className="text-lg font-bold text-[hsl(var(--on-surface))] mb-2">片段管理</h4>
+            <p className="text-sm text-[hsl(var(--secondary))]">管理故事片段和章节</p>
+          </Card>
+          <Card 
+            onClick={() => navigate(`/project/${projectId}`)}
+            className="group bg-[hsl(var(--surface-container-lowest))] rounded-xl p-5 transition-all duration-300 hover:bg-[hsl(var(--surface-container-highest))] border-0 shadow-none cursor-pointer"
+          >
+            <h4 className="text-lg font-bold text-[hsl(var(--on-surface))] mb-2">场景管理</h4>
+            <p className="text-sm text-[hsl(var(--secondary))]">管理场景和背景</p>
+          </Card>
+          <Card 
+            onClick={() => navigate(`/project/${projectId}`)}
+            className="group bg-[hsl(var(--surface-container-lowest))] rounded-xl p-5 transition-all duration-300 hover:bg-[hsl(var(--surface-container-highest))] border-0 shadow-none cursor-pointer"
+          >
+            <h4 className="text-lg font-bold text-[hsl(var(--on-surface))] mb-2">角色管理</h4>
+            <p className="text-sm text-[hsl(var(--secondary))]">管理角色和人物</p>
+          </Card>
+          <Card 
+            onClick={() => navigate(`/project/${projectId}`)}
+            className="group bg-[hsl(var(--surface-container-lowest))] rounded-xl p-5 transition-all duration-300 hover:bg-[hsl(var(--surface-container-highest))] border-0 shadow-none cursor-pointer"
+          >
+            <h4 className="text-lg font-bold text-[hsl(var(--on-surface))] mb-2">工作流</h4>
+            <p className="text-sm text-[hsl(var(--secondary))]">进入无限画布编排</p>
+          </Card>
         </div>
 
         {/* Activity Feed */}
@@ -211,7 +274,6 @@ export default function Dashboard() {
                 <div className="text-sm">
                   <span className="font-bold text-[hsl(var(--on-surface))]">{activity.text}</span>
                   <span className="text-[hsl(var(--secondary))]"> {activity.action} </span>
-                  <span className="font-bold text-[hsl(var(--primary))]">{activity.target}</span>
                 </div>
                 <div className="ml-auto text-[10px] text-[hsl(var(--secondary))] font-bold uppercase tracking-widest">
                   {activity.time}
@@ -239,6 +301,8 @@ export default function Dashboard() {
             </div>
           </div>
         </footer>
+        </>
+        )}
       </WorkspaceLayout>
     </>
   )

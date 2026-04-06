@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -24,6 +25,56 @@ import Terms from "./pages/Terms"
 import Privacy from "./pages/Privacy"
 import Contact from "./pages/Contact"
 import Workflow from "./pages/Workflow"
+import Assets from "./pages/Assets"
+import {
+  IDENTITY_CHANGE_EVENT,
+  canAccessProjectRoutes,
+  getStoredIdentity,
+  type IdentityOption,
+} from "@/lib/mock-identities"
+
+function IdentityRouteGuard() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
+
+  useEffect(() => {
+    const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
+    const handleIdentityChange = (event: Event) => {
+      const nextIdentity = (event as CustomEvent<IdentityOption>).detail
+      setCurrentIdentity(nextIdentity || getStoredIdentity())
+    }
+
+    window.addEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+    window.addEventListener("storage", syncIdentity)
+
+    return () => {
+      window.removeEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+      window.removeEventListener("storage", syncIdentity)
+    }
+  }, [])
+
+  useEffect(() => {
+    const isProjectScopedRoute =
+      location.pathname === "/dashboard" || location.pathname.startsWith("/project/")
+
+    if (!isProjectScopedRoute) {
+      return
+    }
+
+    if (!canAccessProjectRoutes(currentIdentity)) {
+      navigate("/projects", {
+        replace: true,
+        state: {
+          redirectedByIdentity: currentIdentity,
+          from: location.pathname,
+        },
+      })
+    }
+  }, [currentIdentity, location.pathname, navigate])
+
+  return null
+}
 
 function Home() {
   return (
@@ -277,11 +328,13 @@ function Home() {
 function App() {
   return (
     <BrowserRouter>
+      <IdentityRouteGuard />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/project/:id/dashboard" element={<Dashboard />} />
         <Route path="/projects" element={<ProjectsList />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/project/:id" element={<ProjectDetail />} />
@@ -295,6 +348,7 @@ function App() {
         <Route path="/workflow" element={<Workflow />} />
         <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
         <Route path="/members" element={<Members />} />
+        <Route path="/assets" element={<Assets />} />
       </Routes>
     </BrowserRouter>
   )

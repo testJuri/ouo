@@ -1,422 +1,276 @@
 # MangaCanvas
 
-基于 React + shadcn/ui 的漫画创作管理平台，提供场景管理、角色设计、资产组织、AI 生成等功能。
+基于 React + TypeScript + Vite 的漫画创作管理平台原型，包含项目工作台、资产管理、成员管理、Infinite Canvas 工作流，以及一套已经落地的轻量请求层。
 
-## 快速预览
+## 快速开始
 
 ```bash
-# 克隆仓库
-git clone git@github.com:testJuri/juri.git
-cd juri
-
-# 安装依赖
 npm install
-
-# 启动开发服务器
 npm run dev
 ```
 
-打开浏览器访问 `http://localhost:5173` 即可预览。
+默认开发地址：`http://localhost:5174`
 
-## 技术栈
+常用命令：
 
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite
-- **UI 组件**: shadcn/ui + Tailwind CSS
-- **路由**: React Router DOM
-- **图标**: Lucide React
-- **动画**: Framer Motion (预留)
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
 
-## 路由结构
+## 当前技术栈
 
-| 路径 | 页面 | 说明 |
-|------|------|------|
-| `/` | Home | 营销首页（Landing Page） |
-| `/gallery` | Gallery | 创作者画廊（作品展示） |
-| `/login` | Login | 登录/注册（支持邮箱、Google、GitHub） |
-| `/pricing` | Pricing | 价格方案（免费/专业/企业） |
-| `/dashboard` | Dashboard | 项目控制台（最近项目+活动动态） |
-| `/projects` | ProjectsList | 项目列表页（所有项目卡片） |
-| `/project/:id` | ProjectDetail | 项目工作台（4大资产管理） |
-| `/project/:id/episode/:episodeId` | EpisodeDetail | 片段详情（创作入口） |
-| `/project/:projectId/episode/:episodeId/canvas` | EpisodeCanvas | 片段创作画布（Infinite Canvas） |
-| `/terms` | Terms | 服务条款页面 |
-| `/privacy` | Privacy | 隐私政策页面 |
-| `/contact` | Contact | 联系我们页面（含表单） |
-| `/workflow` | Workflow | 创作工作流介绍页面 |
+- React 18
+- TypeScript 5
+- Vite 5
+- React Router DOM 6
+- Zustand
+- Tailwind CSS
+- Radix UI / shadcn 风格基础组件
+- Ant Design
+- Axios `1.14.0`
+- React Flow
 
-## 核心功能
+## 当前路由
 
-### 1. 项目控制台
-- **新建项目**: 弹框式创建，支持三种输入模式（手动/剧本/分镜），剧本模式支持 TXT 文件上传
-- **项目列表**: 卡片网格展示项目封面、状态、资源数
-- **活动动态**: 展示团队最新操作记录
-- **项目切换**: 侧边栏下拉菜单，2秒 loading 后跳转工作台
+以下内容以 [src/App.tsx](/Users/hanqian/My_/my_code/jurilu/src/App.tsx) 为准：
 
-### 2. 项目工作台
-- **项目切换器**: 侧边栏下拉菜单，带 loading 效果，切换后回到工作台
-- **功能标签**: 片段管理、角色管理、场景管理、物品管理
-- **胶囊式导航**: 顶部圆角切换，选中态橙色渐变
-- **批量删除**: 支持多选卡片批量删除
-- **搜索**: 顶部搜索框快速定位资源
-- **通知中心**: 点击铃铛图标展开右侧消息侧边栏
+| 路径 | 页面 |
+|------|------|
+| `/` | Home |
+| `/login` | Login |
+| `/pricing` | Pricing |
+| `/gallery` | Gallery |
+| `/workflow` | Workflow |
+| `/terms` | Terms |
+| `/privacy` | Privacy |
+| `/contact` | Contact |
+| `/dashboard` | Dashboard |
+| `/project/:id/dashboard` | Dashboard |
+| `/projects` | ProjectsList |
+| `/project/:id` | ProjectDetail |
+| `/project/:id/:tab` | ProjectDetail |
+| `/project/:projectId/episode/:episodeId` | EpisodeDetail |
+| `/project/:projectId/episode/:episodeId/canvas` | WorkflowCanvas |
+| `/project/:projectId/workflows/:workflowId` | WorkflowCanvas |
+| `/project/:projectId/permissions` | ProjectPermissions |
+| `/members` | Members |
+| `/assets` | Assets |
 
-### 3. 场景管理
-- 场景卡片网格（4列响应式），带场景效果图
-- 场景创建抽屉（双栏布局）
-  - 左栏：场景名称、生成方式、参考图、镜头控制、风格模型、描述
-  - 右栏：3D 预览、景别选择、距离滑块、生成任务队列
-- 实时生成进度显示
-- 表单校验：场景名称必填
+补充说明：
 
-### 4. 角色管理
-- 角色卡片网格（5-7列紧凑布局），带角色肖像图
-- 角色创建抽屉：角色名称、性别、年龄段、生成方式、模型选择、描述、参考图上传
-- 主角/配角标签区分
-- 角色风格、场景数量展示
-- 表单校验：名称、性别、年龄段必填
+- `IdentityRouteGuard` 已启用。
+- 当前身份如果没有项目权限，例如“新成员”，访问 `/dashboard` 或 `/project/*` 会被重定向到 `/projects`。
 
-### 5. 片段管理
-- 片段卡片网格（4-5列），带场景效果图和播放按钮
-- 创建片段弹框：片段文件夹名称、片段数量、片段说明
-- **剧本模式**: 支持上传 TXT 剧本文件，AI 自动分集
-- 支持按状态筛选与展示（已完成/进行中/草稿）
-- **片段详情页** - 创作核心入口
-  - 展示片段概览（名称、状态、进度、剧情简介）
-  - 登场角色列表（支持添加/查看角色）
-  - 使用场景展示（场景缩略图 + 镜头数）
-  - 道具物品网格
-  - 分镜时间线（可点击编辑单个镜头）
-  - 制作进度统计（已完成/制作中/待开始）
-  - 大大的「开始/继续创作」按钮
+## 当前功能概览
 
-### 6. 物品管理
-- 物品卡片网格（6-10列紧凑布局），带物品图片
-- 新建物品抽屉（精简设计）：
-  - 物品名称
-  - 生成方式（通过模型生成 / 自己上传图片）
-  - 单张图片上传（JPG/JPEG/PNG）
-  - 批量上传（ZIP 压缩包）
-- 物品生成任务列表抽屉
-- 卡片操作：删除、复制
-- 表单校验：物品名称必填
+这里描述的是“代码里现在确实存在的能力”，不再区分愿景和计划中功能。
 
-### 7. 创作者画廊
-- 瀑布流式作品展示
-- 分类筛选（全部 / 场景 / 角色 / 风格参考 / 概念稿）
-- 搜索与点赞、浏览量展示
+- Landing Page：营销首页、价格页、工作流介绍、画廊、条款、隐私、联系页
+- 登录页：Mock 登录，登录态写入本地存储
+- Dashboard：项目看板/快速入口
+- ProjectsList：项目列表、通知抽屉、用户菜单、身份切换
+- ProjectDetail：项目工作台壳层
+- 项目 tab：片段、角色、场景、物品、工作流
+- 场景/角色/片段/物品创建器：以弹框/抽屉形式存在
+- ProjectPermissions：项目权限管理页
+- Members：成员管理页
+- Assets：资产管理页，支持看板/列表切换
+- Infinite Canvas：基于 React Flow 的工作流画布，包含图像/视频/文本/效果节点
+- 统一反馈系统：全局 toast + confirm 弹窗
 
-### 8. 片段创作画布
-- 从片段详情页进入独立创作画布
-- 基于 React Flow 的 Infinite Canvas 工作区
-- 支持文本、图片、文生图配置、视频配置、效果配置等节点
-- 支持节点拖拽、连接、撤销重做、缩放、自适应视图、框选与对齐
-- 当前已做一轮 MangaCanvas 视觉对齐：
-  - 画布壳层、工具条、浮层改为暖色浅色体系
-  - 主要节点选中态与连接点已去除蓝色主色
-  - 仍有部分 `antd` 内部弹层样式待进一步统一
+## 当前状态管理
 
-### 9. 认证系统
-- 登录/注册切换
-- 邮箱、Google、GitHub 登录支持
-- Mock 登录：表单提交后存储到 localStorage，跳转到 Dashboard
-- **开发便利**：登录页自动填充 Mock 数据（`demo@mangacanvas.com` / `123456`）
-
-### 10. 统一反馈系统
-- 已接入全局 `FeedbackProvider`
-- 页面级提示统一使用项目内反馈层，而不是浏览器原生 `alert/confirm`
-- 当前提供：
-  - 顶部浮层通知 `notify.info/success/warning/error`
-  - shadcn 风格确认弹窗 `confirm(...)`
+- `src/stores/projectStore.ts`
+  - 管理项目工作台中的片段、场景、角色、物品
+  - 当前以本地 mock 数据和同步 CRUD 为主
+- `src/features/infinite-canvas/stores/`
+  - 管理 Infinite Canvas 的项目、主题、画布状态
+- `src/components/feedback/FeedbackProvider.tsx`
+  - 提供 `notify` 和 `confirm`
+- `src/lib/mock-identities.ts`
+  - 管理身份模拟、权限能力与身份切换事件
 
 ## 项目结构
 
-```
+下面是当前仓库中更接近真实情况的结构摘要：
+
+```text
 src/
-├── api/                 # API 层（预留）
-│   └── client.ts        # axios/fetch 实例配置
-├── components/          # 可复用组件
-│   ├── feedback/        # 全局反馈系统
-│   │   └── FeedbackProvider.tsx
-│   ├── ui/              # shadcn/ui 基础组件
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   ├── input.tsx
-│   │   ├── badge.tsx
-│   │   ├── sheet.tsx          # 抽屉组件
-│   │   ├── slider.tsx         # 滑块
-│   │   ├── textarea.tsx
-│   │   ├── avatar.tsx
-│   │   ├── dialog.tsx         # 弹框组件
-│   │   ├── label.tsx
-│   │   ├── separator.tsx
-│   │   └── dropdown-menu.tsx  # 下拉菜单
-│   └── layout/          # 布局组件
-│       ├── Sidebar.tsx          # 侧边导航栏
-│       └── ProjectHeader.tsx    # 项目页面头部
-├── data/                # 静态/Mock 数据
-│   └── initialData.ts   # 项目资产初始数据
-├── features/            # 功能模块
-│   └── infinite-canvas/ # 片段创作画布子系统
-│       ├── api/         # 画布相关 API
-│       ├── components/  # 画布节点组件
-│       ├── hooks/       # 画布专用 hooks
-│       └── stores/      # 画布状态管理
-├── pages/               # 页面组件
-│   ├── auth/            # 认证相关
-│   │   └── Login.tsx
-│   ├── project/         # 项目管理
-│   │   ├── index.tsx
-│   │   ├── SceneCreator.tsx
-│   │   ├── CharacterCreator.tsx
-│   │   ├── EpisodeCreator.tsx
-│   │   ├── EpisodeDetail.tsx
-│   │   ├── EpisodeCanvas.tsx
-│   │   ├── ObjectCreator.tsx
-│   │   └── tabs/
-│   │       ├── EpisodesTab.tsx
-│   │       ├── ScenesTab.tsx
-│   │       ├── CharactersTab.tsx
-│   │       ├── ObjectsTab.tsx
-│   │       └── PlaceholderTab.tsx
-│   ├── Dashboard.tsx
-│   ├── ProjectCreator.tsx
-│   ├── Gallery.tsx
-│   ├── Pricing.tsx
-│   ├── Terms.tsx           # 服务条款
-│   ├── Privacy.tsx         # 隐私政策
-│   ├── Contact.tsx         # 联系我们
-│   ├── Workflow.tsx        # 工作流介绍
-│   └── App.tsx
-├── stores/              # 全局状态管理
-│   └── projectStore.ts  # 项目资产状态
-├── types/               # 全局类型定义
-│   └── index.ts         # 统一类型出口
+├── api/
+│   ├── clients/
+│   ├── core/
+│   ├── hooks.ts
+│   ├── index.ts
+│   └── projectApi.ts
+├── components/
+│   ├── feedback/
+│   ├── layout/
+│   └── ui/
+├── data/
+├── features/
+│   └── infinite-canvas/
+│       ├── api/
+│       ├── components/
+│       ├── config/
+│       ├── hooks/
+│       ├── stores/
+│       ├── styles/
+│       ├── types/
+│       └── utils/
+├── hooks/
 ├── lib/
-│   └── utils.ts         # 工具函数
-├── index.css
-├── tailwind.config.js
-└── main.tsx
+├── pages/
+│   ├── auth/
+│   └── project/
+├── stores/
+├── types/
+└── utils/
 ```
 
-## 文件分类规则
+几个容易混淆的点：
 
-### 组件分类
+- `src/pages/ProjectDetail.tsx` 仍然存在，但当前主项目工作台入口是 `src/pages/project/index.tsx`
+- `src/api/projectApi.ts` 目前是 mock API，不是真实后端接口层
+- `src/features/infinite-canvas/` 是一个相对独立的子系统，不要把它和主工作台状态混为一层
 
-| 目录 | 用途 | 示例 |
-|------|------|------|
-| `components/ui/` | shadcn/ui 基础组件 | Button, Card, Sheet, Dialog, Slider |
-| `components/layout/` | 布局相关组件 | Sidebar, ProjectHeader |
-| `pages/` | 页面级组件 | Dashboard, Gallery, Pricing, Login |
-| `pages/project/tabs/` | 项目子标签页 | EpisodesTab, ScenesTab, CharactersTab |
+## 请求层架构
 
-### 命名规范
+项目现在已经有一套轻量请求层，不要再在业务代码里重复 `axios.create()`。
 
-- **组件文件**: PascalCase，如 `SceneCreator.tsx`
-- **工具文件**: camelCase，如 `utils.ts`
-- **目录**: camelCase，如 `tabs/`, `auth/`
+### 设计目标
 
-## 主题系统
+- 统一 `baseURL`、鉴权 header、错误标准化、运行时配置读取
+- 保持架构简单，先做客户端分层
+- 允许渐进迁移：普通 HTTP 请求优先 axios，流式请求可继续使用 `fetch`
 
-### 主色调（暖橙色系）
+### 目录职责
 
-```css
---primary: 14 100% 34%          /* 橙红色 #ac2e00 */
---primary-foreground: 0 0% 100% /* 白色 */
---surface: 30 20% 98%           /* 米白背景 */
---surface-container-low: 20 11% 96%
---surface-container-high: 0 5% 91%
+- `src/api/core/createHttpClient.ts`
+  - axios 实例工厂
+  - 统一 request/response interceptor
+  - 把 axios 异常标准化为 `HttpError`
+- `src/api/core/error.ts`
+  - 定义 `HttpError`
+  - 提供错误提取和归一化方法
+- `src/api/core/runtime.ts`
+  - 统一读取运行时配置
+  - 例如 `localStorage` 中的 `apiKey`、`apiBaseUrl`、`dashscopeApiKey`
+- `src/api/core/fetch.ts`
+  - 给 `fetch` 场景复用的响应校验能力
+  - 主要给流式接口和非 axios 场景用
+- `src/api/clients/appClient.ts`
+  - 项目默认业务客户端
+  - 默认 `baseURL` 为 `/v1`
+  - 会自动读取 `apiBaseUrl` / `apiKey`
+- `src/api/clients/dashscopeClient.ts`
+  - DashScope 专用客户端
+  - 负责 DashScope 的鉴权和错误文案映射
+- `src/api/index.ts`
+  - API 统一出口
+  - 新代码优先从这里 import
+
+### 现有使用方式
+
+普通 axios 客户端：
+
+```ts
+import { appClient } from "@/api"
+
+const response = await appClient.get<MyResponse>("/projects")
+const data = response.data
 ```
 
-### 常用样式类
+显式取 `response.data` 的辅助函数：
 
-```tsx
-// 主按钮渐变
-signature-gradient
+```ts
+import { appClient, createRequest } from "@/api"
 
-// 主色背景
-bg-[hsl(var(--primary))]
-
-// 表面背景
-bg-[hsl(var(--surface-container-low))]
-```
-
-## 响应式断点
-
-```
-sm: 640px   - 小屏手机
-md: 768px   - 平板
-lg: 1024px  - 桌面（侧边栏 256px 展开）
-xl: 1280px  - 大屏
-2xl: 1536px - 超大屏
-```
-
-## 数据结构
-
-当前采用 **分层状态管理** 架构：
-
-| 层级 | 技术方案 | 管理数据 | 说明 |
-|------|----------|----------|------|
-| 全局状态 | Zustand | 项目资产（场景/角色/片段/物品） | `projectStore.ts` |
-| 画布状态 | Zustand + IndexedDB | 节点/连线/视口 | `canvasStore.ts`，按 episode key 持久化 |
-| 本地状态 | useState | 组件级 UI 状态 | 抽屉开关、表单输入等 |
-| Mock 数据 | 静态文件 | 初始数据 | `data/initialData.ts` |
-
-### 项目资产 Store 使用示例
-
-```tsx
-import { useProjectStore, useScenesSelector } from "@/stores/projectStore"
-
-// 按需订阅（推荐）
-const scenes = useScenesSelector()
-
-// 或使用完整 Store
-const { createScene, deleteScene, duplicateScene } = useProjectStore()
-
-// 创建新场景
-const handleCreate = (data) => {
-  const newScene = createScene(data)
-  notify.success(`场景 "${newScene.name}" 创建成功`)
-}
-```
-
-### 类型定义
-
-所有类型统一在 `src/types/index.ts` 维护：
-
-```tsx
-import type { Scene, Character, Episode, ObjectItem } from "@/types"
-```
-
-### API 迁移建议
-
-如需接入后端：
-1. 在 `src/api/` 创建接口层（axios/fetch）
-2. 在 Store 中异步化 CRUD 方法
-3. 考虑引入 React Query 管理服务端状态缓存
-
-## 开发指南
-
-### 添加新页面
-
-1. 在 `pages/` 下创建组件文件
-2. 在 `App.tsx` 中添加 `<Route />`
-3. 如需导航链接，更新对应 Header 组件
-
-### 添加项目标签页
-
-1. 在 `pages/project/tabs/` 创建 `XxxTab.tsx`
-2. 在 `pages/project/index.tsx` 的 `renderTabContent()` 添加 `case`
-3. 在 `secondaryTabs` 数组中添加标签
-
-### 使用弹框
-
-```tsx
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-
-<Dialog open={open} onOpenChange={setOpen}>
-  <DialogContent className="max-w-[480px]">
-    {/* 内容 */}
-  </DialogContent>
-</Dialog>
-```
-
-### 使用统一反馈
-
-```tsx
-import { useFeedback } from "@/components/feedback/FeedbackProvider"
-
-const { notify, confirm } = useFeedback()
-
-notify.success("保存成功")
-
-const confirmed = await confirm({
-  title: "删除场景",
-  description: "删除后将无法恢复。",
-  confirmText: "删除",
-  tone: "danger",
+const data = await createRequest<MyResponse>(appClient, {
+  url: "/projects",
+  method: "GET",
 })
 ```
 
-不要直接使用浏览器原生 `alert` / `confirm`。
+流式或 fetch 场景：
 
-### 使用抽屉
+```ts
+import { getResponseReader, parseJsonResponse } from "@/api"
+```
+
+当前接入状态：
+
+- `src/features/infinite-canvas/utils/request.ts`
+  - 已复用 `appClient`
+- `src/features/infinite-canvas/api/image.ts`
+  - 已复用 `dashscopeClient`
+- `src/features/infinite-canvas/api/video.ts`
+  - 已复用 `dashscopeClient`
+- `src/features/infinite-canvas/api/chat.ts`
+  - 因为涉及流式输出，仍然使用 `fetch`
+  - 但已复用 `src/api/core/fetch.ts`
+
+### 约定
+
+- 新增普通 HTTP 接口时：
+  - 优先复用 `appClient` 或已有专用 client
+  - 不要在业务文件里再次 `axios.create()`
+- 新增第三方服务时：
+  - 在 `src/api/clients/` 下新增独立 client
+  - 把该服务自己的鉴权、超时、错误映射放在对应 client 内
+- 新增流式接口时：
+  - 可以继续使用 `fetch`
+  - 但优先复用 `src/api/core/fetch.ts`
+- UI 提示不要写进 `core`
+  - `core` 只做底层能力
+  - `message.error` 这类逻辑放在具体 client 中注入
+
+### 给下一个 AI 的建议
+
+- 新增业务接口，优先补在 `src/api/` 下，而不是直接写在页面组件里
+- 主业务接口优先复用 `appClient`
+- 特殊服务商接口新增 `src/api/clients/xxxClient.ts`
+- 如果要继续整理，可以新增：
+  - `src/api/services/xxx.ts`
+  - `src/api/types.ts`
+
+## UI 与反馈约定
+
+- 统一反馈优先使用 `useFeedback()`
+- 不要直接用浏览器原生 `alert` / `confirm`
+- 悬浮菜单、用户菜单、抽屉、对话框优先复用已有基础组件
+- 身份切换、项目权限、通知抽屉等交互已经有现成实现，改动前先搜现有组件
+
+## 主题说明
+
+当前视觉基调以暖橙、米白浅色系为主，核心样式变量定义在 `src/index.css`。
+
+常用类：
 
 ```tsx
-import { Sheet, SheetContent } from "@/components/ui/sheet"
-
-<Sheet open={open} onOpenChange={setOpen}>
-  <SheetContent side="right" className="w-[900px]">
-    {/* 内容 */}
-  </SheetContent>
-</Sheet>
+signature-gradient
+bg-[hsl(var(--primary))]
+bg-[hsl(var(--surface-container-low))]
 ```
 
-### 使用下拉菜单
-
-```tsx
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
-
-<DropdownMenu>
-  <DropdownMenuTrigger>触发器</DropdownMenuTrigger>
-  <DropdownMenuContent>
-    <DropdownMenuItem>选项</DropdownMenuItem>
-  </DropdownMenuContent>
-</DropdownMenu>
-```
-
-## 构建部署
-
-```bash
-# 安装依赖
-npm install
-
-# 开发模式
-npm run dev
-
-# 生产构建
-npm run build
-
-# 预览构建
-npm run preview
-```
-
-## 环境要求
+## 构建与环境
 
 - Node.js 18+
 - npm 9+
 
-## 浏览器支持
+生产构建：
 
-- Chrome 90+
-- Firefox 90+
-- Safari 15+
-- Edge 90+
+```bash
+npm run build
+```
 
-## 后端接口设计
+说明：
 
-后端开发人员请参考 [`BACKEND_API_SPEC.md`](./BACKEND_API_SPEC.md)，文档包含完整的 API 接口设计、数据结构和实现建议。
+- 当前构建通常可以通过
+- 但 Vite 仍会提示 chunk 体积较大，这是已知现状，不是请求层问题
 
-## 项目进度
+## 参考文档
 
-当前整体进度：**48.4%** (31/64 项完成)
-
-| 模块 | 进度 | 说明 |
-|------|------|------|
-| P0 - 架构与核心 | 100% | Store + Types + Data 分层完成 |
-| P0 - 核心流程 | 78.6% | 场景/角色/物品/片段管理基本完成，剩余编辑功能 |
-| P1 - Dashboard | 16.7% | 项目列表、新建功能完成，批量操作待做 |
-| P2 - 认证与首页 | 60% | 登录/注册 Mock 完成，移除第三方登录 |
-| P3 - 辅助功能 | 0% | 导出/分享待做 |
-| P4 - 高级功能 | 0% | 图片改创规划中 |
-
-详细待办清单请查看 [`TODO.md`](./TODO.md)。
-
----
-
-© 2024 MangaCanvas. All rights reserved.
+- 后端接口设计见 [BACKEND_API_SPEC.md](./BACKEND_API_SPEC.md)

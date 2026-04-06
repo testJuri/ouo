@@ -1,25 +1,20 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
-import { Plus, ChevronDown, ChevronLeft, Bell, CreditCard, LogOut, Settings, Shield, User } from "lucide-react"
+import UserProfileMenu from "@/components/layout/UserProfileMenu"
+import { Plus, ChevronLeft, Bell } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import ProjectCreator from "./ProjectCreator"
 import ProjectEditor, { type EditableProject } from "./ProjectEditor"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import {
+  IDENTITY_CHANGE_EVENT,
+  getIdentityMeta,
+  getStoredIdentity,
+  type IdentityOption,
+} from "@/lib/mock-identities"
 
 interface Project {
   id: number
@@ -75,24 +70,19 @@ const initialProjects: Project[] = [
   },
 ]
 
-const identityOptions = [
-  { id: "creator", label: "专业创作者" },
-  { id: "admin", label: "管理员" },
-] as const
-
-type IdentityOption = (typeof identityOptions)[number]["id"]
-
 export default function ProjectsList() {
   const navigate = useNavigate()
-  const { notify, confirm } = useFeedback()
+  const { notify } = useFeedback()
   const [projects, setProjects] = useState<Project[]>(initialProjects)
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
   const [isProjectEditorOpen, setIsProjectEditorOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<EditableProject | null>(null)
-  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>("creator")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
   const unreadCount = notificationList.filter((item) => !item.read).length
+  const currentIdentityMeta = getIdentityMeta(currentIdentity)
+  const visibleProjects = currentIdentityMeta.hasProjects ? projects : []
 
   const handleProjectClick = (projectId: number) => {
     navigate(`/project/${projectId}`)
@@ -119,43 +109,6 @@ export default function ProjectsList() {
     setProjects((prev) => [newProject, ...prev])
   }
 
-  const handleRenameProject = (project: Project) => {
-    setEditingProject(project)
-    setIsProjectEditorOpen(true)
-  }
-
-  const handlePermissions = (project: Project) => {
-    navigate(`/project/${project.id}/permissions`)
-  }
-
-  const handleDuplicateProject = (project: Project) => {
-    const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1
-    const copiedProject: Project = {
-      ...project,
-      id: newId,
-      name: `${project.name} 副本`,
-      status: "draft",
-      modified: "刚刚",
-      code: `PJ_${String(newId).padStart(3, "0")}`,
-    }
-    setProjects((prev) => [copiedProject, ...prev])
-    notify.success(`已复制项目：${project.name}`)
-  }
-
-  const handleDeleteProject = async (project: Project) => {
-    const confirmed = await confirm({
-      title: "删除项目",
-      description: `删除后将无法恢复项目「${project.name}」及其相关资源。`,
-      confirmText: "删除",
-      tone: "danger",
-    })
-
-    if (!confirmed) return
-
-    setProjects((prev) => prev.filter((item) => item.id !== project.id))
-    notify.success("项目已删除")
-  }
-
   const handleSaveProject = (updatedProject: EditableProject) => {
     setProjects((prev) => prev.map((item) => (item.id === updatedProject.id ? updatedProject : item)))
     setEditingProject(updatedProject)
@@ -170,9 +123,29 @@ export default function ProjectsList() {
     setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
   }
 
+  useEffect(() => {
+    const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
+    const handleIdentityChange = (event: Event) => {
+      const nextIdentity = (event as CustomEvent<IdentityOption>).detail
+      if (nextIdentity) {
+        setCurrentIdentity(nextIdentity)
+        return
+      }
+      syncIdentity()
+    }
+
+    window.addEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+    window.addEventListener("storage", syncIdentity)
+
+    return () => {
+      window.removeEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+      window.removeEventListener("storage", syncIdentity)
+    }
+  }, [])
+
   return (
     <>
-    <div className="h-screen overflow-hidden bg-[hsl(var(--surface))]">
+    <div className="workspace-shell h-screen overflow-hidden bg-[hsl(var(--surface))]">
       <ProjectCreator
         open={isProjectDialogOpen}
         onOpenChange={setIsProjectDialogOpen}
@@ -189,7 +162,7 @@ export default function ProjectsList() {
 
       <main className="relative ml-64 h-screen flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[hsl(var(--surface-container-lowest))]/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-[hsl(var(--outline-variant))]/15">
+        <header className="workspace-fixed-header fixed top-0 z-40 flex h-16 items-center justify-between border-b border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))]/80 px-8 backdrop-blur-md">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -219,76 +192,7 @@ export default function ProjectsList() {
 
             <div className="h-4 w-px bg-[hsl(var(--outline-variant))]" />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-[hsl(var(--surface-container-high))]">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
-                      alt="陈晓明"
-                    />
-                    <AvatarFallback>陈</AvatarFallback>
-                  </Avatar>
-                  <div className="hidden text-left md:block">
-                    <p className="text-sm font-bold text-[hsl(var(--on-surface))]">陈晓明</p>
-                    <p className="text-[10px] text-[hsl(var(--secondary))]">
-                      {identityOptions.find((option) => option.id === currentIdentity)?.label}
-                    </p>
-                  </div>
-                  <ChevronDown className="hidden h-4 w-4 text-[hsl(var(--secondary))] md:block" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>个人中心</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="px-2 pb-1 pt-0 text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--secondary))]">
-                    身份切换
-                  </DropdownMenuLabel>
-                  <DropdownMenuRadioGroup
-                    value={currentIdentity}
-                    onValueChange={(identity) => {
-                      setCurrentIdentity(identity as IdentityOption)
-                      notify.success(`已切换为${identityOptions.find((option) => option.id === identity)?.label}`)
-                    }}
-                  >
-                    <DropdownMenuRadioItem value="creator" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))] data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
-                      <User className="mr-2 h-4 w-4" />
-                      专业创作者
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="admin" className="rounded-lg px-8 py-2 text-sm focus:bg-[hsl(var(--surface-container-high))] focus:text-[hsl(var(--on-surface))] data-[state=checked]:bg-[hsl(var(--primary))] data-[state=checked]:text-white data-[state=checked]:[&_*]:text-white">
-                      <Shield className="mr-2 h-4 w-4" />
-                      管理员
-                    </DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => notify.info("个人中心开发中")}>
-                  <User className="mr-2 h-4 w-4" />
-                  我的主页
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => notify.info("账号设置开发中")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  账号设置
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => notify.info("订阅与积分开发中")}>
-                  <CreditCard className="mr-2 h-4 w-4" />
-                  订阅与积分
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    localStorage.removeItem("manga-user")
-                    navigate("/login")
-                    notify.success("已退出登录")
-                  }}
-                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  退出登录
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfileMenu />
           </div>
         </header>
 
@@ -310,7 +214,7 @@ export default function ProjectsList() {
             </div>
 
             {/* Project Cards */}
-            {projects.map((project) => (
+            {visibleProjects.map((project) => (
               <div
                 key={project.id}
                 onClick={() => handleProjectClick(project.id)}
@@ -363,6 +267,18 @@ export default function ProjectsList() {
                 </div>
               </div>
             ))}
+
+            {!currentIdentityMeta.hasProjects ? (
+              <div className="col-span-full flex min-h-[320px] flex-col items-center justify-center rounded-[28px] border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))] px-8 text-center">
+                <div className="rounded-full bg-[hsl(var(--surface-container-high))] px-4 py-1.5 text-[11px] font-bold tracking-[0.18em] text-[hsl(var(--secondary))]">
+                  {currentIdentityMeta.label}
+                </div>
+                <h3 className="mt-5 text-2xl font-black text-[hsl(var(--on-surface))]">当前身份下还没有项目</h3>
+                <p className="mt-3 max-w-md text-sm text-[hsl(var(--secondary))]">
+                  这个身份用于模拟刚加入系统的新成员视角。你可以切换回“创作者”、“管理员”或“项目统筹”查看已有项目。
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
 

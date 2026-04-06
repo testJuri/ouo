@@ -94,6 +94,14 @@
 - [ ] 侧边栏导航高亮（仪表盘/项目当前页高亮）
 - [ ] 侧边栏其他页面壳（资源 / 团队 / 设置 / 分析）
 
+### 2.1 文档与工程收尾
+- [ ] README 再做一轮去重，避免与 `BACKEND_API_SPEC.md`、`src/features/infinite-canvas/styles/README.md` 重复
+- [ ] 补一份“前端页面真实入口图”，明确 `src/pages/project/index.tsx` 才是当前项目工作台主入口，避免继续误用旧的 `src/pages/ProjectDetail.tsx`
+- [ ] 梳理并标记历史遗留页面/文件（如 `src/pages/ProjectDetail.tsx`），决定是删除、归档还是在 README 中明确“仅历史参考”
+- [ ] 给请求层补一个最小业务示例（推荐 `src/api/services/project.ts`），让后续新增接口有统一模板
+- [ ] 评估是否把 `src/api/projectApi.ts` 的 mock API 与 `src/stores/projectStore.ts` 的本地 CRUD 做职责收敛，避免两套 mock 数据入口长期并存
+- [ ] 给身份系统补一份约定说明，明确“哪些身份可访问项目路由，哪些只能停留在 `/projects`”
+
 ### 3. 批量操作
 - [ ] 批量删除 - 点击进入选择模式，卡片显示复选框，确认删除
 
@@ -223,6 +231,15 @@
 ---
 
 *最后更新：2026-04-05*
+
+### 2026-04-06
+- ✅ 建立并收敛 axios 请求层：`src/api/core` + `src/api/clients`
+- ✅ 将 `axios` 固定到 `1.14.0`
+- ✅ 把 Infinite Canvas 的普通请求接入统一请求层
+- ✅ 为流式 `fetch` 请求补共享错误处理底座
+- ✅ 修复个人中心身份切换子菜单 hover 中断问题
+- ✅ 增加身份路由守卫：无项目权限身份自动离开 `/dashboard` 与 `/project/*`
+- ✅ 重写 README，使其更贴近当前代码状态
 
 ---
 
