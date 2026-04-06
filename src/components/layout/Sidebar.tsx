@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,21 +10,39 @@ import {
   FolderOpen,
   Users,
   Settings,
-  ArrowLeft,
   ChevronDown,
   Plus,
   Check,
-  Loader2
+  Loader2,
+  Box,
+  FolderKanban
 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import ApiKeySettings from "./ApiKeySettings"
+import {
+  IDENTITY_CHANGE_EVENT,
+  getStoredIdentity,
+  type IdentityOption,
+} from "@/lib/mock-identities"
 
-const navItems = [
-  { icon: LayoutGrid, label: "仪表盘", href: "/dashboard" },
-  { icon: FolderOpen, label: "项目", href: "/projects" },
-  { icon: Users, label: "成员管理", href: "/members" },
-]
+const getNavItems = (identity: IdentityOption, projectId?: number) => {
+  const baseItems = [
+    { icon: LayoutGrid, label: "工作台", href: projectId ? `/project/${projectId}/episode/1` : "/projects" },
+    { icon: Box, label: "资产管理", href: projectId ? `/project/${projectId}` : "/projects" },
+  ]
+
+  if (identity === "creator") {
+    return baseItems
+  }
+
+  return [
+    ...baseItems,
+    { icon: FolderOpen, label: "所有项目", href: "/projects" },
+    { icon: FolderKanban, label: "项目配置", href: "/project-management" },
+    { icon: Users, label: "成员管理", href: "/members" },
+  ]
+}
 
 const projects = [
   { id: 1, name: "Cyberpunk Ronin", active: true },
@@ -35,13 +51,42 @@ const projects = [
   { id: 4, name: "Kinetic Backgrounds", active: false },
 ]
 
+const getProjectIdFromPath = (pathname: string) => {
+  const matched = pathname.match(/^\/project\/(\d+)/)
+  return matched ? Number(matched[1]) : null
+}
+
 export default function Sidebar() {
   const [currentProject, setCurrentProject] = useState(projects[0])
   const [isSwitching, setIsSwitching] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
   const location = useLocation()
   const navigate = useNavigate()
-  const isDashboard = location.pathname === "/dashboard"
+  const routeProjectId = getProjectIdFromPath(location.pathname)
+  const activeProjectId = routeProjectId ?? currentProject.id
+
+  const navItems = getNavItems(currentIdentity, activeProjectId)
+
+  useEffect(() => {
+    const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
+    const handleIdentityChange = (event: Event) => {
+      const nextIdentity = (event as CustomEvent<IdentityOption>).detail
+      if (nextIdentity) {
+        setCurrentIdentity(nextIdentity)
+        return
+      }
+      syncIdentity()
+    }
+
+    window.addEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+    window.addEventListener("storage", syncIdentity)
+
+    return () => {
+      window.removeEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
+      window.removeEventListener("storage", syncIdentity)
+    }
+  }, [])
 
   return (
     <>
@@ -66,7 +111,7 @@ export default function Sidebar() {
                     {currentProject.name}
                   </h1>
                   <p className="text-xs text-[hsl(var(--secondary))]">
-                    组织
+                    项目
                   </p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--on-surface))]" />
@@ -88,7 +133,7 @@ export default function Sidebar() {
                   // 2秒 loading 后跳转到项目工作台（默认显示片段管理）
                   setTimeout(() => {
                     setIsSwitching(false)
-                    navigate(`/project/${project.id}`, { replace: true })
+                    navigate(`/project/${project.id}/episode/1`, { replace: true })
                   }, 2000)
                 }}
                 className="flex items-center justify-between cursor-pointer"
@@ -114,7 +159,9 @@ export default function Sidebar() {
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href || 
-            (item.href !== "/dashboard" && location.pathname.startsWith(item.href))
+            (item.label === "工作台" && /^\/project\/\d+\/episode\/\d+$/.test(location.pathname)) ||
+            (item.label === "资产管理" && location.pathname.startsWith(item.href) && !/^\/project\/\d+\/episode\/\d+$/.test(location.pathname) && !location.pathname.includes("/dashboard")) ||
+            (item.label !== "所有项目" && item.label !== "项目配置" && item.label !== "工作台" && item.label !== "资产管理" && location.pathname.startsWith(item.href) && item.href !== "/projects")
           return (
             <Link
               key={item.label}
@@ -134,14 +181,6 @@ export default function Sidebar() {
 
       {/* User Section */}
       <div className="pt-6 mt-6 border-t border-[hsl(var(--outline-variant))]/30">
-        {!isDashboard && (
-          <Link to="/dashboard">
-            <Button variant="ghost" className="mb-4 w-full justify-start gap-2 text-[hsl(var(--on-secondary-fixed-variant))]">
-              <ArrowLeft className="w-4 h-4" />
-              <span>返回控制台</span>
-            </Button>
-          </Link>
-        )}
         <button
           onClick={() => setIsSettingsOpen(true)}
           className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-[hsl(var(--on-secondary-fixed-variant))] hover:bg-[hsl(var(--surface-container-high))] transition-colors"
@@ -149,16 +188,7 @@ export default function Sidebar() {
           <Settings className="w-5 h-5" />
           <span>设置</span>
         </button>
-        <div className="mt-4 flex items-center gap-3 px-4 py-3">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="用户" />
-            <AvatarFallback>陈</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-bold text-[hsl(var(--on-surface))]">陈晓明</p>
-            <p className="text-[10px] text-[hsl(var(--secondary))]">专业创作者</p>
-          </div>
-        </div>
+
       </div>
     </aside>
 

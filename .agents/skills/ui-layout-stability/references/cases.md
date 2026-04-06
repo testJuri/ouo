@@ -138,3 +138,28 @@ Update `src/components/ui/hover-menu.tsx` to use a shared hover-open controller 
 
 - `src/components/ui/hover-menu.tsx`
 - `src/components/layout/UserProfileMenu.tsx`
+
+## Case 006: Workspace dashboard shows nested scrollbars and horizontal overflow
+
+### Symptom
+
+On workspace-style pages such as the dashboard, the viewport showed two vertical scrollbars at once. The inner content pane could scroll, while the browser viewport also kept its own scrollbar. The extra scrollbar width then helped trigger horizontal overflow on the page.
+
+### Root cause
+
+The shared workspace shell used an internal `overflow-y-auto` content area, but `body` still forced a page-level scrollbar globally. At the same time, the shell used `w-screen`, which can exceed the usable viewport width when scrollbar space is reserved. That combination created a double-scroll setup and a subtle horizontal spill.
+
+### Fix
+
+Update `src/components/layout/WorkspaceLayout.tsx` so workspace pages lock body scrolling while mounted, switch the shell from `w-screen` to `w-full`, and force the inner `main` area to own scrolling with `overflow-x-hidden overflow-y-auto`. In `src/index.css`, add a `workspace-body-lock` body class and keep workspace shells constrained to the available width.
+
+### Why this fix fit the project
+
+- The dashboard already uses a shared workspace shell, so the fix belongs in the shared layout rather than one page.
+- The product clearly intends a single scroll container inside the app shell.
+- Removing `w-screen` avoids scrollbar-width math issues without changing the visual design.
+
+### Implementation reference
+
+- `src/components/layout/WorkspaceLayout.tsx`
+- `src/index.css`

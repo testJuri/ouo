@@ -1,34 +1,19 @@
-import { useParams, useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ChevronLeft, 
-  CheckCircle2, 
-  Users, 
-  Image as ImageIcon, 
-  Package, 
-  MoreHorizontal,
-  Wand2,
-
-  Sparkles
-} from "lucide-react"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
-import { useWorkflowLauncher } from "@/hooks/useWorkflowLauncher"
 import { useProjectStore } from "@/stores/projectStore"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  ChevronLeft,
+  Clapperboard,
+  Image as ImageIcon,
+  MoveRight,
+  Package,
+  Sparkles,
+  Users,
+} from "lucide-react"
 
-type StoryboardItem = {
-  id: number
-  status: "completed" | "in-progress" | "pending"
-}
-
-// Mock 片段数据
 const mockEpisode = {
   id: 1,
   name: "序章：觉醒",
@@ -38,331 +23,231 @@ const mockEpisode = {
   progress: 65,
   sceneCount: 12,
   modified: "2 小时前",
-  created: "2024-03-15",
-  duration: "3分45秒",
 }
 
-// Mock 关联角色
 const relatedCharacters = [
-  { id: 1, name: "龙崎真治", image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=200&h=200&fit=crop", role: "主角" },
-  { id: 2, name: "月城雪兔", image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop", role: "配角" },
-  { id: 3, name: "神乐千鹤", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop", role: "配角" },
+  { id: 1, name: "龙崎真治", role: "主角", image: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=200&h=200&fit=crop" },
+  { id: 2, name: "月城雪兔", role: "配角", image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop" },
+  { id: 3, name: "神乐千鹤", role: "配角", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop" },
 ]
 
-// Mock 关联场景
 const relatedScenes = [
-  { id: 1, name: "赛博街区 7 号扇区", image: "https://images.unsplash.com/photo-1614726365723-49cfae927846?w=300&h=200&fit=crop", shots: 5 },
-  { id: 2, name: "黄昏教室 2B", image: "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=300&h=200&fit=crop", shots: 4 },
-  { id: 3, name: "薄雾寺院庭院", image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=300&h=200&fit=crop", shots: 3 },
+  { id: 1, name: "赛博街区 7 号扇区", image: "https://images.unsplash.com/photo-1614726365723-49cfae927846?w=300&h=200&fit=crop" },
+  { id: 2, name: "黄昏教室 2B", image: "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=300&h=200&fit=crop" },
 ]
 
-// Mock 关联物品
 const relatedObjects = [
-  { id: 1, name: "光子武士刀", image: "https://images.unsplash.com/photo-1589254065878-42c9da997008?w=200&h=200&fit=crop", type: "武器" },
-  { id: 2, name: "古董怀表", image: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=200&h=200&fit=crop", type: "道具" },
-]
-
-const storyboard: StoryboardItem[] = [
-  { id: 1, status: "completed" },
-  { id: 2, status: "completed" },
-  { id: 3, status: "in-progress" },
-  { id: 4, status: "pending" },
-  { id: 5, status: "pending" },
-  { id: 6, status: "pending" },
+  { id: 1, name: "光子武士刀", type: "武器", image: "https://images.unsplash.com/photo-1589254065878-42c9da997008?w=200&h=200&fit=crop" },
+  { id: 2, name: "古董怀表", type: "道具", image: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=200&h=200&fit=crop" },
 ]
 
 export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
-  const { notify } = useFeedback()
   const navigate = useNavigate()
-  const launchWorkflow = useWorkflowLauncher()
-  const { assets, updateEpisode } = useProjectStore()
-  
-  // 从 store 获取当前片段
+  const { notify } = useFeedback()
+  const { assets } = useProjectStore()
+
   const episode = assets.episodes.find((ep) => ep.id === Number(episodeId))
-  
-  const handleContinueCreate = () => {
-    if (!projectId) return
-
-    launchWorkflow({
-      projectId,
-      sourceType: "episode",
-      sourceName: episode?.name || mockEpisode.name,
-      sourceAssetId: Number(episodeId),
-      successMessage: "已创建片段工作流",
-    })
-  }
-  
-  const handleMarkComplete = () => {
-    if (!episode) return
-    updateEpisode(episode.id, { status: "completed" })
-    notify.success("片段已标记为完成")
+  const currentEpisode = {
+    ...mockEpisode,
+    ...episode,
+    name: episode?.name || mockEpisode.name,
+    code: episode?.code || mockEpisode.code,
+    status: episode?.status || mockEpisode.status,
+    description: episode?.description || mockEpisode.description,
+    count: episode?.count || mockEpisode.sceneCount,
+    modified: episode?.modified || mockEpisode.modified,
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <Badge className="bg-emerald-500 text-white border-0">已完成</Badge>
-      case "in-progress":
-        return <Badge className="signature-gradient text-white border-0">进行中</Badge>
-      default:
-        return <Badge variant="secondary" className="border-0">草稿</Badge>
-    }
+  const openCanvas = () => {
+    if (!projectId || !episodeId) return
+    navigate(`/project/${projectId}/episode/${episodeId}/canvas`)
   }
-
-  const pendingShotCount = storyboard.filter((item) => item.status !== "completed").length
-  const completedShotCount = storyboard.filter((item) => item.status === "completed").length
-  const inProgressShotCount = storyboard.filter((item) => item.status === "in-progress").length
-  const notStartedShotCount = storyboard.filter((item) => item.status === "pending").length
-
 
   return (
     <div className="min-h-screen bg-[hsl(var(--surface))]">
       <Sidebar />
-      
-      <main className="ml-64 min-h-screen">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-[hsl(var(--surface))]/95 backdrop-blur-sm border-b border-[hsl(var(--outline-variant))]/20">
-          <div className="px-8 py-4">
-            <div className="flex items-center gap-4 mb-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate(`/project/${projectId}`)}
-                className="text-[hsl(var(--secondary))]"
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                返回片段列表
-              </Button>
+
+      <main className="ml-64 min-h-screen bg-[hsl(var(--surface))]">
+        <div className="border-b border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-lowest))]">
+          <div className="px-8 py-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(`/project/${projectId}`)}
+              className="mb-5 gap-2 text-[hsl(var(--secondary))]"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              返回片段列表
+            </Button>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge className="border-0 bg-[hsl(var(--surface-container-high))] px-3 py-1 text-[hsl(var(--secondary))]">
+                工作台
+              </Badge>
+              <Badge className="signature-gradient border-0 px-3 py-1 text-white">
+                进行中
+              </Badge>
             </div>
-            
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-bold text-[hsl(var(--on-surface))]">{episode?.name || mockEpisode.name}</h1>
-                  {getStatusBadge(episode?.status || mockEpisode.status)}
-                </div>
-                <div className="flex items-center gap-4 text-sm text-[hsl(var(--secondary))]">
-                  <span className="font-mono">{episode?.code || mockEpisode.code}</span>
-                  <span>·</span>
-                  <span>{episode?.count || mockEpisode.sceneCount} 个场景</span>
-                  <span>·</span>
-                  <span>预计 {mockEpisode.duration}</span>
-                  <span>·</span>
-                  <span>修改于 {episode?.modified || mockEpisode.modified}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {episode?.status !== "completed" && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="rounded-lg border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-                    onClick={handleMarkComplete}
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    标记完成
-                  </Button>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-lg">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => notify.info("重命名功能开发中")}>重命名</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => notify.info("复制片段功能开发中")}>复制片段</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => notify.info("导出功能开发中")}>导出</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">删除</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+
+            <h1 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[hsl(var(--on-surface))]">
+              {currentEpisode.name}
+            </h1>
+            <div className="mt-3 flex flex-wrap gap-4 text-sm text-[hsl(var(--secondary))]">
+              <span className="font-mono">{currentEpisode.code}</span>
+              <span>{currentEpisode.count} 个场景</span>
+              <span>完成度 {mockEpisode.progress}%</span>
+              <span>修改于 {currentEpisode.modified}</span>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="px-8 py-6">
-          <div className="grid grid-cols-12 gap-6">
-            {/* Left Column - Main Info */}
-            <div className="col-span-8 space-y-6">
-              {/* Big Create Button */}
-              <div className="bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 rounded-2xl p-8 text-white relative overflow-hidden">
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Sparkles className="w-6 h-6" />
-                    <span className="text-sm font-medium opacity-90">AI 辅助创作</span>
-                  </div>
-                  <h2 className="text-3xl font-bold mb-2">
-                    {(episode?.status || mockEpisode.status) === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
-                  </h2>
-                  <p className="text-white/80 mb-6 max-w-md">
-                    已完场 {mockEpisode.progress}%，还有 {pendingShotCount} 个镜头等待制作
-                  </p>
-                  <Button 
-                    size="lg"
-                    className="bg-white text-[hsl(var(--primary))] hover:bg-white/90 font-bold px-8 py-6 rounded-xl text-lg"
-                    onClick={handleContinueCreate}
-                  >
-                    <Wand2 className="w-5 h-5 mr-2" />
-                    {(episode?.status || mockEpisode.status) === "completed" ? "查看成片" : mockEpisode.progress > 0 ? "继续创作" : "开始创作"}
-                  </Button>
+        <div className="px-8 py-8">
+          <section className="overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#c53a09_0%,#db5d32_52%,#f08b57_100%)] p-8 text-white shadow-[0_24px_60px_rgba(174,65,21,0.22)]">
+            <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/12 px-4 py-2 text-sm font-medium">
+                  <Sparkles className="h-4 w-4" />
+                  本集创作中枢
                 </div>
-                {/* Decorative elements */}
-                <div className="absolute right-0 top-0 w-64 h-full opacity-20">
-                  <svg viewBox="0 0 200 200" className="w-full h-full">
-                    <circle cx="150" cy="100" r="80" fill="none" stroke="white" strokeWidth="2" />
-                    <circle cx="150" cy="100" r="60" fill="none" stroke="white" strokeWidth="1" />
-                    <circle cx="150" cy="100" r="40" fill="none" stroke="white" strokeWidth="1" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] mb-3 uppercase tracking-wider">剧情简介</h3>
-                <p className="text-[hsl(var(--on-surface-variant))] leading-relaxed">
-                  {episode?.description || mockEpisode.description}
+                <h2 className="mt-5 max-w-[10ch] text-5xl font-black leading-[0.96] tracking-[-0.06em]">
+                  先进入无限画布，再展开创作
+                </h2>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-white/85">
+                  工作台首页的第一件事，不应该是看详情，而应该是立刻进入编排。无限画布是这集的主入口，角色、场景、道具都围绕它服务。
                 </p>
-              </div>
 
-            </div>
-
-            {/* Right Column - Assets */}
-            <div className="col-span-4 space-y-6">
-              {/* Characters */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] uppercase tracking-wider flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    登场角色
-                  </h3>
-                  <Button variant="ghost" size="sm" className="text-xs h-8">
-                    + 添加
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button
+                    size="lg"
+                    onClick={openCanvas}
+                    className="h-14 rounded-full bg-white px-8 text-base font-bold text-[#a22d08] hover:bg-white/92"
+                  >
+                    <Clapperboard className="mr-2 h-5 w-5" />
+                    进入无限画布
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => notify.info("工作流分支功能开发中")}
+                    className="h-14 rounded-full border-white/30 bg-white/10 px-8 text-base font-semibold text-white hover:bg-white/16 hover:text-white"
+                  >
+                    新建分支
                   </Button>
                 </div>
-                <div className="space-y-3">
-                  {relatedCharacters.map((char) => (
-                    <div 
-                      key={char.id} 
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-[hsl(var(--surface-container-high))] transition-colors cursor-pointer"
-                      onClick={() => notify.info(`查看角色：${char.name}`)}
-                    >
-                      <img 
-                        src={char.image} 
-                        alt={char.name}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-[hsl(var(--on-surface))]">{char.name}</p>
-                        <p className="text-xs text-[hsl(var(--secondary))]">{char.role}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
 
-              {/* Scenes */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] uppercase tracking-wider flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4" />
-                    使用场景
-                  </h3>
-                  <Button variant="ghost" size="sm" className="text-xs h-8">
-                    + 添加
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  {relatedScenes.map((scene) => (
-                    <div 
-                      key={scene.id} 
-                      className="group cursor-pointer"
-                      onClick={() => notify.info(`查看场景：${scene.name}`)}
-                    >
-                      <div className="relative aspect-video rounded-lg overflow-hidden mb-2">
-                        <img 
-                          src={scene.image} 
-                          alt={scene.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
-                          {scene.shots} 镜头
-                        </div>
-                      </div>
-                      <p className="text-xs font-medium text-[hsl(var(--on-surface))] truncate">{scene.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Objects */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] uppercase tracking-wider flex items-center gap-2">
-                    <Package className="w-4 h-4" />
-                    道具物品
-                  </h3>
-                  <Button variant="ghost" size="sm" className="text-xs h-8">
-                    + 添加
-                  </Button>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {relatedObjects.map((obj) => (
-                    <div 
-                      key={obj.id} 
-                      className="group cursor-pointer"
-                      onClick={() => notify.info(`查看物品：${obj.name}`)}
-                    >
-                      <div className="aspect-square rounded-lg overflow-hidden mb-1">
-                        <img 
-                          src={obj.image} 
-                          alt={obj.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                      <p className="text-[10px] text-[hsl(var(--on-surface))] truncate">{obj.name}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Progress */}
-              <div className="bg-[hsl(var(--surface-container-low))] rounded-xl p-6">
-                <h3 className="text-sm font-bold text-[hsl(var(--on-surface))] mb-4 uppercase tracking-wider">制作进度</h3>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs mb-2">
-                      <span className="text-[hsl(var(--secondary))]">总体进度</span>
-                      <span className="font-bold text-[hsl(var(--on-surface))]">{mockEpisode.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-[hsl(var(--surface-container-high))] rounded-full overflow-hidden">
-                      <div 
-                        className="h-full signature-gradient rounded-full transition-all"
-                        style={{ width: `${mockEpisode.progress}%` }}
-                      />
-                    </div>
+              <div className="rounded-[24px] border border-white/20 bg-black/10 p-5">
+                <div className="text-xs uppercase tracking-[0.24em] text-white/60">Workspace Overview</div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <div className="text-xs text-white/60">当前片段</div>
+                    <div className="mt-2 text-2xl font-black">{currentEpisode.code}</div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-emerald-500">{completedShotCount}</div>
-                      <div className="text-[10px] text-[hsl(var(--secondary))]">已完成</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-[hsl(var(--primary))]">{inProgressShotCount}</div>
-                      <div className="text-[10px] text-[hsl(var(--secondary))]">制作中</div>
-                    </div>
-                    <div className="p-2 rounded-lg bg-[hsl(var(--surface-container-high))]">
-                      <div className="text-lg font-bold text-[hsl(var(--secondary))]">{notStartedShotCount}</div>
-                      <div className="text-[10px] text-[hsl(var(--secondary))]">待开始</div>
-                    </div>
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <div className="text-xs text-white/60">场景数量</div>
+                    <div className="mt-2 text-2xl font-black">{currentEpisode.count}</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <div className="text-xs text-white/60">角色素材</div>
+                    <div className="mt-2 text-2xl font-black">{relatedCharacters.length}</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/10 p-4">
+                    <div className="text-xs text-white/60">道具素材</div>
+                    <div className="mt-2 text-2xl font-black">{relatedObjects.length}</div>
+                  </div>
+                </div>
+                <div className="mt-4 rounded-2xl bg-white/10 p-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/70">制作推进</span>
+                    <span className="font-bold text-white">{mockEpisode.progress}%</span>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-white/15">
+                    <div className="h-2 rounded-full bg-white" style={{ width: `${mockEpisode.progress}%` }} />
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
+
+          <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr_1fr]">
+            <div className="rounded-[24px] border border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-low))] p-6">
+              <div className="flex items-center gap-2 text-[hsl(var(--secondary))]">
+                <Users className="h-4 w-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.24em]">登场角色</span>
+              </div>
+              <div className="mt-5 space-y-3">
+                {relatedCharacters.map((char) => (
+                  <button
+                    key={char.id}
+                    onClick={() => notify.info(`查看角色：${char.name}`)}
+                    className="flex w-full items-center gap-3 rounded-2xl bg-[hsl(var(--surface-container-high))] p-3 text-left transition-colors hover:bg-[hsl(var(--surface-container-highest))]"
+                  >
+                    <img src={char.image} alt={char.name} className="h-12 w-12 rounded-xl object-cover" />
+                    <div>
+                      <div className="text-sm font-bold text-[hsl(var(--on-surface))]">{char.name}</div>
+                      <div className="text-xs text-[hsl(var(--secondary))]">{char.role}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[24px] border border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-low))] p-6">
+              <div className="flex items-center gap-2 text-[hsl(var(--secondary))]">
+                <ImageIcon className="h-4 w-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.24em]">场景参考</span>
+              </div>
+              <div className="mt-5 space-y-3">
+                {relatedScenes.map((scene) => (
+                  <button
+                    key={scene.id}
+                    onClick={() => notify.info(`查看场景：${scene.name}`)}
+                    className="block w-full overflow-hidden rounded-2xl bg-[hsl(var(--surface-container-high))] text-left"
+                  >
+                    <img src={scene.image} alt={scene.name} className="aspect-[16/9] w-full object-cover" />
+                    <div className="p-3 text-sm font-semibold text-[hsl(var(--on-surface))]">{scene.name}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[24px] border border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface-container-low))] p-6">
+              <div className="flex items-center gap-2 text-[hsl(var(--secondary))]">
+                <Package className="h-4 w-4" />
+                <span className="text-xs font-semibold uppercase tracking-[0.24em]">道具与操作</span>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                {relatedObjects.map((obj) => (
+                  <button
+                    key={obj.id}
+                    onClick={() => notify.info(`查看物品：${obj.name}`)}
+                    className="rounded-2xl bg-[hsl(var(--surface-container-high))] p-2 text-left transition-colors hover:bg-[hsl(var(--surface-container-highest))]"
+                  >
+                    <img src={obj.image} alt={obj.name} className="aspect-square w-full rounded-xl object-cover" />
+                    <div className="px-1 pb-1 pt-3">
+                      <div className="text-sm font-bold text-[hsl(var(--on-surface))]">{obj.name}</div>
+                      <div className="text-xs text-[hsl(var(--secondary))]">{obj.type}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-[hsl(var(--surface-container-high))] p-4">
+                <div className="text-sm font-semibold text-[hsl(var(--on-surface))]">本集创作建议</div>
+                <p className="mt-2 text-sm leading-6 text-[hsl(var(--secondary))]">
+                  先把“觉醒前后”的两个关键场景拖进无限画布，再把主角和核心道具挂上去，镜头关系会更容易展开。
+                </p>
+                <Button
+                  onClick={openCanvas}
+                  className="mt-4 h-11 w-full rounded-2xl signature-gradient text-white"
+                >
+                  打开画布继续
+                  <MoveRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </div>
