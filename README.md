@@ -157,14 +157,15 @@ src/
   - 提供错误提取和归一化方法
 - `src/api/core/runtime.ts`
   - 统一读取运行时配置
-  - 例如 `localStorage` 中的 `apiKey`、`apiBaseUrl`、`dashscopeApiKey`
+  - 例如环境变量中的业务 `baseURL`，以及 `localStorage` 中的 `apiKey`、`dashscopeApiKey`
 - `src/api/core/fetch.ts`
   - 给 `fetch` 场景复用的响应校验能力
   - 主要给流式接口和非 axios 场景用
 - `src/api/clients/appClient.ts`
   - 项目默认业务客户端
-  - 默认 `baseURL` 为 `/v1`
-  - 会自动读取 `apiBaseUrl` / `apiKey`
+  - 默认 `baseURL` 由 `VITE_APP_API_BASE_URL` 控制
+  - 未配置时回退到内置默认值
+  - 会自动读取 `apiKey`
 - `src/api/clients/dashscopeClient.ts`
   - DashScope 专用客户端
   - 负责 DashScope 的鉴权和错误文案映射
@@ -173,6 +174,18 @@ src/
   - 新代码优先从这里 import
 
 ### 现有使用方式
+
+环境配置：
+
+```bash
+VITE_APP_API_BASE_URL=http://124.156.186.82:8080/api/v1
+```
+
+已提供：
+
+- `.env.development`
+- `.env.production`
+- `.env.example`
 
 普通 axios 客户端：
 

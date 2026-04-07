@@ -1,9 +1,9 @@
 import { message } from 'antd'
 import { createHttpClient } from '@/api/core'
-import { getAppApiConfig } from '@/api/core'
+import { DEFAULT_APP_API_BASE_URL, getAppApiConfig } from '@/api/core'
 
 export const appClient = createHttpClient({
-  baseURL: '/v1',
+  baseURL: DEFAULT_APP_API_BASE_URL,
   timeout: 300000,
   headers: {
     'Content-Type': 'application/json',
