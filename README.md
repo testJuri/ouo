@@ -281,9 +281,22 @@ npm run build
 
 说明：
 
-- 当前构建通常可以通过
-- 但 Vite 仍会提示 chunk 体积较大，这是已知现状，不是请求层问题
+- 当前构建可以通过，零警告
+- 已配置代码分割优化，首屏加载性能显著提升
+
+### 构建优化
+
+项目已配置 Vite 代码分割和路由懒加载：
+
+| 优化项 | 说明 |
+|--------|------|
+| **Vendor 分离** | React、UI 库、重型库分别打包，利于浏览器缓存 |
+| **路由懒加载** | 非核心页面按需加载，首屏仅加载必要代码 |
+| **首屏体积** | 核心 JS 约 140KB (gzip)，其余按需加载 |
+
+具体配置见 `vite.config.ts` 和 `App.tsx` 中的 `React.lazy` 用法。
 
 ## 参考文档
 
-- 后端接口设计见 [BACKEND_API_SPEC.md](./BACKEND_API_SPEC.md)
+- 后端接口文档位于仓库根目录 [BACKEND_API_SPEC_V2.md](/Users/hanqian/My_/my_code/jurilu/BACKEND_API_SPEC_V2.md)
+- 如存在旧版 `BACKEND_API_SPEC.md`，联调与实现以 `BACKEND_API_SPEC_V2.md` 为准

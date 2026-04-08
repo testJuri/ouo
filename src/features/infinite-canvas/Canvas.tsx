@@ -35,6 +35,7 @@ import 'reactflow/dist/style.css';
 import { useCanvasStore } from './stores/canvasStore';
 import { useProjectsStore } from './stores/projectsStore';
 import { useThemeStore } from './stores/themeStore';
+import { getAllProjects } from './utils/indexedDB';
 
 import TextNode from './components/nodes/TextNode';
 import ImageNode from './components/nodes/ImageNode';
@@ -624,7 +625,6 @@ const CanvasInner: React.FC = () => {
   // 导出 IndexedDB 原始数据
   const handleExportDatabase = useCallback(async () => {
     try {
-      const { getAllProjects } = await import('./utils/indexedDB');
       const data = await getAllProjects();
       
       const exportData = {

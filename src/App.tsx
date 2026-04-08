@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, Suspense, lazy } from "react"
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -9,23 +9,27 @@ import {
   Users, 
   Sparkles, 
   ArrowRight, 
-  Wand2 
+  Wand2,
+  Loader2
 } from "lucide-react"
+
+// 核心页面直接加载
 import Dashboard from "./pages/Dashboard"
-import ProjectsList from "./pages/ProjectsList"
-import ProjectPermissions from "./pages/ProjectPermissions"
-import Members from "./pages/Members"
-import ProjectDetail from "./pages/project"
-import EpisodeDetail from "./pages/project/EpisodeDetail"
-import WorkflowCanvas from "./pages/project/WorkflowCanvas"
 import Login from "./pages/auth/Login"
-import Pricing from "./pages/Pricing"
-import Gallery from "./pages/Gallery"
-import Terms from "./pages/Terms"
-import Privacy from "./pages/Privacy"
-import Contact from "./pages/Contact"
-import Workflow from "./pages/Workflow"
-import Assets from "./pages/Assets"
+
+// 非核心页面懒加载
+const ProjectsList = lazy(() => import("./pages/ProjectsList"))
+const ProjectPermissions = lazy(() => import("./pages/ProjectPermissions"))
+const Members = lazy(() => import("./pages/Members"))
+const ProjectDetail = lazy(() => import("./pages/project"))
+const WorkflowCanvas = lazy(() => import("./pages/project/WorkflowCanvas"))
+const Pricing = lazy(() => import("./pages/Pricing"))
+const Gallery = lazy(() => import("./pages/Gallery"))
+const Terms = lazy(() => import("./pages/Terms"))
+const Privacy = lazy(() => import("./pages/Privacy"))
+const Contact = lazy(() => import("./pages/Contact"))
+const Workflow = lazy(() => import("./pages/Workflow"))
+const Assets = lazy(() => import("./pages/Assets"))
 import {
   IDENTITY_CHANGE_EVENT,
   canAccessProjectRoutes,
@@ -37,12 +41,16 @@ function IdentityRouteGuard() {
   const location = useLocation()
   const navigate = useNavigate()
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const prevIdentityRef = useRef<IdentityOption>(getStoredIdentity())
 
   useEffect(() => {
     const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
     const handleIdentityChange = (event: Event) => {
       const nextIdentity = (event as CustomEvent<IdentityOption>).detail
-      setCurrentIdentity(nextIdentity || getStoredIdentity())
+      if (nextIdentity && nextIdentity !== prevIdentityRef.current) {
+        setCurrentIdentity(nextIdentity)
+      }
     }
 
     window.addEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
@@ -58,20 +66,55 @@ function IdentityRouteGuard() {
     const isProjectScopedRoute =
       location.pathname === "/dashboard" || location.pathname.startsWith("/project/")
 
-    if (!isProjectScopedRoute) {
+    // 只在身份发生变化时处理
+    if (prevIdentityRef.current === currentIdentity) {
       return
     }
 
-    if (!canAccessProjectRoutes(currentIdentity)) {
-      navigate("/projects", {
-        replace: true,
-        state: {
-          redirectedByIdentity: currentIdentity,
-          from: location.pathname,
-        },
-      })
+    // 在项目路由内切换身份：显示 loading 并刷新页面（模拟重新登录效果）
+    if (isProjectScopedRoute) {
+      // 显示过渡动画
+      setIsTransitioning(true)
+      
+      // 延迟后跳转：有权限的跳转到看板，无权限的跳转到项目列表
+      const timer = setTimeout(() => {
+        if (canAccessProjectRoutes(currentIdentity)) {
+          // 有项目访问权限：跳转到看板
+          navigate("/dashboard", { replace: true })
+        } else {
+          // 无项目访问权限：跳转到项目列表
+          navigate("/projects", {
+            replace: true,
+            state: {
+              redirectedByIdentity: currentIdentity,
+              from: location.pathname,
+            },
+          })
+        }
+        setIsTransitioning(false)
+        prevIdentityRef.current = currentIdentity
+      }, 1500)
+      
+      return () => clearTimeout(timer)
+    } else {
+      // 非项目路由：直接更新身份，不显示 loading
+      prevIdentityRef.current = currentIdentity
     }
   }, [currentIdentity, location.pathname, navigate])
+
+  // 身份切换 Loading 遮罩 - 与切换项目一致的强打断效果
+  if (isTransitioning) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[hsl(var(--surface))]/80 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-[hsl(var(--primary))]" />
+          <p className="text-sm font-medium text-[hsl(var(--on-surface))]">
+            正在切换身份...
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return null
 }
@@ -325,31 +368,42 @@ function Home() {
   )
 }
 
+// 路由加载占位组件
+function RouteLoading() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[hsl(var(--surface))]">
+      <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--primary))]" />
+    </div>
+  )
+}
+
 function App() {
   return (
     <BrowserRouter>
       <IdentityRouteGuard />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/project/:id/dashboard" element={<Dashboard />} />
-        <Route path="/projects" element={<ProjectsList />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/project/:id" element={<ProjectDetail />} />
-        <Route path="/project/:id/:tab" element={<ProjectDetail />} />
-        <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
-        <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
-        <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/workflow" element={<Workflow />} />
-        <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
-        <Route path="/members" element={<Members />} />
-        <Route path="/assets" element={<Assets />} />
-      </Routes>
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/project/:id/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<ProjectsList />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/project/:id/:tab" element={<ProjectDetail />} />
+
+          <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
+          <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/workflow" element={<Workflow />} />
+          <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
+          <Route path="/members" element={<Members />} />
+          <Route path="/assets" element={<Assets />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

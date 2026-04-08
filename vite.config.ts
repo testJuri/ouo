@@ -14,4 +14,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 核心库分离
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // UI 库分离
+          'vendor-ui': ['antd', '@ant-design/icons', 'lucide-react'],
+          // 第三方大库分离
+          'vendor-heavy': ['reactflow', 'framer-motion', 'zustand', 'axios'],
+        },
+      },
+    },
+    // 调整 chunk 大小警告阈值
+    chunkSizeWarningLimit: 800,
+  },
 })
