@@ -1,116 +1,142 @@
 import type { ObjectCreateData, ObjectItem } from '@/types'
-import {
-  delay,
-  errorResponse,
-  generateId,
-  getStorageItems,
-  setStorageItems,
-  successResponse,
-} from './shared'
+import type { ObjectDTO } from '@/api/types'
+import { mapObject } from '@/lib/projectMappers'
+import { errorResponse, successResponse, toApiResponse } from './shared'
 import type { ApiResponse } from './shared'
+import { isMockMode, mockObjectsApi } from '@/api/mock'
+
+const inferObjectType = (data: ObjectCreateData): ObjectDTO['type'] => {
+  if (data.genMethod === 'upload') {
+    return 'prop'
+  }
+  return 'prop'
+}
+
+const buildObjectPayload = (data: ObjectCreateData) => ({
+  name: data.name,
+  type: inferObjectType(data),
+  description: data.prompt || '',
+  image: data.referenceImage,
+  genMethod: data.genMethod,
+  referenceImages: data.referenceImages || (data.referenceImage ? [data.referenceImage] : []),
+  creationMode: 'quick',
+})
 
 export const objectsApi = {
-  async getAll(): Promise<ApiResponse<ObjectItem[]>> {
-    await delay()
-    try {
-      const objects = getStorageItems('objects')
-      return successResponse(objects)
-    } catch {
-      return errorResponse('获取物品列表失败', [])
+  async getAll(projectId: number): Promise<ApiResponse<ObjectItem[]>> {
+    if (isMockMode) {
+      const result = await mockObjectsApi.getAll(projectId)
+      return successResponse(result.list as unknown as ObjectItem[])
     }
+    return toApiResponse<{ list: ObjectDTO[] }, never>(
+      {
+        url: `/projects/${projectId}/objects`,
+        method: 'GET',
+      },
+      { list: [] },
+      '获取物品列表失败',
+      (data) => ({ ...data, list: data.list.map(mapObject) as unknown as ObjectDTO[] })
+    ).then((response) =>
+      response.success ? successResponse(response.data.list as unknown as ObjectItem[]) : errorResponse(response.message || '获取物品列表失败', [])
+    )
   },
 
-  async getById(id: number): Promise<ApiResponse<ObjectItem | null>> {
-    await delay()
-    try {
-      const objects = getStorageItems('objects')
-      const object = objects.find((item) => item.id === id) || null
-      return successResponse(object)
-    } catch {
-      return errorResponse('获取物品详情失败', null)
+  async getById(projectId: number, id: number): Promise<ApiResponse<ObjectItem | null>> {
+    if (isMockMode) {
+      const result = await mockObjectsApi.getById(projectId, id)
+      return successResponse(result as unknown as ObjectItem | null)
     }
+    return toApiResponse<ObjectDTO | null>(
+      {
+        url: `/projects/${projectId}/objects/${id}`,
+        method: 'GET',
+      },
+      null,
+      '获取物品详情失败',
+      (data) => (data ? (mapObject(data) as unknown as ObjectDTO) : null)
+    ).then((response) =>
+      response.success ? successResponse((response.data as unknown as ObjectItem | null) ?? null) : errorResponse(response.message || '获取物品详情失败', null)
+    )
   },
 
-  async create(data: ObjectCreateData): Promise<ApiResponse<ObjectItem>> {
-    await delay(500)
-    try {
-      const objects = getStorageItems('objects')
-      const newId = generateId(objects)
-      const { objectTypeImages } = await import('@/data/initialData')
+  async create(projectId: number, data: ObjectCreateData): Promise<ApiResponse<ObjectItem>> {
+    if (isMockMode) {
+      const result = await mockObjectsApi.create(projectId, buildObjectPayload(data) as Partial<ObjectDTO>)
+      return successResponse(result as unknown as ObjectItem)
+    }
+    return toApiResponse<ObjectDTO, ReturnType<typeof buildObjectPayload>>(
+      {
+        url: `/projects/${projectId}/objects`,
+        method: 'POST',
+        data: buildObjectPayload(data),
+      },
+      {} as ObjectDTO,
+      '创建物品失败',
+      (result) => mapObject(result) as unknown as ObjectDTO
+    ).then((response) =>
+      response.success ? successResponse(response.data as unknown as ObjectItem) : errorResponse(response.message || '创建物品失败', {} as ObjectItem)
+    )
+  },
 
-      const newObject: ObjectItem = {
-        id: newId,
+  async update(projectId: number, id: number, data: Partial<ObjectItem>): Promise<ApiResponse<ObjectItem | null>> {
+    if (isMockMode) {
+      const result = await mockObjectsApi.update(projectId, id, {
         name: data.name,
-        image: data.referenceImage || objectTypeImages.prop,
-        type: data.genMethod === 'model' ? 'AI生成' : '上传',
-        status: 'draft',
-        scene: '未关联场景',
-        modified: '刚刚',
-      }
-
-      const updatedObjects = [newObject, ...objects]
-      setStorageItems('objects', updatedObjects)
-
-      return successResponse(newObject)
-    } catch {
-      return errorResponse('创建物品失败', {} as ObjectItem)
+        description: data.description,
+        coverImage: data.image,
+      } as Partial<ObjectDTO>)
+      return successResponse(result as unknown as ObjectItem | null)
     }
+    return toApiResponse<ObjectDTO | null>(
+      {
+        url: `/projects/${projectId}/objects/${id}`,
+        method: 'PUT',
+        data: {
+          name: data.name,
+          description: data.description,
+          image: data.image,
+          status: data.status,
+        },
+      },
+      null,
+      '更新物品失败',
+      (result) => (result ? (mapObject(result) as unknown as ObjectDTO) : null)
+    ).then((response) =>
+      response.success ? successResponse((response.data as unknown as ObjectItem | null) ?? null) : errorResponse(response.message || '更新物品失败', null)
+    )
   },
 
-  async update(id: number, data: Partial<ObjectItem>): Promise<ApiResponse<ObjectItem | null>> {
-    await delay(400)
-    try {
-      const objects = getStorageItems('objects')
-      let updatedObject: ObjectItem | null = null
-
-      const updatedObjects = objects.map((object) => {
-        if (object.id === id) {
-          updatedObject = { ...object, ...data, modified: '刚刚' }
-          return updatedObject
-        }
-        return object
-      })
-
-      setStorageItems('objects', updatedObjects)
-      return successResponse(updatedObject)
-    } catch {
-      return errorResponse('更新物品失败', null)
-    }
-  },
-
-  async delete(id: number): Promise<ApiResponse<boolean>> {
-    await delay(400)
-    try {
-      const objects = getStorageItems('objects')
-      const updatedObjects = objects.filter((object) => object.id !== id)
-      setStorageItems('objects', updatedObjects)
+  async delete(projectId: number, id: number): Promise<ApiResponse<boolean>> {
+    if (isMockMode) {
+      await mockObjectsApi.delete(projectId, id)
       return successResponse(true)
-    } catch {
-      return errorResponse('删除物品失败', false)
     }
+    return toApiResponse<true>(
+      {
+        url: `/projects/${projectId}/objects/${id}`,
+        method: 'DELETE',
+      },
+      true,
+      '删除物品失败'
+    ).then((response) =>
+      response.success ? successResponse(true) : errorResponse(response.message || '删除物品失败', false)
+    )
   },
 
-  async duplicate(id: number): Promise<ApiResponse<ObjectItem | null>> {
-    await delay(500)
-    try {
-      const objects = getStorageItems('objects')
-      const object = objects.find((item) => item.id === id)
-      if (!object) return successResponse(null)
-
-      const newId = generateId(objects)
-      const newObject: ObjectItem = {
-        ...object,
-        id: newId,
-        name: `${object.name} (复制)`,
-        modified: '刚刚',
-      }
-
-      const updatedObjects = [newObject, ...objects]
-      setStorageItems('objects', updatedObjects)
-
-      return successResponse(newObject)
-    } catch {
-      return errorResponse('复制物品失败', null)
+  async duplicate(projectId: number, id: number): Promise<ApiResponse<ObjectItem | null>> {
+    if (isMockMode) {
+      const result = await mockObjectsApi.duplicate(projectId, id)
+      return successResponse(result as unknown as ObjectItem | null)
     }
+    const objectResponse = await this.getById(projectId, id)
+    if (!objectResponse.success || !objectResponse.data) {
+      return errorResponse(objectResponse.message || '复制物品失败', null)
+    }
+
+    return this.create(projectId, {
+      name: `${objectResponse.data.name} (复制)`,
+      genMethod: 'upload',
+      referenceImage: objectResponse.data.image,
+    }).then((response) => (response.success ? successResponse(response.data) : errorResponse(response.message || '复制物品失败', null)))
   },
 }

@@ -296,6 +296,26 @@ npm run build
 
 具体配置见 `vite.config.ts` 和 `App.tsx` 中的 `React.lazy` 用法。
 
+### Mock 模式
+
+项目支持通过环境变量切换 Mock 数据/真实接口：
+
+```bash
+# .env.development
+VITE_MOCK_MODE=true  # 使用 Mock 数据
+VITE_MOCK_MODE=false # 使用真实接口
+```
+
+Mock 数据位于 `src/api/mock/` 目录，包含：
+- 完整的 CRUD 模拟
+- 300ms-500ms 模拟网络延迟
+- 支持创建、更新、删除操作（内存存储）
+
+**使用场景：**
+- 后端接口未就绪时
+- 演示产品流程
+- 本地开发测试
+
 ## 参考文档
 
 - 后端接口文档位于仓库根目录 [BACKEND_API_SPEC_V2.md](/Users/hanqian/My_/my_code/jurilu/BACKEND_API_SPEC_V2.md)
