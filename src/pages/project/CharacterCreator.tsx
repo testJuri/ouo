@@ -192,7 +192,6 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
     setRole("support")
     setGenMethod("model")
     setSelectedModel("xt45")
-    setVisualStyle("anime")
     setSeedMode("fixed")
     setSeed(createSeed())
     setQuantity(1)
