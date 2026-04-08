@@ -6,6 +6,7 @@ import { useProjectStore } from "@/stores/projectStore"
 import type { Episode } from "@/types"
 
 interface EpisodesTabProps {
+  projectId?: number | null
   episodes?: Episode[]
   onAddNew?: () => void
   batchMode?: boolean
@@ -14,6 +15,7 @@ interface EpisodesTabProps {
 }
 
 export default function EpisodesTab({
+  projectId,
   episodes: episodesProp,
   onAddNew,
   batchMode = false,
@@ -21,7 +23,7 @@ export default function EpisodesTab({
   onToggleSelect,
 }: EpisodesTabProps) {
   const navigate = useNavigate()
-  const { id: projectId } = useParams()
+  const { id: routeProjectId } = useParams()
   const episodes = useProjectStore((state) => episodesProp ?? state.assets.episodes)
   const { openDrawer } = useProjectStore()
 
@@ -30,7 +32,7 @@ export default function EpisodesTab({
       onToggleSelect?.(episodeId)
       return
     }
-    navigate(`/project/${projectId}/episode/${episodeId}`)
+    navigate(`/project/${projectId ?? routeProjectId}/episode/${episodeId}`)
   }
 
   const handleAddNew = () => {

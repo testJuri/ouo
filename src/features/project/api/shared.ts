@@ -1,14 +1,11 @@
-import { getStorageItems, setStorageItems } from '@/utils/storage'
-
-const MOCK_DELAY = 300
+import type { AxiosRequestConfig } from 'axios'
+import { appClient, requestData } from '@/api'
 
 export interface ApiResponse<T> {
   success: boolean
   data: T
   message?: string
 }
-
-export const delay = (ms: number = MOCK_DELAY) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const successResponse = <T>(data: T): ApiResponse<T> => ({
   success: true,
@@ -21,13 +18,16 @@ export const errorResponse = <T>(message: string, fallbackData: T): ApiResponse<
   message,
 })
 
-export const generateId = (items: { id: number }[]): number => {
-  if (items.length === 0) return 1
-  return Math.max(...items.map((item) => item.id)) + 1
+export async function toApiResponse<TResponse, TBody = unknown>(
+  config: AxiosRequestConfig<TBody>,
+  fallbackData: TResponse,
+  message: string,
+  transform?: (data: TResponse) => TResponse
+): Promise<ApiResponse<TResponse>> {
+  try {
+    const data = await requestData<TResponse, TBody>(appClient, config)
+    return successResponse(transform ? transform(data) : data)
+  } catch (error) {
+    return errorResponse(error instanceof Error ? error.message || message : message, fallbackData)
+  }
 }
-
-export const generateCode = (prefix: string, id: number): string => {
-  return `${prefix}_${String(id).padStart(3, '0')}`
-}
-
-export { getStorageItems, setStorageItems }

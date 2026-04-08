@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
-import { useProjectStore } from "@/stores/projectStore"
+import { useEffect, useState } from "react"
+import { projectApi } from "@/api/projectApi"
 import {
   ChevronLeft,
   Clapperboard,
@@ -14,7 +15,7 @@ import {
   Users,
 } from "lucide-react"
 
-const mockEpisode = {
+const fallbackEpisode = {
   id: 1,
   name: "序章：觉醒",
   code: "EP_001",
@@ -45,18 +46,26 @@ export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
   const navigate = useNavigate()
   const { notify } = useFeedback()
-  const { assets } = useProjectStore()
+  const [episode, setEpisode] = useState<any>(null)
 
-  const episode = assets.episodes.find((ep) => ep.id === Number(episodeId))
+  useEffect(() => {
+    if (!projectId || !episodeId) return
+    void projectApi.episodes.getById(Number(projectId), Number(episodeId)).then((response) => {
+      if (response.success) {
+        setEpisode(response.data)
+      }
+    })
+  }, [episodeId, projectId])
+
   const currentEpisode = {
-    ...mockEpisode,
+    ...fallbackEpisode,
     ...episode,
-    name: episode?.name || mockEpisode.name,
-    code: episode?.code || mockEpisode.code,
-    status: episode?.status || mockEpisode.status,
-    description: episode?.description || mockEpisode.description,
-    count: episode?.count || mockEpisode.sceneCount,
-    modified: episode?.modified || mockEpisode.modified,
+    name: episode?.name || fallbackEpisode.name,
+    code: episode?.code || fallbackEpisode.code,
+    status: episode?.status || fallbackEpisode.status,
+    description: episode?.description || fallbackEpisode.description,
+    count: episode?.count || fallbackEpisode.sceneCount,
+    modified: episode?.modified || fallbackEpisode.modified,
   }
 
   const openCanvas = () => {
@@ -96,7 +105,7 @@ export default function EpisodeDetail() {
             <div className="mt-3 flex flex-wrap gap-4 text-sm text-[hsl(var(--secondary))]">
               <span className="font-mono">{currentEpisode.code}</span>
               <span>{currentEpisode.count} 个场景</span>
-              <span>完成度 {mockEpisode.progress}%</span>
+              <span>完成度 {fallbackEpisode.progress}%</span>
               <span>修改于 {currentEpisode.modified}</span>
             </div>
           </div>
@@ -160,10 +169,10 @@ export default function EpisodeDetail() {
                 <div className="mt-4 rounded-2xl bg-white/10 p-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-white/70">制作推进</span>
-                    <span className="font-bold text-white">{mockEpisode.progress}%</span>
+                    <span className="font-bold text-white">{fallbackEpisode.progress}%</span>
                   </div>
                   <div className="mt-3 h-2 rounded-full bg-white/15">
-                    <div className="h-2 rounded-full bg-white" style={{ width: `${mockEpisode.progress}%` }} />
+                    <div className="h-2 rounded-full bg-white" style={{ width: `${fallbackEpisode.progress}%` }} />
                   </div>
                 </div>
               </div>

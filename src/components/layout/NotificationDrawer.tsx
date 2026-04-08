@@ -73,96 +73,99 @@ export default function NotificationDrawer({
         className="w-[420px] max-w-[92vw] border-l border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))] p-0"
       >
         <div className="flex h-full flex-col">
-          <div className="border-b border-[hsl(var(--outline-variant))]/15 px-6 py-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-black text-[hsl(var(--on-surface))]">消息通知</h2>
-                <p className="mt-1 text-sm text-[hsl(var(--secondary))]">
-                  {unreadCount > 0 ? `${unreadCount} 条未读消息` : "没有新消息"}
-                </p>
+          <div className="border-b border-[hsl(var(--outline-variant))]/15 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg font-bold text-[hsl(var(--on-surface))]">消息通知</h2>
+                {unreadCount > 0 && (
+                  <span className="text-xs text-[hsl(var(--primary))]">{unreadCount} 条未读</span>
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onMarkAllAsRead}
-                  className="h-9 rounded-lg px-3 text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
+                  className="h-8 px-2 text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
                 >
-                  <Check className="mr-1.5 h-4 w-4" />
+                  <Check className="mr-1 h-3.5 w-3.5" />
                   全部已读
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => onOpenChange(false)}
-                  className="h-9 w-9 rounded-lg text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
+                  className="h-8 w-8 text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex-1 overflow-y-auto px-3 py-2">
             {notifications.length === 0 ? (
-              <div className="flex h-full min-h-[280px] flex-col items-center justify-center text-center text-[hsl(var(--secondary))]">
-                <Bell className="mb-4 h-12 w-12 opacity-30" />
+              <div className="flex h-full min-h-[200px] flex-col items-center justify-center text-center text-[hsl(var(--secondary))]">
+                <Bell className="mb-3 h-10 w-10 opacity-30" />
                 <p className="text-sm">暂无通知</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {notifications.map((notification) => (
                   <button
                     key={notification.id}
                     type="button"
                     onClick={() => onMarkAsRead(notification.id)}
-                    className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+                    className={`w-full rounded-xl border p-3 text-left transition-colors ${
                       notification.read
                         ? "border-transparent bg-[hsl(var(--surface-container-low))] hover:bg-[hsl(var(--surface-container-high))]"
                         : "border-[hsl(var(--primary))]/18 bg-[hsl(var(--primary))]/5 hover:bg-[hsl(var(--primary))]/8"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3
-                          className={`text-sm font-bold ${
-                            notification.read
-                              ? "text-[hsl(var(--on-surface))]"
-                              : "text-[hsl(var(--primary))]"
-                          }`}
-                        >
-                          {notification.title}
-                        </h3>
-                        <p className="mt-1 text-xs leading-6 text-[hsl(var(--on-surface-variant))]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className={`text-sm font-bold truncate ${
+                              notification.read
+                                ? "text-[hsl(var(--on-surface))]"
+                                : "text-[hsl(var(--primary))]"
+                            }`}
+                          >
+                            {notification.title}
+                          </h3>
+                          {!notification.read && (
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-[hsl(var(--primary))]" />
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-xs text-[hsl(var(--on-surface-variant))] line-clamp-2">
                           {notification.message}
                         </p>
                       </div>
-                      {!notification.read ? (
-                        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[hsl(var(--primary))]" />
-                      ) : null}
                     </div>
-                    <p className="mt-3 text-[10px] font-medium text-[hsl(var(--secondary))]">{notification.time}</p>
+                    <p className="mt-2 text-[10px] text-[hsl(var(--secondary))]">{notification.time}</p>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="border-t border-[hsl(var(--outline-variant))]/15 px-4 py-4">
-            <div className="flex items-center justify-between gap-3">
+          <div className="border-t border-[hsl(var(--outline-variant))]/15 px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
               <Button
                 variant="ghost"
-                className="h-11 flex-1 rounded-xl text-sm font-semibold text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
+                className="h-9 flex-1 rounded-lg text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
                 onClick={() => onOpenChange(false)}
               >
                 查看全部消息
               </Button>
               <Button
-                className="h-11 rounded-2xl border-0 px-5 signature-gradient text-sm font-bold text-white"
+                variant="ghost"
+                className="h-9 rounded-lg px-3 text-xs text-red-500 hover:text-red-600 hover:bg-red-50"
                 onClick={onClearAll}
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                批量删除
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                清空
               </Button>
             </div>
           </div>

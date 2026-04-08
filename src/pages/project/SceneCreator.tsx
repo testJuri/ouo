@@ -1,18 +1,23 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Sheet,
   SheetContent,
 } from "@/components/ui/sheet"
 import {
-  Plus,
   X,
-  CheckCircle2,
   HelpCircle,
   ImagePlus,
-  Upload
+  Upload,
+  ChevronDown,
+  Check
 } from "lucide-react"
 import { useState, useRef } from "react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -34,9 +39,9 @@ interface SceneCreatorProps {
 }
 
 const styleModels = [
-  { id: "classic", name: "经典少年", image: "https://images.unsplash.com/photo-1560972550-aba3456b5564?w=300&h=200&fit=crop" },
-  { id: "cyber", name: "赛博霓虹", image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&h=200&fit=crop" },
-  { id: "ink", name: "水墨意境", image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=300&h=200&fit=crop" },
+  { id: "classic", name: "经典少年", desc: "通用叙事场景，适合日常与剧情推进镜头" },
+  { id: "cyber", name: "赛博霓虹", desc: "光效强烈，适合夜景与未来都市空间" },
+  { id: "ink", name: "水墨意境", desc: "氛围感突出，适合东方题材与留白构图" },
 ]
 
 export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCreatorProps) {
@@ -228,75 +233,94 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
               </>
             ) : (
             <>
-            {/* Reference Image */}
-            <div className="space-y-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-1">
-                  <span className="text-red-500">*</span> 场景参考图
-                  <HelpCircle className="w-4 h-4 text-[hsl(var(--secondary))]" />
-                </label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept="image/*"
-                  className="hidden"
-                />
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="relative flex h-60 w-full max-w-[320px] cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] group"
-                >
-                  {referenceImage ? (
-                    <img src={referenceImage} alt="参考图" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <Plus className="w-8 h-8 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--primary))]" />
-                      <span className="text-sm text-[hsl(var(--secondary))]">新增</span>
-                    </>
-                  )}
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
+                    <span className="text-red-500 mr-1">*</span>选择模型
+                  </label>
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-12 w-full justify-between rounded-xl bg-[hsl(var(--surface-container-low))] px-4 text-left text-sm font-normal text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-high))]"
+                      >
+                        <span>{styleModels.find((model) => model.id === selectedModel)?.name ?? "选择场景模型"}</span>
+                        <ChevronDown className="h-4 w-4 text-[hsl(var(--secondary))]" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      sideOffset={10}
+                      className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-[hsl(var(--outline-variant))]/30 bg-[hsl(var(--surface-container-lowest))] p-2 shadow-xl"
+                    >
+                      {styleModels.map((model) => (
+                        <DropdownMenuItem
+                          key={model.id}
+                          onClick={() => setSelectedModel(model.id)}
+                          className={`min-h-[44px] rounded-lg px-3 text-base ${
+                            selectedModel === model.id
+                              ? "bg-[hsl(var(--primary))] text-white focus:bg-[hsl(var(--primary))] focus:text-white"
+                              : "text-[hsl(var(--on-surface))]"
+                          }`}
+                        >
+                          <Check
+                            className={`mr-3 h-4 w-4 ${
+                              selectedModel === model.id ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          <span>{model.name}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <p className="text-xs text-[hsl(var(--secondary))]">
+                    {styleModels.find((model) => model.id === selectedModel)?.desc}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1 text-[hsl(var(--on-surface))]">
+                    <span className="text-red-500">*</span> 提示词
+                    <HelpCircle className="w-4 h-4 text-[hsl(var(--secondary))]" />
+                  </label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div className="rounded-2xl border border-[hsl(var(--outline-variant))]/35 bg-[hsl(var(--surface-container-low))] p-4">
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex h-28 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                      >
+                        {referenceImage ? (
+                          <img src={referenceImage} alt="场景参考图" className="h-full w-full object-cover" />
+                        ) : (
+                          <ImagePlus className="h-7 w-7" />
+                        )}
+                      </button>
+
+                      <div className="min-w-0 flex-1">
+                        <textarea
+                          value={description}
+                          onChange={(e) => setDescription(e.target.value)}
+                          placeholder="上传参考图、输入文字，描述你想生成的场景，包括空间构成、时间氛围、光线、材质、镜头语言等。"
+                          className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-[hsl(var(--secondary))]">
+                    参考图可帮助场景在构图、氛围和材质上更贴近目标方向。
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* Style Model */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-[hsl(var(--secondary))]">风格模型</label>
-              <div className="grid grid-cols-3 gap-3">
-                {styleModels.map((model) => (
-                  <div 
-                    key={model.id}
-                    onClick={() => setSelectedModel(model.id)}
-                    className={`relative cursor-pointer border-2 rounded-xl overflow-hidden aspect-[4/3] transition-all ${
-                      selectedModel === model.id ? "border-[hsl(var(--primary))]" : "border-transparent hover:border-[hsl(var(--outline-variant))]"
-                    }`}
-                  >
-                    <img className="w-full h-full object-cover" src={model.image} alt={model.name} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">
-                      <span className="text-[10px] font-bold text-white">{model.name}</span>
-                    </div>
-                    {selectedModel === model.id && (
-                      <div className="absolute top-1 right-1 bg-[hsl(var(--primary))] rounded-full p-0.5">
-                        <CheckCircle2 className="w-3 h-3 text-white" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
             </>
             )}
-
-            {/* Description */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">补充描述（可选）</label>
-              <Textarea 
-                placeholder="描述镜头背后的世界..."
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="bg-[hsl(var(--surface-container-low))] border-none rounded-xl resize-none"
-              />
-            </div>
 
             {/* Seed Control */}
             <div className="space-y-3">

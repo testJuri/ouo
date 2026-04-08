@@ -1,11 +1,19 @@
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import type { MouseEvent } from "react"
-import { Trash2, Check, ArrowRight, Wand2, Workflow } from "lucide-react"
+import { useState } from "react"
+import { Trash2, Check, ArrowRight, Wand2, Workflow, User, Sparkles, Image, Settings } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useProjectStore } from "@/stores/projectStore"
 import type { Character } from "@/types"
 
 interface CharactersTabProps {
+  projectId?: number | null
   characters?: Character[]
   onAddNew?: () => void
   onOpenCanvas?: () => void
@@ -15,6 +23,7 @@ interface CharactersTabProps {
 }
 
 export default function CharactersTab({
+  projectId,
   characters: charactersProp,
   onAddNew,
   onOpenCanvas,
@@ -25,6 +34,8 @@ export default function CharactersTab({
   const characters = useProjectStore((state) => charactersProp ?? state.assets.characters)
   const { deleteCharacter, openDrawer } = useProjectStore()
   const { confirm, notify } = useFeedback()
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const handleDelete = async (e: MouseEvent<HTMLButtonElement>, id: number) => {
     e.stopPropagation()
@@ -36,7 +47,8 @@ export default function CharactersTab({
     })
 
     if (confirmed) {
-      deleteCharacter(id)
+      if (!projectId) return
+      await deleteCharacter(projectId, id)
       notify.success("角色已删除")
     }
   }
@@ -56,6 +68,15 @@ export default function CharactersTab({
     }
 
     notify.info("无限画布创作模式正在接入角色工作流")
+  }
+
+  const handleCardClick = (character: Character) => {
+    if (batchMode) {
+      onToggleSelect?.(character.id)
+      return
+    }
+    setSelectedCharacter(character)
+    setDetailOpen(true)
   }
 
   return (
@@ -112,8 +133,8 @@ export default function CharactersTab({
       {characters.map((character) => (
         <div 
           key={character.id}
-          onClick={batchMode ? () => onToggleSelect?.(character.id) : undefined}
-          className={`group relative rounded-lg overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-lg hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-0.5 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : ""} ${selectedIds.includes(character.id) ? "ring-[hsl(var(--primary))]" : ""}`}
+          onClick={() => handleCardClick(character)}
+          className={`group relative rounded-lg overflow-hidden bg-[hsl(var(--surface-container-lowest))] transition-all hover:shadow-lg hover:shadow-[hsl(var(--on-surface))]/5 hover:-translate-y-0.5 ${batchMode ? "cursor-pointer ring-2 ring-transparent" : "cursor-pointer"} ${selectedIds.includes(character.id) ? "ring-[hsl(var(--primary))]" : ""}`}
         >
           <div className="aspect-[4/5] w-full relative overflow-hidden">
             <img 
@@ -161,6 +182,100 @@ export default function CharactersTab({
           </div>
         </div>
       ))}
+
+      {/* Character Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          {selectedCharacter && (
+            <div className="flex flex-col md:flex-row">
+              {/* Image Section */}
+              <div className="w-full md:w-1/2 aspect-square md:aspect-auto">
+                <img
+                  src={selectedCharacter.image}
+                  alt={selectedCharacter.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              {/* Info Section */}
+              <div className="w-full md:w-1/2 p-6 flex flex-col">
+                <DialogHeader className="mb-4">
+                  <div className="flex items-center gap-3">
+                    <DialogTitle className="text-xl font-bold">{selectedCharacter.name}</DialogTitle>
+                    <Badge 
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border-0 ${
+                        selectedCharacter.role === "主角" 
+                          ? "bg-[hsl(var(--primary))] text-white" 
+                          : "bg-[hsl(var(--secondary))] text-white"
+                      }`}
+                    >
+                      {selectedCharacter.role}
+                    </Badge>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-4 flex-1">
+                  {/* Style */}
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-4 h-4 text-[hsl(var(--secondary))] mt-0.5" />
+                    <div>
+                      <p className="text-xs text-[hsl(var(--secondary))]">风格</p>
+                      <p className="text-sm font-medium text-[hsl(var(--on-surface))]">{selectedCharacter.style}</p>
+                    </div>
+                  </div>
+
+                  {/* Scenes */}
+                  <div className="flex items-start gap-3">
+                    <Image className="w-4 h-4 text-[hsl(var(--secondary))] mt-0.5" />
+                    <div>
+                      <p className="text-xs text-[hsl(var(--secondary))]">关联场景</p>
+                      <p className="text-sm font-medium text-[hsl(var(--on-surface))]">{selectedCharacter.scenes} 个场景</p>
+                    </div>
+                  </div>
+
+                  {/* Gender & Age */}
+                  <div className="flex items-start gap-3">
+                    <User className="w-4 h-4 text-[hsl(var(--secondary))] mt-0.5" />
+                    <div>
+                      <p className="text-xs text-[hsl(var(--secondary))]">基本信息</p>
+                      <p className="text-sm font-medium text-[hsl(var(--on-surface))]">
+                        {selectedCharacter.gender || "未知性别"} · {selectedCharacter.ageGroup || "未知年龄"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Model */}
+                  {selectedCharacter.model && (
+                    <div className="flex items-start gap-3">
+                      <Settings className="w-4 h-4 text-[hsl(var(--secondary))] mt-0.5" />
+                      <div>
+                        <p className="text-xs text-[hsl(var(--secondary))]">生成模型</p>
+                        <p className="text-sm font-medium text-[hsl(var(--on-surface))]">{selectedCharacter.model}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Description / Prompt */}
+                  {selectedCharacter.description && (
+                    <div className="pt-4 border-t border-[hsl(var(--outline-variant))]/30">
+                      <p className="text-xs text-[hsl(var(--secondary))] mb-2">提示词</p>
+                      <p className="text-sm text-[hsl(var(--on-surface))] leading-relaxed bg-[hsl(var(--surface-container-low))] p-3 rounded-lg">
+                        {selectedCharacter.description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="mt-6 pt-4 border-t border-[hsl(var(--outline-variant))]/30 flex items-center justify-between text-xs text-[hsl(var(--secondary))]">
+                  <span>ID: {selectedCharacter.id}</span>
+                  <span>创建于 2024</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

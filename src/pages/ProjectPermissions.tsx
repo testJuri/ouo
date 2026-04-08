@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,59 +29,21 @@ import {
   Crown,
   Mail
 } from "lucide-react"
+import { projectMembersApi, projectsApi } from "@/api"
+import { mapMember } from "@/lib/projectMappers"
 
 interface Member {
   id: number
   name: string
   email: string
   avatar: string
-  role: "owner" | "admin" | "editor" | "viewer"
+  role: "owner" | "editor" | "viewer"
   joinedAt: string
   status: "active" | "pending"
 }
 
-const initialMembers: Member[] = [
-  {
-    id: 1,
-    name: "陈晓明",
-    email: "xiaoming@example.com",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    role: "owner",
-    joinedAt: "2024-01-15",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "林小雨",
-    email: "xiaoyu@example.com",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
-    role: "admin",
-    joinedAt: "2024-02-20",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "张伟",
-    email: "zhangwei@example.com",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    role: "editor",
-    joinedAt: "2024-03-10",
-    status: "active",
-  },
-  {
-    id: 4,
-    name: "王芳",
-    email: "wangfang@example.com",
-    avatar: "",
-    role: "viewer",
-    joinedAt: "",
-    status: "pending",
-  },
-]
-
 const roleLabels: Record<string, { label: string; description: string; icon: typeof Crown }> = {
   owner: { label: "所有者", description: "拥有项目的全部权限", icon: Crown },
-  admin: { label: "管理员", description: "可以管理成员和项目设置", icon: Shield },
   editor: { label: "编辑者", description: "可以创建和编辑内容", icon: User },
   viewer: { label: "查看者", description: "仅可查看项目内容", icon: Eye },
 }
@@ -90,16 +52,31 @@ export default function ProjectPermissions() {
   const navigate = useNavigate()
   const { projectId } = useParams()
   const { notify, confirm } = useFeedback()
-  const [members, setMembers] = useState<Member[]>(initialMembers)
+  const numericProjectId = projectId ? Number(projectId) : null
+  const [members, setMembers] = useState<Member[]>([])
+  const [projectName, setProjectName] = useState("当前项目")
   const [inviteEmail, setInviteEmail] = useState("")
-  const [inviteRole, setInviteRole] = useState<string>("editor")
+  const [inviteRole, setInviteRole] = useState<"editor" | "viewer">("editor")
   const [isInviting, setIsInviting] = useState(false)
 
+  const loadMembers = async (targetProjectId: number) => {
+    const response = await projectMembersApi.list(targetProjectId)
+    setMembers(response.list.map((member) => mapMember(member)))
+  }
+
+  useEffect(() => {
+    if (!numericProjectId) return
+    void loadMembers(numericProjectId).catch((error) => notify.error(error instanceof Error ? error.message : "加载权限成员失败"))
+    void projectsApi.getById(numericProjectId).then((project) => setProjectName(project.name)).catch(() => undefined)
+  }, [notify, numericProjectId])
+
   const handleRoleChange = (memberId: number, newRole: string) => {
-    setMembers((prev) =>
-      prev.map((m) => (m.id === memberId ? { ...m, role: newRole as Member["role"] } : m))
-    )
-    notify.success("角色已更新")
+    if (!numericProjectId) return
+    void projectMembersApi
+      .updateRole(numericProjectId, memberId, newRole as Member["role"])
+      .then(() => loadMembers(numericProjectId))
+      .then(() => notify.success("角色已更新"))
+      .catch((error) => notify.error(error instanceof Error ? error.message : "角色更新失败"))
   }
 
   const handleRemoveMember = async (member: Member) => {
@@ -111,35 +88,41 @@ export default function ProjectPermissions() {
     })
 
     if (confirmed) {
-      setMembers((prev) => prev.filter((m) => m.id !== member.id))
-      notify.success("成员已移除")
+      if (!numericProjectId) return
+      try {
+        await projectMembersApi.remove(numericProjectId, member.id)
+        await loadMembers(numericProjectId)
+        notify.success("成员已移除")
+      } catch (error) {
+        notify.error(error instanceof Error ? error.message : "移除成员失败")
+      }
     }
   }
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
-      notify.warning("请输入邮箱地址")
+      notify.warning("请输入用户 ID")
       return
     }
+    if (!numericProjectId) return
 
     setIsInviting(true)
-    // 模拟 API 调用
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    
-    const newMember: Member = {
-      id: Date.now(),
-      name: inviteEmail.split("@")[0],
-      email: inviteEmail,
-      avatar: "",
-      role: inviteRole as Member["role"],
-      joinedAt: "",
-      status: "pending",
+    try {
+      const userId = Number(inviteEmail)
+      if (!Number.isFinite(userId)) {
+        notify.warning("当前接口需要用户 ID")
+        return
+      }
+
+      await projectMembersApi.add(numericProjectId, { userId, role: inviteRole })
+      await loadMembers(numericProjectId)
+      setInviteEmail("")
+      notify.success("成员已添加")
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "邀请成员失败")
+    } finally {
+      setIsInviting(false)
     }
-    
-    setMembers((prev) => [...prev, newMember])
-    setInviteEmail("")
-    setIsInviting(false)
-    notify.success("邀请已发送")
   }
 
   const activeMembers = members.filter((m) => m.status === "active")
@@ -176,7 +159,7 @@ export default function ProjectPermissions() {
               <Shield className="w-8 h-8 text-[hsl(var(--primary))]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">Cyberpunk Ronin</h2>
+              <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">{projectName}</h2>
               <p className="text-sm text-[hsl(var(--secondary))]">项目 ID: {projectId}</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
@@ -200,18 +183,17 @@ export default function ProjectPermissions() {
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--secondary))]" />
               <Input
                 type="email"
-                placeholder="输入邮箱地址"
+                placeholder="输入用户 ID"
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 className="pl-10 bg-[hsl(var(--surface-container-low))] border-none focus-visible:ring-1 focus-visible:ring-[hsl(var(--primary))]"
               />
             </div>
-            <Select value={inviteRole} onValueChange={setInviteRole}>
+            <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as "editor" | "viewer")}>
               <SelectTrigger className="w-40 bg-[hsl(var(--surface-container-low))] border-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="admin">管理员</SelectItem>
                 <SelectItem value="editor">编辑者</SelectItem>
                 <SelectItem value="viewer">查看者</SelectItem>
               </SelectContent>

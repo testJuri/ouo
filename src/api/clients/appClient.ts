@@ -1,6 +1,7 @@
 import { message } from 'antd'
 import { createHttpClient } from '@/api/core'
 import { DEFAULT_APP_API_BASE_URL, getAppApiConfig } from '@/api/core'
+import { redirectToLogin } from '@/lib/session'
 
 export const appClient = createHttpClient({
   baseURL: DEFAULT_APP_API_BASE_URL,
@@ -10,17 +11,22 @@ export const appClient = createHttpClient({
   },
   resolveBaseURL: () => getAppApiConfig().baseURL,
   resolveHeaders: () => {
-    const { apiKey } = getAppApiConfig()
+    const { authToken } = getAppApiConfig()
 
-    if (!apiKey) {
+    if (!authToken) {
       return {}
     }
 
     return {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${authToken}`,
     }
   },
   onError: (error) => {
+    if (error.status === 401) {
+      redirectToLogin('expired')
+      return
+    }
+
     message.error(error.message)
   },
 })

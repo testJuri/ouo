@@ -109,7 +109,11 @@ export interface ObjectItem {
 export interface ObjectCreateData {
   name: string
   genMethod: 'model' | 'upload'
+  model?: string
+  prompt?: string
+  aspectRatio?: '1:1' | '16:9' | '9:16' | '4:3'
   referenceImage?: string
+  referenceImages?: string[]
 }
 
 // ==================== 项目工作台状态 ====================

@@ -16,6 +16,7 @@ import {
 // 核心页面直接加载
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/auth/Login"
+import EpisodeDetail from "./pages/project/EpisodeDetail"
 
 // 非核心页面懒加载
 const ProjectsList = lazy(() => import("./pages/ProjectsList"))
@@ -394,6 +395,7 @@ function App() {
           <Route path="/project/:id/:tab" element={<ProjectDetail />} />
 
           <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
+          <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
           <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />

@@ -6,7 +6,20 @@ import {
   needBrowserAuthHeader,
   parseJsonResponse,
 } from '@/api';
+import { isMockMode } from '@/api/mock';
 import type { ChatCompletionParams } from '../types';
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const buildMockChatText = (data: ChatCompletionParams): string => {
+  const latestUserMessage = [...data.messages].reverse().find((message) => message.role === 'user')?.content || '当前需求';
+
+  return [
+    '这是演示环境的 Mock 响应。',
+    `我已经收到你的需求：${latestUserMessage}`,
+    '当前构建不会请求真实 AI 接口，页面里的对话、编排和生成反馈都使用本地模拟结果。',
+  ].join('\n');
+};
 
 const getOptionalAuthHeader = (apiKey: string): Record<string, string> => {
   if (!apiKey) {
@@ -33,6 +46,18 @@ export async function* streamDashScopeChatCompletions(
   data: ChatCompletionParams,
   signal?: AbortSignal
 ): AsyncGenerator<string, void, undefined> {
+  if (isMockMode) {
+    const content = buildMockChatText(data);
+    for (const chunk of content.split('\n')) {
+      if (signal?.aborted) {
+        break;
+      }
+      await wait(120);
+      yield `${chunk}\n`;
+    }
+    return;
+  }
+
   const { baseURL } = getDashScopeCompatibleConfig();
   const headers = getDashScopeHeaders();
 
@@ -80,6 +105,18 @@ export async function* streamChatCompletions(
   data: ChatCompletionParams,
   signal?: AbortSignal
 ): AsyncGenerator<string, void, undefined> {
+  if (isMockMode) {
+    const content = buildMockChatText(data);
+    for (const chunk of content.split('\n')) {
+      if (signal?.aborted) {
+        break;
+      }
+      await wait(120);
+      yield `${chunk}\n`;
+    }
+    return;
+  }
+
   const { apiKey, baseURL } = getAppApiConfig();
 
   const response = await fetch(`${baseURL}/chat/completions`, {
@@ -126,6 +163,11 @@ export async function* streamChatCompletions(
 }
 
 export async function chatCompletions(data: ChatCompletionParams): Promise<string> {
+  if (isMockMode) {
+    await wait(180);
+    return buildMockChatText(data);
+  }
+
   const { apiKey, baseURL } = getAppApiConfig();
 
   const response = await fetch(`${baseURL}/chat/completions`, {

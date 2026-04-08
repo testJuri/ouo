@@ -11,6 +11,7 @@ import {
   type IdentityOption,
 } from "@/lib/mock-identities"
 import { cn } from "@/lib/utils"
+import { clearSession, getCurrentUser } from "@/lib/session"
 import { ChevronDown, Check, Briefcase, LogOut, Shield, User, UserPlus } from "lucide-react"
 
 interface UserProfileMenuProps {
@@ -21,9 +22,9 @@ interface UserProfileMenuProps {
 }
 
 export default function UserProfileMenu({
-  userName = "陈晓明",
-  avatarSrc = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-  avatarFallback = "陈",
+  userName,
+  avatarSrc,
+  avatarFallback,
   triggerClassName,
 }: UserProfileMenuProps) {
   const navigate = useNavigate()
@@ -31,6 +32,13 @@ export default function UserProfileMenu({
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
   const [identityPanelOpen, setIdentityPanelOpen] = useState(false)
   const identityLeaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionUser = getCurrentUser()
+  const resolvedUserName = userName || sessionUser?.username || "未登录用户"
+  const resolvedAvatarSrc =
+    avatarSrc ||
+    sessionUser?.avatar ||
+    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+  const resolvedAvatarFallback = avatarFallback || resolvedUserName.slice(0, 1) || "U"
 
   const openIdentityPanel = () => {
     if (identityLeaveTimeoutRef.current) {
@@ -90,11 +98,11 @@ export default function UserProfileMenu({
           )}
         >
           <Avatar className="h-9 w-9">
-            <AvatarImage src={avatarSrc} alt={userName} />
-            <AvatarFallback>{avatarFallback}</AvatarFallback>
+            <AvatarImage src={resolvedAvatarSrc} alt={resolvedUserName} />
+            <AvatarFallback>{resolvedAvatarFallback}</AvatarFallback>
           </Avatar>
           <div className="hidden text-left md:block">
-            <p className="text-sm font-bold text-[hsl(var(--on-surface))]">{userName}</p>
+            <p className="text-sm font-bold text-[hsl(var(--on-surface))]">{resolvedUserName}</p>
             <p className="text-[10px] text-[hsl(var(--secondary))]">
               {getIdentityMeta(currentIdentity).label}
             </p>
@@ -169,7 +177,7 @@ export default function UserProfileMenu({
 
         <button
           onClick={() => {
-            localStorage.removeItem("manga-user")
+            clearSession()
             navigate("/login")
             notify.success("已退出登录")
           }}

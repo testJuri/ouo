@@ -11,6 +11,7 @@ import type {
   ProjectDTO,
   ProjectDetailDTO,
   ProjectMemberDTO,
+  ProjectAssetDTO,
   CharacterDTO,
   EpisodeDTO,
   SceneDTO,
@@ -23,6 +24,7 @@ import {
   mockProjects,
   mockProjectDetail,
   mockMembers,
+  mockProjectAssets,
   mockCharacters,
   mockEpisodes,
   mockScenes,
@@ -152,6 +154,28 @@ export const mockProjectMembersApi = {
       mockMembers.splice(index, 1)
     }
     return true
+  },
+}
+
+// ============ 资产 API ============
+export const mockProjectAssetsApi = {
+  async list(
+    projectId: number,
+    params?: { page?: number; size?: number; sourceType?: ProjectAssetDTO['sourceType'] }
+  ): Promise<ListData<ProjectAssetDTO>> {
+    await delay(200)
+    let list = mockProjectAssets.filter((asset) => asset.projectId === projectId)
+    if (params?.sourceType) {
+      list = list.filter((asset) => asset.sourceType === params.sourceType)
+    }
+    return {
+      list,
+      pagination: {
+        total: list.length,
+        page: params?.page ?? 1,
+        size: params?.size ?? 10,
+      },
+    }
   },
 }
 

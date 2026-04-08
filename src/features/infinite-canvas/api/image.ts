@@ -1,5 +1,19 @@
 import { dashscopeClient } from '@/api';
+import { isMockMode } from '@/api/mock';
 import type { ImageGenerationParams, DashScopeSubmitResponse, DashScopeTaskResult } from '../types';
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const mockImageLibrary = [
+  'https://images.unsplash.com/photo-1515405295579-ba7b45403062?w=1280&h=1280&fit=crop',
+  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1280&h=1280&fit=crop',
+  'https://images.unsplash.com/photo-1511300636408-a63a89df3482?w=1280&h=1280&fit=crop',
+];
+
+const pickMockImage = (seed: string) => {
+  const index = seed.length % mockImageLibrary.length;
+  return mockImageLibrary[index];
+};
 
 // Check if model is DashScope model
 export const isDashScopeModel = (model: string): boolean => {
@@ -17,6 +31,11 @@ export async function submitDashScopeImageTask(
   size: string = '1280*1280',
   model: string = 'wan2.6-t2i'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(120);
+    return `mock-image-task-${model}-${size}-${prompt.length}`;
+  }
+
   const response = await dashscopeClient.post<DashScopeSubmitResponse>(
     '/services/aigc/image-generation/generation',
     {
@@ -61,6 +80,13 @@ export async function pollDashScopeTask(
   taskId: string,
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('RUNNING');
+    await wait(500);
+    onProgress?.('SUCCEEDED');
+    return pickMockImage(taskId);
+  }
+
   const maxAttempts = 120; // Max 2 minutes with 1s interval
   const pollInterval = 1000; // 1 second
 
@@ -103,6 +129,15 @@ export async function generateDashScopeImage(
   model: string = 'wan2.6-t2i',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(160);
+    onProgress?.('RUNNING');
+    await wait(420);
+    onProgress?.('SUCCEEDED');
+    return pickMockImage(`${model}-${size}-${prompt}`);
+  }
+
   // Submit task
   const taskId = await submitDashScopeImageTask(prompt, size, model);
   onProgress?.('PENDING');
@@ -119,6 +154,11 @@ export async function submitDashScopeI2ITask(
   size: string = '1280*1280',
   model: string = 'wan2.6-image'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(150);
+    return `mock-image-i2i-task-${model}-${images.length}`;
+  }
+
   // Build content array with text and images
   const content: Array<{ text?: string; image?: string }> = [];
   
@@ -175,6 +215,15 @@ export async function generateDashScopeI2IImage(
   model: string = 'wan2.6-image',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(180);
+    onProgress?.('RUNNING');
+    await wait(480);
+    onProgress?.('SUCCEEDED');
+    return images[0] || pickMockImage(`${model}-${size}-${prompt}`);
+  }
+
   // Submit task
   const taskId = await submitDashScopeI2ITask(prompt, images, size, model);
   onProgress?.('PENDING');

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,9 @@ import {
   Grid3X3,
   List
 } from "lucide-react"
+import { projectAssetsApi, projectsApi } from "@/api"
+import { getActiveProjectId } from "@/lib/session"
+import { mapAssetItem } from "@/lib/projectMappers"
 
 // 资产类型
 const assetTypes = [
@@ -34,18 +37,6 @@ const kanbanColumns = [
   { id: "review", label: "审核中", color: "bg-yellow-500" },
   { id: "approved", label: "已通过", color: "bg-green-500" },
   { id: "archived", label: "已归档", color: "bg-purple-500" },
-]
-
-// 模拟资产数据
-const mockAssets = [
-  { id: 1, name: "角色设计稿_v1.png", type: "image", size: "2.4 MB", status: "approved", thumbnail: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=200&h=150&fit=crop", author: "陈晓明", updatedAt: "2小时前" },
-  { id: 2, name: "场景概念图.jpg", type: "image", size: "4.1 MB", status: "review", thumbnail: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=150&fit=crop", author: "李华", updatedAt: "3小时前" },
-  { id: 3, name: "片头动画.mp4", type: "video", size: "156 MB", status: "processing", thumbnail: "https://images.unsplash.com/photo-1536240478700-b869070f9279?w=200&h=150&fit=crop", author: "王芳", updatedAt: "5小时前" },
-  { id: 4, name: "音效素材.mp3", type: "audio", size: "8.2 MB", status: "draft", thumbnail: null, author: "张三", updatedAt: "1天前" },
-  { id: 5, name: "剧本大纲.docx", type: "document", size: "156 KB", status: "approved", thumbnail: null, author: "陈晓明", updatedAt: "2天前" },
-  { id: 6, name: "角色三视图.png", type: "image", size: "5.7 MB", status: "draft", thumbnail: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=150&fit=crop", author: "李华", updatedAt: "2天前" },
-  { id: 7, name: "分镜脚本.pdf", type: "document", size: "3.2 MB", status: "archived", thumbnail: null, author: "王芳", updatedAt: "3天前" },
-  { id: 8, name: "背景音乐.mp3", type: "audio", size: "12 MB", status: "approved", thumbnail: null, author: "张三", updatedAt: "3天前" },
 ]
 
 const getAssetIcon = (type: string) => {
@@ -84,17 +75,44 @@ export default function Assets() {
   const [activeType, setActiveType] = useState("all")
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban")
   const [searchQuery, setSearchQuery] = useState("")
+  const [projectName, setProjectName] = useState("当前项目")
+  const [assets, setAssets] = useState<Array<ReturnType<typeof mapAssetItem>>>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const filteredAssets = mockAssets.filter(asset => 
+  useEffect(() => {
+    const projectId = getActiveProjectId()
+    if (!projectId) {
+      setIsLoading(false)
+      return
+    }
+
+    const load = async () => {
+      setIsLoading(true)
+      try {
+        const [assetData, project] = await Promise.all([
+          projectAssetsApi.list(projectId, { page: 1, size: 200 }),
+          projectsApi.getById(projectId),
+        ])
+        setAssets(assetData.list.map((item) => mapAssetItem(item)))
+        setProjectName(project.name)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    void load()
+  }, [])
+
+  const filteredAssets = useMemo(() => assets.filter(asset => 
     activeType === "all" || asset.type === activeType
   ).filter(asset =>
     asset.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  ), [activeType, assets, searchQuery])
 
-  const assetsByStatus = kanbanColumns.map(col => ({
+  const assetsByStatus = useMemo(() => kanbanColumns.map(col => ({
     ...col,
     assets: filteredAssets.filter(asset => asset.status === col.id)
-  }))
+  })), [filteredAssets])
 
   return (
     <div className="min-h-screen bg-[hsl(var(--surface))]">
@@ -106,6 +124,7 @@ export default function Assets() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold text-[hsl(var(--on-surface))]">资产管理</h1>
+              <span className="text-xs text-[hsl(var(--secondary))]">{projectName}</span>
               <Badge variant="secondary" className="text-xs">
                 {filteredAssets.length} 个资产
               </Badge>
@@ -168,6 +187,11 @@ export default function Assets() {
 
         {/* Content */}
         <div className="p-8">
+          {isLoading ? (
+            <div className="mb-6 rounded-xl bg-[hsl(var(--surface-container-lowest))] p-4 text-sm text-[hsl(var(--secondary))]">
+              正在加载项目资产...
+            </div>
+          ) : null}
           {viewMode === "kanban" ? (
             // Kanban View
             <div className="flex gap-6 overflow-x-auto pb-4">

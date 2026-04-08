@@ -17,6 +17,7 @@ export interface ObjectCreateData {
   prompt?: string
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3"
   referenceImage?: string
+  referenceImages?: string[]
 }
 
 const models = [
@@ -45,21 +46,43 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16" | "4:3">("1:1")
   const [selectedModel, setSelectedModel] = useState("sdxl")
   const [objectName, setObjectName] = useState("")
-  const [referenceImage, setReferenceImage] = useState<string | null>(null)
+  const [referenceImages, setReferenceImages] = useState<string[]>([])
+  const [isReferenceDragOver, setIsReferenceDragOver] = useState(false)
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
 
+  const appendReferenceImages = (files: FileList | File[]) => {
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"))
+    if (imageFiles.length === 0) return
+
+    const nextUrls = imageFiles.map((file) => URL.createObjectURL(file))
+    setReferenceImages((current) => [...current, ...nextUrls])
+  }
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isBatch = false) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      if (isBatch) {
-        notify.success(`已选择批量上传文件：${file.name}`)
-      } else {
-        const url = URL.createObjectURL(file)
-        setReferenceImage(url)
-      }
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    if (isBatch) {
+      notify.success(`已选择批量上传文件：${files[0].name}`)
+    } else {
+      appendReferenceImages(files)
     }
+
+    e.target.value = ""
+  }
+
+  const handleReferenceDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    setIsReferenceDragOver(false)
+    if (e.dataTransfer.files.length > 0) {
+      appendReferenceImages(e.dataTransfer.files)
+    }
+  }
+
+  const removeReferenceImage = (index: number) => {
+    setReferenceImages((current) => current.filter((_, currentIndex) => currentIndex !== index))
   }
 
   const handleSubmit = () => {
@@ -79,7 +102,8 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
       model: genMethod === "model" ? selectedModel : undefined,
       prompt: genMethod === "model" ? prompt.trim() : undefined,
       aspectRatio: genMethod === "model" ? aspectRatio : undefined,
-      referenceImage: referenceImage || undefined,
+      referenceImage: referenceImages[0] || undefined,
+      referenceImages: referenceImages.length ? referenceImages : undefined,
     }
     
     onCreate?.(newObject)
@@ -88,7 +112,7 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
     setObjectName("")
     setPrompt("")
     setAspectRatio("1:1")
-    setReferenceImage(null)
+    setReferenceImages([])
     setGenMethod("model")
     
     onOpenChange(false)
@@ -258,8 +282,8 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
                     onClick={() => fileInputRef.current?.click()}
                     className="aspect-[4/3] bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:border-[hsl(var(--primary))]/50 hover:bg-[hsl(var(--surface-container-high))] transition-all cursor-pointer group overflow-hidden"
                   >
-                    {referenceImage ? (
-                      <img src={referenceImage} alt="参考图" className="w-full h-full object-cover" />
+                    {referenceImages[0] ? (
+                      <img src={referenceImages[0]} alt="参考图" className="w-full h-full object-cover" />
                     ) : (
                       <>
                         <ImagePlus className="w-8 h-8 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--primary))] transition-colors" />
@@ -343,19 +367,81 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
                 </p>
               </div>
 
-              {/* Prompt Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
-                  <span className="text-red-500 mr-1">*</span>物品描述
+                  <span className="text-red-500 mr-1">*</span>提示词
                 </label>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="描述物品的外观、材质、风格等细节，例如：一把未来风格的银色能量剑，带有蓝色发光纹路..."
-                  className="w-full min-h-[120px] p-4 rounded-xl bg-[hsl(var(--surface-container-low))] border-none text-sm placeholder:text-[hsl(var(--secondary))] focus-visible:ring-1 focus-visible:ring-[hsl(var(--primary))] resize-none"
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={(e) => handleFileUpload(e)}
+                  accept="image/jpeg,image/png,image/jpg"
+                  multiple
+                  className="hidden"
                 />
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    setIsReferenceDragOver(true)
+                  }}
+                  onDragLeave={() => setIsReferenceDragOver(false)}
+                  onDrop={handleReferenceDrop}
+                  className={`rounded-2xl border bg-[hsl(var(--surface-container-low))] p-4 transition-all ${
+                    isReferenceDragOver
+                      ? "border-[hsl(var(--primary))]/60 bg-[hsl(var(--primary))]/5"
+                      : "border-[hsl(var(--outline-variant))]/35"
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    {referenceImages.length === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex h-28 w-24 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                      >
+                        <ImagePlus className="h-7 w-7" />
+                      </button>
+                    ) : null}
+
+                    <div className="min-w-0 flex-1">
+                      <textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="上传参考图、输入文字，描述你想生成的图片。"
+                        className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {referenceImages.length > 0 ? (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {referenceImages.map((image, index) => (
+                        <div
+                          key={`${image}-${index}`}
+                          className="group relative h-20 w-20 overflow-hidden rounded-2xl border border-[hsl(var(--outline-variant))]/25 bg-[hsl(var(--surface-container-lowest))]"
+                        >
+                          <img src={image} alt={`参考图 ${index + 1}`} className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeReferenceImage(index)}
+                            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/40 text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                      >
+                        <ImagePlus className="h-5 w-5" />
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
                 <p className="text-xs text-[hsl(var(--secondary))]">
-                  详细的描述有助于生成更符合预期的物品
+                  支持拖入多张参考图，图片会作为多参考输入一起参与生成。
                 </p>
               </div>
 
@@ -390,34 +476,6 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
                       </span>
                     </button>
                   ))}
-                </div>
-              </div>
-
-              {/* Reference Image (Optional) */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[hsl(var(--on-surface))]">
-                  参考图 <span className="text-[hsl(var(--secondary))] font-normal">（可选）</span>
-                </label>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => handleFileUpload(e)}
-                  accept="image/jpeg,image/png,image/jpg"
-                  className="hidden"
-                />
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="aspect-[2/1] bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:border-[hsl(var(--primary))]/50 hover:bg-[hsl(var(--surface-container-high))] transition-all cursor-pointer group overflow-hidden"
-                >
-                  {referenceImage ? (
-                    <img src={referenceImage} alt="参考图" className="w-full h-full object-cover" />
-                  ) : (
-                    <>
-                      <ImagePlus className="w-6 h-6 text-[hsl(var(--secondary))] group-hover:text-[hsl(var(--primary))] transition-colors" />
-                      <span className="text-sm text-[hsl(var(--on-surface))]">上传参考图</span>
-                      <span className="text-xs text-[hsl(var(--secondary))]">AI 将参考此图的风格和构图</span>
-                    </>
-                  )}
                 </div>
               </div>
             </div>

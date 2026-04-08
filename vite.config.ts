@@ -8,6 +8,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5174,
+    proxy: {
+      '/api': {
+        target: 'http://124.156.186.82:8080',
+        changeOrigin: true,
+        // rewrite: (path) => path.replace(/^\/api/, ''), // 如果后端路径不需要 /api 前缀则启用
+      },
+    },
   },
   resolve: {
     alias: {

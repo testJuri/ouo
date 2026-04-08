@@ -20,6 +20,9 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import ApiKeySettings from "./ApiKeySettings"
+import { projectsApi } from "@/api"
+import { getActiveProjectId, getCurrentUser, setActiveProjectId } from "@/lib/session"
+import { mapProjectCard } from "@/lib/projectMappers"
 import {
   IDENTITY_CHANGE_EVENT,
   getStoredIdentity,
@@ -44,29 +47,55 @@ const getNavItems = (identity: IdentityOption, projectId?: number) => {
   ]
 }
 
-const projects = [
-  { id: 1, name: "Cyberpunk Ronin", active: true },
-  { id: 2, name: "Spirit of Zen", active: false },
-  { id: 3, name: "Mech Core Series", active: false },
-  { id: 4, name: "Kinetic Backgrounds", active: false },
-]
-
 const getProjectIdFromPath = (pathname: string) => {
   const matched = pathname.match(/^\/project\/(\d+)/)
   return matched ? Number(matched[1]) : null
 }
 
 export default function Sidebar() {
-  const [currentProject, setCurrentProject] = useState(projects[0])
+  const [projects, setProjects] = useState<Array<{ id: number; name: string }>>([])
+  const [currentProject, setCurrentProject] = useState<{ id: number; name: string } | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
   const location = useLocation()
   const navigate = useNavigate()
   const routeProjectId = getProjectIdFromPath(location.pathname)
-  const activeProjectId = routeProjectId ?? currentProject.id
+  const activeProjectId = routeProjectId ?? currentProject?.id ?? getActiveProjectId() ?? undefined
 
   const navItems = getNavItems(currentIdentity, activeProjectId)
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const user = getCurrentUser()
+        const organizationId = user?.organizationIds?.[0]
+        const response = await projectsApi.list({ page: 1, size: 100, organizationId })
+        const mapped = response.list.map((item) => {
+          const project = mapProjectCard(item)
+          return { id: project.id, name: project.name }
+        })
+        setProjects(mapped)
+
+        const preferredId = routeProjectId ?? getActiveProjectId() ?? mapped[0]?.id
+        const matched = mapped.find((project) => project.id === preferredId) || mapped[0] || null
+        setCurrentProject(matched)
+      } catch {
+        setProjects([])
+      }
+    }
+
+    void loadProjects()
+  }, [routeProjectId])
+
+  useEffect(() => {
+    if (!routeProjectId || !projects.length) return
+    const matched = projects.find((project) => project.id === routeProjectId)
+    if (matched) {
+      setCurrentProject(matched)
+      setActiveProjectId(matched.id)
+    }
+  }, [projects, routeProjectId])
 
   useEffect(() => {
     const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
@@ -108,7 +137,7 @@ export default function Sidebar() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-lg font-bold text-[hsl(var(--on-surface))] truncate max-w-[160px]">
-                    {currentProject.name}
+                    {currentProject?.name || "未选择项目"}
                   </h1>
                   <p className="text-xs text-[hsl(var(--secondary))]">
                     项目
@@ -127,9 +156,10 @@ export default function Sidebar() {
               <DropdownMenuItem
                 key={project.id}
                 onClick={() => {
-                  if (project.id === currentProject.id) return
+                  if (project.id === currentProject?.id) return
                   setIsSwitching(true)
                   setCurrentProject(project)
+                  setActiveProjectId(project.id)
                   // 2秒 loading 后跳转到项目工作台（默认显示片段管理）
                   setTimeout(() => {
                     setIsSwitching(false)
@@ -138,10 +168,10 @@ export default function Sidebar() {
                 }}
                 className="flex items-center justify-between cursor-pointer"
               >
-                <span className={project.id === currentProject.id ? "font-medium" : ""}>
+                <span className={project.id === currentProject?.id ? "font-medium" : ""}>
                   {project.name}
                 </span>
-                {project.id === currentProject.id && (
+                {project.id === currentProject?.id && (
                   <Check className="w-4 h-4 text-[hsl(var(--primary))]" />
                 )}
               </DropdownMenuItem>

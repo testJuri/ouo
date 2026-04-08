@@ -12,6 +12,7 @@ import { useProjectStore } from "@/stores/projectStore"
 import type { Scene } from "@/types"
 
 interface ScenesTabProps {
+  projectId?: number | null
   scenes?: Scene[]
   onAddNew?: () => void
   onOpenCanvas?: () => void
@@ -21,6 +22,7 @@ interface ScenesTabProps {
 }
 
 export default function ScenesTab({
+  projectId,
   scenes: scenesProp,
   onAddNew,
   onOpenCanvas,
@@ -41,13 +43,15 @@ export default function ScenesTab({
     })
 
     if (confirmed) {
-      deleteScene(id)
+      if (!projectId) return
+      await deleteScene(projectId, id)
       notify.success("场景已删除")
     }
   }
 
   const handleDuplicate = (scene: Scene) => {
-    duplicateScene(scene.id)
+    if (!projectId) return
+    void duplicateScene(projectId, scene.id)
   }
 
   const handleAddNew = () => {

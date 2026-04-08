@@ -25,6 +25,7 @@ import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useWorkflowLauncher } from "@/hooks/useWorkflowLauncher"
 import { useProjectStore } from "@/stores/projectStore"
+import { projectsApi } from "@/api"
 import type { WorkflowSourceType } from "@/types"
 import type { ProjectTab } from "@/types"
 
@@ -61,13 +62,6 @@ const sortOptions = [
 
 type SortOption = (typeof sortOptions)[number]["id"]
 
-const projectTitleMap: Record<string, string> = {
-  "1": "Cyberpunk Ronin 项目",
-  "2": "Spirit of Zen 项目",
-  "3": "Mech Core Series 项目",
-  "4": "Kinetic Backgrounds 项目",
-}
-
 const isProjectTab = (value?: string): value is ProjectTab =>
   Boolean(value && projectTabs.includes(value as ProjectTab))
 
@@ -77,9 +71,11 @@ export default function ProjectDetail() {
   const navigate = useNavigate()
   const { confirm, notify } = useFeedback()
   const launchWorkflow = useWorkflowLauncher()
+  const numericProjectId = projectId ? Number(projectId) : null
   // 从 Store 获取状态
   const storeActiveTab = useProjectStore((state) => state.activeTab)
   const currentPage = useProjectStore((state) => state.currentPage)
+  const isLoading = useProjectStore((state) => state.isLoading)
   const ui = useProjectStore((state) => state.ui)
   const assets = useProjectStore((state) => state.assets)
   const { 
@@ -87,6 +83,7 @@ export default function ProjectDetail() {
     setCurrentPage, 
     closeDrawer, 
     openDrawer,
+    loadProjectAssets,
     createEpisode,
     createScene,
     createCharacter,
@@ -96,7 +93,7 @@ export default function ProjectDetail() {
   const [batchMode, setBatchMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [sortBy, setSortBy] = useState<SortOption>("recent")
-  const projectTitle = projectId ? projectTitleMap[projectId] ?? `项目 ${projectId}` : "项目"
+  const [projectTitle, setProjectTitle] = useState(projectId ? `项目 ${projectId}` : "项目")
   const routeTab = isProjectTab(tabParam) ? tabParam : undefined
   const activeTab = routeTab ?? storeActiveTab
 
@@ -141,6 +138,16 @@ export default function ProjectDetail() {
       setActiveTab(activeTab)
     }
   }, [activeTab, setActiveTab, storeActiveTab])
+
+  useEffect(() => {
+    if (!numericProjectId) return
+
+    void loadProjectAssets(numericProjectId, true)
+    void projectsApi
+      .getById(numericProjectId)
+      .then((project) => setProjectTitle(project.name))
+      .catch(() => setProjectTitle(`项目 ${numericProjectId}`))
+  }, [loadProjectAssets, numericProjectId])
 
   const handleTabChange = (tab: ProjectTab) => {
     if (!projectId || tab === activeTab) return
@@ -210,7 +217,9 @@ export default function ProjectDetail() {
 
     if (!confirmed) return
 
-    bulkDelete(assetType, selectedIds)
+    if (!numericProjectId) return
+
+    await bulkDelete(numericProjectId, assetType, selectedIds)
     notify.success(`已删除 ${selectedIds.length} 项`)
     setSelectedIds([])
     setBatchMode(false)
@@ -235,6 +244,7 @@ export default function ProjectDetail() {
           <EpisodesTab
             episodes={sortedAssets.episodes}
             onAddNew={() => openDrawer('episode')}
+            projectId={numericProjectId}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -246,6 +256,7 @@ export default function ProjectDetail() {
             scenes={sortedAssets.scenes}
             onAddNew={() => openDrawer('scene')}
             onOpenCanvas={() => handleOpenInfiniteCanvas("scene")}
+            projectId={numericProjectId}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -257,6 +268,7 @@ export default function ProjectDetail() {
             characters={sortedAssets.characters}
             onAddNew={() => openDrawer('character')}
             onOpenCanvas={() => handleOpenInfiniteCanvas("character")}
+            projectId={numericProjectId}
             batchMode={batchMode}
             selectedIds={selectedIds}
             onToggleSelect={handleToggleSelect}
@@ -281,33 +293,45 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[hsl(var(--surface))]">
+    <div className="workspace-shell h-screen overflow-hidden bg-[hsl(var(--surface))]">
       {/* Episode Creator Dialog */}
       <EpisodeCreator 
         open={ui.isEpisodeDrawerOpen} 
         onOpenChange={(open) => open ? openDrawer('episode') : closeDrawer('episode')} 
-        onCreate={createEpisode} 
+        onCreate={(data) => {
+          if (!numericProjectId) return
+          void createEpisode(numericProjectId, data)
+        }} 
       />
 
       {/* Character Creator Drawer */}
       <CharacterCreator 
         open={ui.isCharacterDrawerOpen} 
         onOpenChange={(open) => open ? openDrawer('character') : closeDrawer('character')} 
-        onCreate={createCharacter} 
+        onCreate={(data) => {
+          if (!numericProjectId) return
+          void createCharacter(numericProjectId, data)
+        }} 
       />
 
       {/* Scene Creator Drawer */}
       <SceneCreator 
         open={ui.isSceneDrawerOpen} 
         onOpenChange={(open) => open ? openDrawer('scene') : closeDrawer('scene')} 
-        onCreate={createScene} 
+        onCreate={(data) => {
+          if (!numericProjectId) return
+          void createScene(numericProjectId, data)
+        }} 
       />
 
       {/* Object Creator Drawer */}
       <ObjectCreator 
         open={ui.isObjectDrawerOpen} 
         onOpenChange={(open) => open ? openDrawer('object') : closeDrawer('object')} 
-        onCreate={createObject} 
+        onCreate={(data) => {
+          if (!numericProjectId) return
+          void createObject(numericProjectId, data)
+        }} 
       />
 
       {/* Sidebar */}
@@ -380,6 +404,11 @@ export default function ProjectDetail() {
             </div>
 
             <div className="flex flex-1 flex-col">
+              {isLoading ? (
+                <div className="mb-4 rounded-xl bg-[hsl(var(--surface-container-low))] px-4 py-3 text-sm text-[hsl(var(--secondary))]">
+                  正在加载项目资产...
+                </div>
+              ) : null}
               {/* Tab Content */}
               <div className="flex-1">
                 {renderTabContent()}

@@ -606,9 +606,9 @@ export default function ProjectDetail() {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 min-h-screen relative">
+      <main className="ml-64 min-h-screen relative workspace-shell">
         {/* Top Navigation */}
-        <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-[hsl(var(--surface-container-lowest))]/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-[hsl(var(--outline-variant))]/15">
+        <header className="workspace-fixed-header fixed top-0 z-40 flex h-16 items-center justify-between border-b border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))]/80 px-8 backdrop-blur-md">
           <div className="flex items-center gap-8">
             <span className="text-lg font-black text-[hsl(var(--on-surface))]">项目资源</span>
             <div className="relative">

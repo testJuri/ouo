@@ -9,6 +9,9 @@ import ProjectCreator from "./ProjectCreator"
 import ProjectEditor, { type EditableProject } from "./ProjectEditor"
 import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { projectsApi } from "@/api"
+import { getCurrentUser, setActiveProjectId } from "@/lib/session"
+import { mapProjectCard } from "@/lib/projectMappers"
 import {
   IDENTITY_CHANGE_EVENT,
   getIdentityMeta,
@@ -18,6 +21,7 @@ import {
 
 interface Project {
   id: number
+  organizationId?: number
   name: string
   description?: string
   image: string
@@ -27,53 +31,11 @@ interface Project {
   assetCount: number
 }
 
-const initialProjects: Project[] = [
-  {
-    id: 1,
-    name: "Cyberpunk Ronin",
-    description: "赛博朋克风格的武士故事",
-    image: "https://images.unsplash.com/photo-1614726365723-49cfae927846?w=600&h=400&fit=crop",
-    status: "in-progress",
-    modified: "2 小时前",
-    code: "PJ_001",
-    assetCount: 24,
-  },
-  {
-    id: 2,
-    name: "Spirit of Zen",
-    description: "东方禅意美学探索",
-    image: "https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=600&h=400&fit=crop",
-    status: "completed",
-    modified: "3 天前",
-    code: "PJ_002",
-    assetCount: 56,
-  },
-  {
-    id: 3,
-    name: "Mech Core Series",
-    description: "机甲核心系列动画",
-    image: "https://images.unsplash.com/photo-1615840287214-7ff58936c4cf?w=600&h=400&fit=crop",
-    status: "in-progress",
-    modified: "5 小时前",
-    code: "PJ_003",
-    assetCount: 38,
-  },
-  {
-    id: 4,
-    name: "Kinetic Backgrounds",
-    description: "动态背景素材库",
-    image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=600&h=400&fit=crop",
-    status: "draft",
-    modified: "1 周前",
-    code: "PJ_004",
-    assetCount: 12,
-  },
-]
-
 export default function ProjectsList() {
   const navigate = useNavigate()
   const { notify } = useFeedback()
-  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
   const [isProjectEditorOpen, setIsProjectEditorOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<EditableProject | null>(null)
@@ -84,35 +46,70 @@ export default function ProjectsList() {
   const currentIdentityMeta = getIdentityMeta(currentIdentity)
   const visibleProjects = currentIdentityMeta.hasProjects ? projects : []
 
+  const loadProjects = async () => {
+    setIsLoading(true)
+    try {
+      const user = getCurrentUser()
+      const organizationId = user?.organizationIds?.[0]
+      const response = await projectsApi.list({ page: 1, size: 100, organizationId })
+      setProjects(response.list.map((project) => mapProjectCard(project)))
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "加载项目列表失败")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleProjectClick = (projectId: number) => {
+    setActiveProjectId(projectId)
     navigate(`/project/${projectId}`)
   }
 
-  const handleCreateProject = (data: {
+  const handleCreateProject = async (data: {
     name: string
     password?: string
     mode: string
     description: string
     scriptFile?: File | null
   }) => {
-    const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1
-    const newProject: Project = {
-      id: newId,
-      name: data.name,
-      description: data.description,
-      image: `https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=400&fit=crop`,
-      status: "draft",
-      modified: "刚刚",
-      code: `PJ_${String(newId).padStart(3, "0")}`,
-      assetCount: 0,
+    try {
+      const user = getCurrentUser()
+      const organizationId = user?.organizationIds?.[0]
+      if (!organizationId) {
+        notify.error("当前账号缺少组织信息，无法创建项目")
+        return
+      }
+
+      const project = await projectsApi.create({
+        organizationId,
+        name: data.name,
+        description: data.description,
+        coverImage: null,
+        isPublic: false,
+      })
+      const mapped = mapProjectCard(project)
+      setProjects((prev) => [mapped, ...prev])
+      notify.success(`已创建项目：${mapped.name}`)
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "创建项目失败")
     }
-    setProjects((prev) => [newProject, ...prev])
   }
 
-  const handleSaveProject = (updatedProject: EditableProject) => {
-    setProjects((prev) => prev.map((item) => (item.id === updatedProject.id ? updatedProject : item)))
-    setEditingProject(updatedProject)
-    notify.success(`已更新项目：${updatedProject.name}`)
+  const handleSaveProject = async (updatedProject: EditableProject) => {
+    try {
+      const project = await projectsApi.update(updatedProject.id, {
+        name: updatedProject.name,
+        description: updatedProject.description,
+        coverImage: updatedProject.image,
+        status: updatedProject.status,
+      })
+      const mapped = mapProjectCard(project)
+      setProjects((prev) => prev.map((item) => (item.id === mapped.id ? mapped : item)))
+      setEditingProject(mapped)
+      notify.success(`已更新项目：${mapped.name}`)
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "更新项目失败")
+    }
   }
 
   const markAllAsRead = () => {
@@ -122,6 +119,10 @@ export default function ProjectsList() {
   const markAsRead = (id: number) => {
     setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
   }
+
+  useEffect(() => {
+    void loadProjects()
+  }, [])
 
   useEffect(() => {
     const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
@@ -214,6 +215,11 @@ export default function ProjectsList() {
             </div>
 
             {/* Project Cards */}
+            {isLoading ? (
+              <div className="col-span-full rounded-xl bg-[hsl(var(--surface-container-lowest))] p-6 text-sm text-[hsl(var(--secondary))]">
+                正在加载项目列表...
+              </div>
+            ) : null}
             {visibleProjects.map((project) => (
               <div
                 key={project.id}

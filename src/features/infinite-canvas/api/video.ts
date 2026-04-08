@@ -1,5 +1,9 @@
 import { dashscopeClient, translateDashScopeErrorMessage } from '@/api';
+import { isMockMode } from '@/api/mock';
 import type { VideoGenerationParams } from '../types';
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const MOCK_VIDEO_URL = 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
 // DashScope 图生视频响应类型
 interface DashScopeVideoSubmitResponse {
@@ -57,6 +61,11 @@ export async function submitDashScopeVideoTask(
   duration: number = 5,
   model: string = 'wan2.6-i2v-flash'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(150);
+    return `mock-video-task-${model}-${resolution}-${duration}`;
+  }
+
   const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
@@ -92,6 +101,13 @@ export async function pollDashScopeVideoTask(
   taskId: string,
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('RUNNING');
+    await wait(700);
+    onProgress?.('SUCCEEDED');
+    return `${MOCK_VIDEO_URL}?task=${encodeURIComponent(taskId)}`;
+  }
+
   const maxAttempts = 180; // Max 15 minutes with 5s interval
   const pollInterval = 5000; // 5 seconds
 
@@ -132,6 +148,15 @@ export async function generateDashScopeVideo(
   model: string = 'wan2.6-i2v-flash',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(200);
+    onProgress?.('RUNNING');
+    await wait(900);
+    onProgress?.('SUCCEEDED');
+    return `${MOCK_VIDEO_URL}?model=${encodeURIComponent(model)}`;
+  }
+
   // Submit task
   const taskId = await submitDashScopeVideoTask(prompt, imageUrl, resolution, duration, model);
   onProgress?.('PENDING');
@@ -148,6 +173,11 @@ export async function submitDashScopeT2VTask(
   duration: number = 5,
   model: string = 'wan2.6-t2v'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(150);
+    return `mock-video-t2v-task-${model}-${size}-${duration}`;
+  }
+
   const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
@@ -185,6 +215,15 @@ export async function generateDashScopeT2VVideo(
   model: string = 'wan2.6-t2v',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(200);
+    onProgress?.('RUNNING');
+    await wait(900);
+    onProgress?.('SUCCEEDED');
+    return `${MOCK_VIDEO_URL}?model=${encodeURIComponent(model)}&mode=t2v`;
+  }
+
   // Submit task
   const taskId = await submitDashScopeT2VTask(prompt, size, duration, model);
   onProgress?.('PENDING');
@@ -202,6 +241,11 @@ export async function submitDashScopeKF2VTask(
   resolution: string = '720P',
   model: string = 'wan2.2-kf2v-flash'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(150);
+    return `mock-video-kf2v-task-${model}-${resolution}`;
+  }
+
   const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/image2video/video-synthesis',
     {
@@ -240,6 +284,15 @@ export async function generateDashScopeKF2VVideo(
   model: string = 'wan2.2-kf2v-flash',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(220);
+    onProgress?.('RUNNING');
+    await wait(950);
+    onProgress?.('SUCCEEDED');
+    return `${MOCK_VIDEO_URL}?model=${encodeURIComponent(model)}&mode=kf2v`;
+  }
+
   // Submit task
   const taskId = await submitDashScopeKF2VTask(prompt, firstFrameUrl, lastFrameUrl, resolution, model);
   onProgress?.('PENDING');
@@ -256,6 +309,11 @@ export async function submitDashScopeTemplateEffectTask(
   resolution: string = '720P',
   model: string = 'wan2.6-i2v-flash'
 ): Promise<string> {
+  if (isMockMode) {
+    await wait(150);
+    return `mock-video-template-task-${model}-${template}`;
+  }
+
   const response = await dashscopeClient.post<DashScopeVideoSubmitResponse>(
     '/services/aigc/video-generation/video-synthesis',
     {
@@ -291,6 +349,15 @@ export async function generateDashScopeTemplateEffectVideo(
   model: string = 'wan2.6-i2v-flash',
   onProgress?: (status: string) => void
 ): Promise<string> {
+  if (isMockMode) {
+    onProgress?.('PENDING');
+    await wait(180);
+    onProgress?.('RUNNING');
+    await wait(850);
+    onProgress?.('SUCCEEDED');
+    return `${MOCK_VIDEO_URL}?model=${encodeURIComponent(model)}&template=${encodeURIComponent(template)}`;
+  }
+
   const taskId = await submitDashScopeTemplateEffectTask(imageUrl, template, resolution, model);
   onProgress?.('PENDING');
 
