@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Pagination } from "@/components/ui/pagination"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
 import UserProfileMenu from "@/components/layout/UserProfileMenu"
-import { Plus, ChevronLeft, Bell } from "lucide-react"
+import { Plus, ChevronLeft, Bell, Filter } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import ProjectCreator from "./ProjectCreator"
@@ -31,6 +32,15 @@ interface Project {
   assetCount: number
 }
 
+type ProjectStatus = "all" | "draft" | "in-progress" | "completed"
+
+const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
+  { value: "all", label: "全部" },
+  { value: "draft", label: "草稿" },
+  { value: "in-progress", label: "进行中" },
+  { value: "completed", label: "已完成" },
+]
+
 export default function ProjectsList() {
   const navigate = useNavigate()
   const { notify } = useFeedback()
@@ -42,6 +52,13 @@ export default function ProjectsList() {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
+  
+  // 分页和筛选状态
+  const [page, setPage] = useState(1)
+  const [size] = useState(12)
+  const [total, setTotal] = useState(0)
+  const [statusFilter, setStatusFilter] = useState<ProjectStatus>("all")
+  
   const unreadCount = notificationList.filter((item) => !item.read).length
   const currentIdentityMeta = getIdentityMeta(currentIdentity)
   const visibleProjects = currentIdentityMeta.hasProjects ? projects : []
@@ -51,14 +68,31 @@ export default function ProjectsList() {
     try {
       const user = getCurrentUser()
       const organizationId = user?.organizationIds?.[0]
-      const response = await projectsApi.list({ page: 1, size: 100, organizationId })
+      const params: { page: number; size: number; organizationId?: number; status?: "draft" | "in-progress" | "completed" } = { 
+        page, 
+        size, 
+        organizationId 
+      }
+      if (statusFilter !== "all") {
+        params.status = statusFilter as "draft" | "in-progress" | "completed"
+      }
+      const response = await projectsApi.list(params)
       setProjects(response.list.map((project) => mapProjectCard(project)))
+      setTotal(response.pagination?.total ?? response.list.length)
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "加载项目列表失败")
     } finally {
       setIsLoading(false)
     }
   }
+
+  // 当分页或筛选条件变化时重新加载
+  useEffect(() => {
+    if (currentIdentityMeta.hasProjects) {
+      void loadProjects()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, statusFilter])
 
   const handleProjectClick = (projectId: number) => {
     setActiveProjectId(projectId)
@@ -200,6 +234,28 @@ export default function ProjectsList() {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-8 pt-24">
+          {/* 筛选栏 */}
+          <div className="flex items-center gap-2 mb-6">
+            <Filter className="h-4 w-4 text-[hsl(var(--secondary))]" />
+            <span className="text-sm text-[hsl(var(--secondary))] mr-2">状态筛选:</span>
+            <div className="flex gap-1">
+              {STATUS_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={statusFilter === option.value ? "default" : "ghost"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    setStatusFilter(option.value)
+                    setPage(1)
+                  }}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Add New Project Card */}
             <div
@@ -287,6 +343,16 @@ export default function ProjectsList() {
               </div>
             ) : null}
           </div>
+
+          {/* 分页 */}
+          {currentIdentityMeta.hasProjects && total > 0 && (
+            <Pagination
+              page={page}
+              size={size}
+              total={total}
+              onPageChange={setPage}
+            />
+          )}
         </div>
 
         {/* Footer */}
