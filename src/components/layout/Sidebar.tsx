@@ -14,8 +14,7 @@ import {
   Plus,
   Check,
   Loader2,
-  Box,
-  FolderKanban
+  Box
 } from "lucide-react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
@@ -46,7 +45,6 @@ const getNavItems = (identity: IdentityOption, projectId?: number) => {
   return [
     ...baseItems,
     { icon: FolderOpen, label: "项目管理", href: "/projects" },
-    { icon: FolderKanban, label: "项目配置", href: "/project-management" },
     { icon: Users, label: "成员管理", href: "/members" },
   ]
 }
