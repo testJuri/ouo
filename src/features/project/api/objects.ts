@@ -23,7 +23,7 @@ const buildObjectPayload = (data: ObjectCreateData) => ({
 })
 
 export const objectsApi = {
-  async getAll(projectId: number): Promise<ApiResponse<ObjectItem[]>> {
+  async getAll(projectId: number, type?: ObjectDTO['type']): Promise<ApiResponse<ObjectItem[]>> {
     if (isMockMode) {
       const result = await mockObjectsApi.getAll(projectId)
       return successResponse(result.list as unknown as ObjectItem[])
@@ -32,6 +32,7 @@ export const objectsApi = {
       {
         url: `/projects/${projectId}/objects`,
         method: 'GET',
+        params: type ? { type } : undefined,
       },
       { list: [] },
       '获取物品列表失败',

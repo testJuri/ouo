@@ -19,7 +19,7 @@ const buildEpisodeCreatePayload = (data: EpisodeCreateData, code?: string) => ({
 })
 
 export const episodesApi = {
-  async getAll(projectId: number): Promise<ApiResponse<Episode[]>> {
+  async getAll(projectId: number, status?: EpisodeDTO['status']): Promise<ApiResponse<Episode[]>> {
     if (isMockMode) {
       const result = await mockEpisodesApi.getAll(projectId)
       return successResponse(result.list as unknown as Episode[])
@@ -28,6 +28,7 @@ export const episodesApi = {
       {
         url: `/projects/${projectId}/episodes`,
         method: 'GET',
+        params: status ? { status } : undefined,
       },
       { list: [] },
       '获取片段列表失败',
