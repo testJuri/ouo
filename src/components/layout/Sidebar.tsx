@@ -45,7 +45,7 @@ const getNavItems = (identity: IdentityOption, projectId?: number) => {
   // 管理员和超级管理员有完整导航
   return [
     ...baseItems,
-    { icon: FolderOpen, label: "所有项目", href: "/projects" },
+    { icon: FolderOpen, label: "项目管理", href: "/projects" },
     { icon: FolderKanban, label: "项目配置", href: "/project-management" },
     { icon: Users, label: "成员管理", href: "/members" },
   ]

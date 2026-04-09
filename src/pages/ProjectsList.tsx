@@ -1,9 +1,23 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Pagination } from "@/components/ui/pagination"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
 import UserProfileMenu from "@/components/layout/UserProfileMenu"
-import { Plus, ChevronLeft, Bell, Filter } from "lucide-react"
+import { Plus, ChevronLeft, Bell, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react"
 import { useNavigate, Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import ProjectCreator from "./ProjectCreator"
@@ -58,6 +72,10 @@ export default function ProjectsList() {
   const [size] = useState(12)
   const [total, setTotal] = useState(0)
   const [statusFilter, setStatusFilter] = useState<ProjectStatus>("all")
+  
+  // 删除对话框状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null)
   
   const unreadCount = notificationList.filter((item) => !item.read).length
   const currentIdentityMeta = getIdentityMeta(currentIdentity)
@@ -144,6 +162,41 @@ export default function ProjectsList() {
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "更新项目失败")
     }
+  }
+
+  const handleDeleteProject = async () => {
+    if (!deletingProject) return
+    try {
+      await projectsApi.remove(deletingProject.id)
+      setProjects((prev) => prev.filter((item) => item.id !== deletingProject.id))
+      setTotal((prev) => prev - 1)
+      notify.success(`已删除项目：${deletingProject.name}`)
+      setDeleteDialogOpen(false)
+      setDeletingProject(null)
+    } catch (error) {
+      notify.error(error instanceof Error ? error.message : "删除项目失败")
+    }
+  }
+
+  const openEditDialog = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingProject({
+      id: project.id,
+      name: project.name,
+      description: project.description || "",
+      image: project.image,
+      status: project.status,
+      modified: project.modified,
+      code: project.code,
+      assetCount: project.assetCount,
+    })
+    setIsProjectEditorOpen(true)
+  }
+
+  const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDeletingProject(project)
+    setDeleteDialogOpen(true)
   }
 
   const markAllAsRead = () => {
@@ -306,6 +359,34 @@ export default function ProjectsList() {
                         : "草稿"}
                     </Badge>
                   </div>
+                  {/* 操作菜单 */}
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 bg-black/20 hover:bg-black/40 text-white"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={(e) => openEditDialog(project, e as unknown as React.MouseEvent)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          编辑
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600 focus:text-red-600"
+                          onClick={(e) => openDeleteDialog(project, e as unknown as React.MouseEvent)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          删除
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-extrabold text-[hsl(var(--on-surface))] mb-1">
@@ -377,6 +458,27 @@ export default function ProjectsList() {
         </footer>
       </main>
     </div>
+
+    {/* 删除确认对话框 */}
+    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>确认删除项目</DialogTitle>
+          <DialogDescription>
+            您确定要删除项目 <strong>{deletingProject?.name}</strong> 吗？此操作不可恢复。
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            取消
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteProject}>
+            删除
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
     <NotificationDrawer
       open={notificationOpen}
       onOpenChange={setNotificationOpen}
