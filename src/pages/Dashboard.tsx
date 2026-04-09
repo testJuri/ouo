@@ -183,7 +183,7 @@ export default function Dashboard() {
       <WorkspaceLayout
         header={
           <WorkspaceHeader
-            title={hasProjects ? `${currentProject?.name || '项目'} 工作台` : '欢迎'}
+            title={hasProjects ? '工作台' : '欢迎'}
             subtitle={hasProjects ? "无限画布创作中心" : "开始你的创作之旅"}
             searchPlaceholder="搜索..."
             actions={
