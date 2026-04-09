@@ -106,7 +106,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
       setLocalSize(newSize);
       
       // 如果用户没有自定义名称，则跟随模型更新节点名称
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, string | boolean | undefined> = {
         model: value,
         quality: newQuality,
         size: newSize,
@@ -138,7 +138,7 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
     const incomingEdges = edges.filter((edge) => edge.target === id);
     const prompts: string[] = [];
     const refImages: string[] = [];
-    let effectParams: { style?: string; lighting?: string; effect?: string } = {};
+    const effectParams: { style?: string; lighting?: string; effect?: string } = {};
 
     incomingEdges.forEach((edge) => {
       const sourceNode = nodes.find((n) => n.id === edge.source);
@@ -244,9 +244,9 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
           error: '生成失败',
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 处理 429 错误 - 删除节点并显示友好提示
-      if (err.message === 'API_RATE_LIMIT') {
+      if (err instanceof Error && err.message === 'API_RATE_LIMIT') {
         removeNode(imageNodeId);
         message.warning('请求过于频繁，请稍后重试');
       } else {

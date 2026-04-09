@@ -67,8 +67,8 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ visible, onClose, nodes }
       }
 
       onClose();
-    } catch (error: any) {
-      message.error(error.message || '下载失败');
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '下载失败');
     } finally {
       setDownloading(false);
     }

@@ -1,3 +1,5 @@
+import type { NodeChange, EdgeChange, Connection } from 'reactflow';
+
 // Node types
 export interface NodeData {
   label: string;
@@ -21,7 +23,7 @@ export interface NodeData {
   createdAt?: number;
   updatedAt?: number;
   thumbnail?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface CanvasMaterialItem {
@@ -52,7 +54,7 @@ export interface CustomEdge {
   data?: {
     promptOrder?: number;
     imageRole?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -233,9 +235,9 @@ export interface CanvasStore {
   currentProjectId: string | null;
   history: { nodes: CustomNode[]; edges: CustomEdge[] }[];
   historyIndex: number;
-  onNodesChange: (changes: any[]) => void;
-  onEdgesChange: (changes: any[]) => void;
-  onConnect: (connection: any) => void;
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
+  onConnect: (connection: Connection) => void;
   addNode: (type: string, position?: { x: number; y: number }, data?: Partial<NodeData>) => string;
   updateNode: (id: string, data: Partial<NodeData>) => void;
   removeNode: (id: string) => void;
@@ -243,8 +245,8 @@ export interface CanvasStore {
   addEdgeManually: (params: Partial<CustomEdge>) => void;
   updateEdge: (id: string, data: Partial<CustomEdge['data']>) => void;
   clearCanvas: () => void;
-  loadProject: (projectId: string, getProjectCanvas: (id: string) => any) => void;
-  saveProject: (updateProjectCanvas: (id: string, data: any) => void) => void;
+  loadProject: (projectId: string, getProjectCanvas: (id: string) => Project['canvasData'] | null) => void;
+  saveProject: (updateProjectCanvas: (id: string, data: Project['canvasData']) => void) => void;
   updateViewport: (viewport: { x: number; y: number; zoom: number }) => void;
   undo: () => void;
   redo: () => void;

@@ -51,7 +51,7 @@ export const useWorkflowOrchestrator = (): UseWorkflowOrchestratorReturn => {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState('');
 
-  const { addNode, updateNode, addEdgeManually, saveHistory, nodes } = useCanvasStore();
+  const { addNode, addEdgeManually, saveHistory, nodes } = useCanvasStore();
 
   /**
    * 分析用户意图

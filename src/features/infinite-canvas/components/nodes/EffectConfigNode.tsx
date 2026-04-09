@@ -101,6 +101,7 @@ const EffectConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, s
       camera: localCamera,
       effect: localEffect,
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localStyle, localLighting, localCamera, localEffect]);
 
   const handleLabelDoubleClick = useCallback((e: React.MouseEvent) => {

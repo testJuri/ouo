@@ -44,7 +44,7 @@ export const openDB = (): Promise<IDBDatabase> => {
 /**
  * 保存单个项目
  */
-export const saveProject = async (project: any): Promise<void> => {
+export const saveProject = async (project: Record<string, unknown>): Promise<void> => {
   const db = await openDB();
   
   return new Promise((resolve, reject) => {
@@ -63,7 +63,7 @@ export const saveProject = async (project: any): Promise<void> => {
 /**
  * 批量保存所有项目
  */
-export const saveAllProjects = async (projects: any[]): Promise<void> => {
+export const saveAllProjects = async (projects: Record<string, unknown>[]): Promise<void> => {
   const db = await openDB();
   
   return new Promise((resolve, reject) => {
@@ -100,7 +100,7 @@ export const saveAllProjects = async (projects: any[]): Promise<void> => {
 /**
  * 获取所有项目
  */
-export const getAllProjects = async (): Promise<any[]> => {
+export const getAllProjects = async (): Promise<Record<string, unknown>[]> => {
   const db = await openDB();
   
   return new Promise((resolve, reject) => {
@@ -119,7 +119,7 @@ export const getAllProjects = async (): Promise<any[]> => {
 /**
  * 获取单个项目
  */
-export const getProject = async (id: string): Promise<any | null> => {
+export const getProject = async (id: string): Promise<Record<string, unknown> | null> => {
   const db = await openDB();
   
   return new Promise((resolve, reject) => {

@@ -147,8 +147,8 @@ const VideoNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected
       addEdgeManually({ source: id, target: imageNodeId });
 
       message.success('已提取最后一帧');
-    } catch (err: any) {
-      message.error(err.message || '提取失败');
+    } catch (err: unknown) {
+      message.error(err instanceof Error ? err.message : '提取失败');
     } finally {
       setExtracting(false);
     }

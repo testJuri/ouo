@@ -97,6 +97,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const currentModel = useMemo(() => VIDEO_MODELS.find((m) => m.key === localModel), [localModel]);
@@ -155,7 +156,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
     let prompt = '';
     let firstFrameImage = '';
     let lastFrameImage = '';
-    let effectParams: { style?: string; lighting?: string; camera?: string; effect?: string } = {};
+    const effectParams: { style?: string; lighting?: string; camera?: string; effect?: string } = {};
 
     incomingEdges.forEach((edge) => {
       const sourceNode = nodes.find((n) => n.id === edge.source);
@@ -277,9 +278,9 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
       } else {
         updateNode(videoNodeId, { loading: false, error: '生成失败' });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 处理 429 错误 - 删除节点并显示友好提示
-      if (err.message === 'API_RATE_LIMIT') {
+      if (err instanceof Error && err.message === 'API_RATE_LIMIT') {
         removeNode(videoNodeId);
         message.warning('请求过于频繁，请稍后重试');
       } else {

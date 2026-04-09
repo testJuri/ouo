@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, SelectionMode } from 'reactflow';
+import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, SelectionMode, Node } from 'reactflow';
 import {
   ArrowLeftOutlined,
   DownOutlined,
@@ -192,12 +192,12 @@ const CanvasInner: React.FC = () => {
 
   // 直接从 nodes 中计算选中的节点
   const selectedNodes = useMemo(() => {
-    return nodes.filter(n => (n as any).selected).map(n => n.id);
+    return nodes.filter(n => (n as unknown as Node).selected).map(n => n.id);
   }, [nodes]);
 
   // 获取选中的节点数据
   const selectedNodesData = useMemo(() => {
-    return nodes.filter(n => (n as any).selected);
+    return nodes.filter(n => (n as unknown as Node).selected);
   }, [nodes]);
 
   // 对齐功能
@@ -208,8 +208,8 @@ const CanvasInner: React.FC = () => {
       id: n.id,
       x: n.position.x,
       y: n.position.y,
-      width: (n as any).width || (n as any).measured?.width || 280,
-      height: (n as any).height || (n as any).measured?.height || 200,
+      width: (n as unknown as Node).width || (n as unknown as Node).measured?.width || 280,
+      height: (n as unknown as Node).height || (n as unknown as Node).measured?.height || 200,
     }));
 
     let newPositions: { id: string; x: number; y: number }[] = [];
@@ -313,8 +313,8 @@ const CanvasInner: React.FC = () => {
       id: n.id,
       x: n.position.x,
       y: n.position.y,
-      width: (n as any).width || (n as any).measured?.width || 280,
-      height: (n as any).height || (n as any).measured?.height || 200,
+      width: (n as unknown as Node).width || (n as unknown as Node).measured?.width || 280,
+      height: (n as unknown as Node).height || (n as unknown as Node).measured?.height || 200,
     }));
 
     // 计算节点的水平和垂直范围
@@ -399,7 +399,7 @@ const CanvasInner: React.FC = () => {
   }, [selectedNodes.length, autoAlignNodes]);
 
   // 判断是否允许在页面配置 API Key（仅 HTTPS 或开发模式）
-  const allowApiKeyConfig = (import.meta as any).env?.DEV || window.location.protocol === 'https:';
+  const allowApiKeyConfig = import.meta.env.DEV || window.location.protocol === 'https:';
 
   // 粘贴图片或图片链接创建图片节点
   useEffect(() => {

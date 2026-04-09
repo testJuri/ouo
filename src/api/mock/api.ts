@@ -109,7 +109,7 @@ export const mockProjectsApi = {
 
 // ============ 成员 API ============
 export const mockProjectMembersApi = {
-  async list(_projectId: number): Promise<ListData<ProjectMemberDTO>> {
+  async list(_projectId: number): Promise<ListData<ProjectMemberDTO>> { // eslint-disable-line @typescript-eslint/no-unused-vars
     await delay(200)
     return {
       list: mockMembers,
@@ -486,7 +486,7 @@ export const mockObjectsApi = {
 
 // ============ 认证 API ============
 export const mockAuthApi = {
-  async login(_payload: { email: string; password: string }): Promise<AuthPayload> {
+  async login(_payload: { email: string; password: string }): Promise<AuthPayload> { // eslint-disable-line @typescript-eslint/no-unused-vars
     await delay(500)
     return mockAuthPayload
   },
@@ -504,7 +504,7 @@ export const mockAuthApi = {
     }
   },
 
-  async refresh(_refreshToken: string): Promise<{ token: string; refreshToken: string }> {
+  async refresh(_refreshToken: string): Promise<{ token: string; refreshToken: string }> { // eslint-disable-line @typescript-eslint/no-unused-vars
     await delay(300)
     return {
       token: 'mock_new_token_' + Date.now(),

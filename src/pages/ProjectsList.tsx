@@ -122,6 +122,7 @@ export default function ProjectsList() {
 
   useEffect(() => {
     void loadProjects()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

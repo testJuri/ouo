@@ -46,7 +46,7 @@ export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
   const navigate = useNavigate()
   const { notify } = useFeedback()
-  const [episode, setEpisode] = useState<any>(null)
+  const [episode, setEpisode] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     if (!projectId || !episodeId) return

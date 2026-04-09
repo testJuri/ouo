@@ -85,11 +85,11 @@ export function useImageGeneration(): UseImageGenerationReturn {
       setLoading(false);
       setStatus('');
       return result.map((item) => item.url);
-    } catch (err: any) {
-      const is429 = err.message?.includes('429') || err.response?.status === 429;
+    } catch (err: unknown) {
+      const is429 = err instanceof Error && (err.message.includes('429') || (err as { response?: { status?: number } }).response?.status === 429);
       const errorMessage = is429 
         ? 'API_RATE_LIMIT' 
-        : (err.message || '图片生成失败');
+        : (err instanceof Error ? err.message : '图片生成失败');
       setError(errorMessage);
       setStatus('');
       if (!is429) {

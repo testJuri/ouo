@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { applyNodeChanges, applyEdgeChanges, addEdge as addReactFlowEdge, NodeChange, EdgeChange, Connection } from 'reactflow';
-import type { CustomNode, CustomEdge, NodeData, CanvasStore } from '../types';
+import { applyNodeChanges, applyEdgeChanges, addEdge as addReactFlowEdge, NodeChange, EdgeChange, Connection, Node, Edge } from 'reactflow';
+import type { CustomNode, CustomEdge, NodeData, CanvasStore, Project } from '../types';
 
 let nodeId = 0;
 const getNodeId = () => `node_${nodeId++}`;
@@ -115,14 +115,14 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   // Node operations
   onNodesChange: (changes: NodeChange[]) => {
     set({
-      nodes: applyNodeChanges(changes, get().nodes as any) as CustomNode[],
+      nodes: applyNodeChanges(changes, get().nodes as unknown as Node[]) as unknown as CustomNode[],
     });
   },
 
   // Edge operations
   onEdgesChange: (changes: EdgeChange[]) => {
     set({
-      edges: applyEdgeChanges(changes, get().edges as any) as CustomEdge[],
+      edges: applyEdgeChanges(changes, get().edges as unknown as Edge[]) as unknown as CustomEdge[],
     });
   },
 
@@ -151,8 +151,8 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     set({
       edges: addReactFlowEdge(
         { ...connection, type: edgeType, data: edgeData },
-        get().edges as any
-      ) as CustomEdge[],
+        get().edges as unknown as Edge[]
+      ) as unknown as CustomEdge[],
     });
     get().saveHistory();
   },
@@ -206,7 +206,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
     const newNode: CustomNode = JSON.parse(JSON.stringify(node));
     newNode.id = newId;
     newNode.position = { x: node.position.x + 100, y: node.position.y + 100 };
-    (newNode as any).selected = true; // Select the new node
+    (newNode as unknown as Node).selected = true; // Select the new node
     newNode.data = {
       ...newNode.data,
       createdAt: now,
@@ -274,7 +274,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   // Load project
-  loadProject: (projectId: string, getProjectCanvas: (id: string) => any) => {
+  loadProject: (projectId: string, getProjectCanvas: (id: string) => Project['canvasData'] | null) => {
     set({ currentProjectId: projectId });
     const canvasData = getProjectCanvas(projectId);
 
@@ -309,7 +309,7 @@ export const useCanvasStore = create<CanvasStore>((set, get) => ({
   },
 
   // Save project
-  saveProject: (updateProjectCanvas: (id: string, data: any) => void) => {
+  saveProject: (updateProjectCanvas: (id: string, data: Project['canvasData']) => void) => {
     const { currentProjectId, nodes, edges, viewport } = get();
     if (!currentProjectId) return;
     updateProjectCanvas(currentProjectId, { nodes, edges, viewport });

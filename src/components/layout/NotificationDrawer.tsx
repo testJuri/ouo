@@ -20,6 +20,7 @@ interface NotificationDrawerProps {
   onClearAll: () => void
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const demoNotifications: NotificationItem[] = [
   {
     id: 1,

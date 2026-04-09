@@ -79,6 +79,7 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
       updateNode(id, { content: localContent });
     }, 300);
     return () => clearTimeout(timeoutId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localContent, id]);
 
   const handlePolish = async () => {
@@ -111,8 +112,8 @@ const TextNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected 
       }
 
       message.success('文案润色完成！');
-    } catch (error: any) {
-      message.error(error.message || '润色失败');
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : '润色失败');
       console.error('Polish error:', error);
     } finally {
       setPolishing(false);

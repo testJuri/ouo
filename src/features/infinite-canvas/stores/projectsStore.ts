@@ -19,7 +19,7 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
       // 从 IndexedDB 加载
       const projects = await db.getAllProjects();
       set({
-        projects: projects.map((p: any) => ({
+        projects: projects.map((p: Record<string, unknown>) => ({
           ...p,
           createdAt: new Date(p.createdAt),
           updatedAt: new Date(p.updatedAt),

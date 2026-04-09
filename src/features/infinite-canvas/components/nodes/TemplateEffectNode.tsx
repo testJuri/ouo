@@ -69,6 +69,7 @@ const TemplateEffectNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data,
       template: localTemplate,
       model: 'wan2.6-i2v-flash',
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localResolution, localTemplate]);
 
   const handleLabelDoubleClick = useCallback((e: React.MouseEvent) => {
@@ -170,8 +171,8 @@ const TemplateEffectNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data,
       } else {
         updateNode(videoNodeId, { loading: false, error: '生成失败' });
       }
-    } catch (err: any) {
-      if (err.message === 'API_RATE_LIMIT') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message === 'API_RATE_LIMIT') {
         removeNode(videoNodeId);
         message.warning('请求过于频繁，请稍后重试');
       } else {
