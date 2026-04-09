@@ -6,24 +6,14 @@ import { Search, Bell } from "lucide-react"
 
 import type { ProjectTab } from "@/types"
 
-const topTabs: { id: ProjectTab; label: string }[] = [
-  { id: "episodes", label: "片段管理" },
-  { id: "characters", label: "角色管理" },
-  { id: "scenes", label: "场景管理" },
-  { id: "objects", label: "物品管理" },
-  { id: "workflows", label: "工作流" },
-]
-
 interface ProjectHeaderProps {
   activeTab: ProjectTab
   onTabChange: (tab: ProjectTab) => void
-  projectTitle?: string
 }
 
 export default function ProjectHeader({
   activeTab,
   onTabChange,
-  projectTitle = "项目",
 }: ProjectHeaderProps) {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [notificationList, setNotificationList] = useState(demoNotifications)
@@ -38,12 +28,18 @@ export default function ProjectHeader({
     setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
   }
 
+  const topTabs: { id: ProjectTab; label: string }[] = [
+    { id: "episodes", label: "片段管理" },
+    { id: "characters", label: "角色管理" },
+    { id: "scenes", label: "场景管理" },
+    { id: "objects", label: "物品管理" },
+    { id: "workflows", label: "工作流" },
+  ]
+
   return (
     <header className="workspace-fixed-header fixed top-0 z-40 flex h-16 items-center justify-between border-b border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))]/80 px-8 backdrop-blur-md">
-      {/* Logo / Project Name */}
-      <div className="flex items-center gap-4">
-        <span className="text-lg font-black text-[hsl(var(--on-surface))]">{projectTitle}</span>
-      </div>
+      {/* Left spacer for balance */}
+      <div className="w-48" />
 
       {/* Capsule Navigation */}
       <nav className="hidden lg:flex items-center bg-[hsl(var(--surface-container-low))] rounded-full p-1">

@@ -25,7 +25,7 @@ import ProjectHeader from "@/components/layout/ProjectHeader"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useWorkflowLauncher } from "@/hooks/useWorkflowLauncher"
 import { useProjectStore } from "@/stores/projectStore"
-import { projectsApi } from "@/api"
+
 import type { WorkflowSourceType } from "@/types"
 import type { ProjectTab } from "@/types"
 
@@ -93,7 +93,7 @@ export default function ProjectDetail() {
   const [batchMode, setBatchMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [sortBy, setSortBy] = useState<SortOption>("recent")
-  const [projectTitle, setProjectTitle] = useState(projectId ? `项目 ${projectId}` : "项目")
+
   const routeTab = isProjectTab(tabParam) ? tabParam : undefined
   const activeTab = routeTab ?? storeActiveTab
 
@@ -143,10 +143,6 @@ export default function ProjectDetail() {
     if (!numericProjectId) return
 
     void loadProjectAssets(numericProjectId, true)
-    void projectsApi
-      .getById(numericProjectId)
-      .then((project) => setProjectTitle(project.name))
-      .catch(() => setProjectTitle(`项目 ${numericProjectId}`))
   }, [loadProjectAssets, numericProjectId])
 
   const handleTabChange = (tab: ProjectTab) => {
@@ -343,7 +339,6 @@ export default function ProjectDetail() {
         <ProjectHeader
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          projectTitle={projectTitle}
         />
 
         {/* Content Canvas */}
