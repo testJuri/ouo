@@ -91,6 +91,14 @@ export default function Sidebar() {
     }
 
     void loadProjects()
+
+    // 监听项目列表刷新事件
+    const handleRefresh = () => void loadProjects()
+    window.addEventListener('projects:refresh', handleRefresh)
+
+    return () => {
+      window.removeEventListener('projects:refresh', handleRefresh)
+    }
   }, [routeProjectId])
 
   useEffect(() => {

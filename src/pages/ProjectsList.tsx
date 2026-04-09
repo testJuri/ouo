@@ -173,6 +173,8 @@ export default function ProjectsList() {
       notify.success(`已删除项目：${deletingProject.name}`)
       setDeleteDialogOpen(false)
       setDeletingProject(null)
+      // 触发项目列表刷新事件，通知 Sidebar 更新
+      window.dispatchEvent(new CustomEvent('projects:refresh'))
     } catch (error) {
       notify.error(error instanceof Error ? error.message : "删除项目失败")
     }
