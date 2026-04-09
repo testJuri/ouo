@@ -11,6 +11,7 @@ import type {
   ProjectTab,
   Scene,
   SceneCreateData,
+  Workflow,
 } from '@/types'
 
 interface ProjectState {
@@ -31,6 +32,12 @@ interface ProjectState {
     characters: Character[]
     objects: ObjectItem[]
   }
+  workflows: Workflow[]
+  workflowPagination?: {
+    page: number
+    size: number
+    total: number
+  }
 }
 
 interface ProjectActions {
@@ -44,6 +51,7 @@ interface ProjectActions {
   loadCharacters: (projectId: number, role?: 'main' | 'support') => Promise<void>
   loadObjects: (projectId: number, type?: ObjectDTO['type']) => Promise<void>
   loadEpisodes: (projectId: number, status?: EpisodeDTO['status']) => Promise<void>
+  loadWorkflows: (projectId: number, params?: { page?: number; size?: number }) => Promise<void>
   createEpisode: (projectId: number, data: EpisodeCreateData) => Promise<Episode | null>
   updateEpisode: (projectId: number, id: number, data: Partial<Episode>) => Promise<Episode | null>
   deleteEpisode: (projectId: number, id: number) => Promise<boolean>
@@ -84,6 +92,7 @@ const initialState: ProjectState = {
     characters: [],
     objects: [],
   },
+  workflows: [],
 }
 
 const replaceAsset = <T extends { id: number }>(items: T[], nextItem: T) =>
@@ -227,6 +236,26 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : '加载片段列表失败',
+      })
+    }
+  },
+
+  loadWorkflows: async (projectId, params) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await projectApi.workflows.getAll(projectId, params)
+      if (!response.success) {
+        throw new Error(response.message || '加载工作流列表失败')
+      }
+      set({
+        isLoading: false,
+        workflows: response.data.list,
+        workflowPagination: response.data.pagination,
+      })
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : '加载工作流列表失败',
       })
     }
   },
