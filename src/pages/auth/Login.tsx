@@ -48,9 +48,9 @@ export default function Login() {
   const { notify } = useFeedback()
   const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState("demo@mangacanvas.com")
+  const [email, setEmail] = useState("superadmin@shupivot.com")
   const [password, setPassword] = useState("123456")
-  const [username, setUsername] = useState("DemoCreator")
+  const [username, setUsername] = useState("superadmin")
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -133,7 +133,11 @@ export default function Login() {
           {/* Toggle */}
           <div className="flex bg-[hsl(var(--surface-container-low))] p-1 rounded-xl mb-8">
             <button
-              onClick={() => setIsLogin(true)}
+              onClick={() => {
+                setIsLogin(true)
+                setEmail("superadmin@shupivot.com")
+                setPassword("123456")
+              }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isLogin 
                   ? "bg-[hsl(var(--surface-container-highest))] text-[hsl(var(--on-surface))] shadow-sm" 
@@ -143,7 +147,12 @@ export default function Login() {
               登录
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              onClick={() => {
+                setIsLogin(false)
+                setUsername("newuser")
+                setEmail("newuser@example.com")
+                setPassword("123456")
+              }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 !isLogin 
                   ? "bg-[hsl(var(--surface-container-highest))] text-[hsl(var(--on-surface))] shadow-sm" 
@@ -169,12 +178,12 @@ export default function Login() {
             )}
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">邮箱</label>
+              <label className="text-sm font-medium">邮箱 / 用户名</label>
               <Input 
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="请输入邮箱"
+                placeholder="请输入邮箱或用户名"
                 className="bg-[hsl(var(--surface-container-low))] border-none rounded-xl h-12"
               />
             </div>

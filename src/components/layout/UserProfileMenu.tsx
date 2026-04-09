@@ -8,11 +8,12 @@ import {
   getStoredIdentity,
   identityOptions,
   setStoredIdentity,
+  getIdentityByRoleId,
   type IdentityOption,
 } from "@/lib/mock-identities"
 import { cn } from "@/lib/utils"
-import { clearSession, getCurrentUser } from "@/lib/session"
-import { ChevronDown, Check, Briefcase, LogOut, Shield, User, UserPlus } from "lucide-react"
+import { clearSession, clearActiveProjectId, getCurrentUser, getUserRoleId } from "@/lib/session"
+import { ChevronDown, Check, LogOut, Shield, User } from "lucide-react"
 
 interface UserProfileMenuProps {
   userName?: string
@@ -29,7 +30,16 @@ export default function UserProfileMenu({
 }: UserProfileMenuProps) {
   const navigate = useNavigate()
   const { notify } = useFeedback()
-  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
+  // 从后端 roleId 初始化身份，如果没有则使用存储的身份
+  const getInitialIdentity = (): IdentityOption => {
+    const roleId = getUserRoleId()
+    if (roleId) {
+      return getIdentityByRoleId(roleId)
+    }
+    return getStoredIdentity()
+  }
+  
+  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getInitialIdentity)
   const [identityPanelOpen, setIdentityPanelOpen] = useState(false)
   const identityLeaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const sessionUser = getCurrentUser()
@@ -75,12 +85,12 @@ export default function UserProfileMenu({
 
   const getIdentityIcon = (identity: IdentityOption) => {
     switch (identity) {
+      case "superadmin":
+        return Shield
       case "admin":
         return Shield
-      case "coordinator":
-        return Briefcase
-      case "newcomer":
-        return UserPlus
+      case "employee":
+        return User
       default:
         return User
     }
@@ -178,6 +188,7 @@ export default function UserProfileMenu({
         <button
           onClick={() => {
             clearSession()
+            clearActiveProjectId()
             navigate("/login")
             notify.success("已退出登录")
           }}

@@ -20,6 +20,7 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import ApiKeySettings from "./ApiKeySettings"
+import ProjectCreator from "@/pages/ProjectCreator"
 import { projectsApi } from "@/api"
 import { getActiveProjectId, getCurrentUser, setActiveProjectId } from "@/lib/session"
 import { mapProjectCard } from "@/lib/projectMappers"
@@ -29,16 +30,19 @@ import {
   type IdentityOption,
 } from "@/lib/mock-identities"
 
+// 根据身份返回导航项：员工只有基础权限，管理员和超级管理员有完整权限
 const getNavItems = (identity: IdentityOption, projectId?: number) => {
   const baseItems = [
     { icon: LayoutGrid, label: "工作台", href: projectId ? `/project/${projectId}/episode/1` : "/projects" },
     { icon: Box, label: "资产管理", href: projectId ? `/project/${projectId}` : "/projects" },
   ]
 
-  if (identity === "creator") {
+  // 员工只有基础导航
+  if (identity === "employee") {
     return baseItems
   }
 
+  // 管理员和超级管理员有完整导航
   return [
     ...baseItems,
     { icon: FolderOpen, label: "所有项目", href: "/projects" },
@@ -58,6 +62,7 @@ export default function Sidebar() {
   const [isSwitching, setIsSwitching] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
+  const [isProjectCreatorOpen, setIsProjectCreatorOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const routeProjectId = getProjectIdFromPath(location.pathname)
@@ -177,7 +182,10 @@ export default function Sidebar() {
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem 
+              className="cursor-pointer"
+              onClick={() => setIsProjectCreatorOpen(true)}
+            >
               <Plus className="w-4 h-4 mr-2" />
               新建项目
             </DropdownMenuItem>
@@ -224,6 +232,34 @@ export default function Sidebar() {
 
     {/* API Key Settings Dialog */}
     <ApiKeySettings open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+    
+    {/* Project Creator Dialog */}
+    <ProjectCreator
+      open={isProjectCreatorOpen}
+      onOpenChange={setIsProjectCreatorOpen}
+      onCreate={async (project) => {
+        try {
+          const user = getCurrentUser()
+          const organizationId = user?.organizationIds?.[0] ?? 1
+          await projectsApi.create({
+            organizationId,
+            name: project.name,
+            description: project.description,
+            isPublic: false,
+          })
+          // 刷新项目列表
+          const response = await projectsApi.list({ page: 1, size: 100, organizationId })
+          const mapped = response.list.map((item) => ({
+            id: item.id,
+            name: item.name,
+          }))
+          setProjects(mapped)
+          setIsProjectCreatorOpen(false)
+        } catch (error) {
+          console.error('创建项目失败:', error)
+        }
+      }}
+    />
     </>
   )
 }
