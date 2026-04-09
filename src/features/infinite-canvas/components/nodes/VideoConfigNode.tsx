@@ -74,10 +74,10 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
   };
 
   const initialValues = getInitialValues();
-  const [localModel, setLocalModel] = useState(initialValues.model);
-  const [localSize, setLocalSize] = useState(initialValues.size);
-  const [localResolution, setLocalResolution] = useState(initialValues.resolution);
-  const [localDuration, setLocalDuration] = useState(initialValues.duration);
+  const [localModel, setLocalModel] = useState<string>(initialValues.model as string);
+  const [localSize, setLocalSize] = useState<string>(initialValues.size as string);
+  const [localResolution, setLocalResolution] = useState<string>(initialValues.resolution as string);
+  const [localDuration, setLocalDuration] = useState<number>(initialValues.duration as number);
   
   // T2V 独立的分辨率和比例状态
   const [t2vResolution, setT2vResolution] = useState('720P');
@@ -182,10 +182,10 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         }
       } else if (sourceNode.type === 'effectConfig') {
         // 收集效果配置参数（视频包含运镜）
-        if (sourceNode.data.style) effectParams.style = sourceNode.data.style;
-        if (sourceNode.data.lighting) effectParams.lighting = sourceNode.data.lighting;
-        if (sourceNode.data.camera) effectParams.camera = sourceNode.data.camera;
-        if (sourceNode.data.effect) effectParams.effect = sourceNode.data.effect;
+        if (sourceNode.data.style) effectParams.style = sourceNode.data.style as string;
+        if (sourceNode.data.lighting) effectParams.lighting = sourceNode.data.lighting as string;
+        if (sourceNode.data.camera) effectParams.camera = sourceNode.data.camera as string;
+        if (sourceNode.data.effect) effectParams.effect = sourceNode.data.effect as string;
       }
     });
 
@@ -255,7 +255,7 @@ const VideoConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         model: localModel,
         modelLabel,
         size: localSize,
-        resolution: localResolution,
+        resolution: localResolution as string,
         duration: localDuration,
       }
     );

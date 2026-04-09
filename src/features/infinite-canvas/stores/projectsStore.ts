@@ -19,10 +19,10 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
       // 从 IndexedDB 加载
       const projects = await db.getAllProjects();
       set({
-        projects: projects.map((p: Record<string, unknown>) => ({
+        projects: (projects as unknown as Project[]).map((p) => ({
           ...p,
-          createdAt: new Date(p.createdAt),
-          updatedAt: new Date(p.updatedAt),
+          createdAt: new Date(p.createdAt as string | number | Date),
+          updatedAt: new Date(p.updatedAt as string | number | Date),
         })),
       });
     } catch (error) {
@@ -39,7 +39,7 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
     saveTimeout = setTimeout(async () => {
       try {
         const projects = get().projects;
-        await db.saveAllProjects(projects);
+        await db.saveAllProjects(projects as unknown as Record<string, unknown>[]);
       } catch (error) {
         console.error('Failed to save projects:', error);
       }
@@ -63,7 +63,7 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
     const newProjects = [newProject, ...get().projects];
     set({ projects: newProjects });
     // 立即同步保存，确保跳转前数据已持久化
-    db.saveAllProjects(newProjects).catch(err => {
+    db.saveAllProjects(newProjects as unknown as Record<string, unknown>[]).catch(err => {
       console.error('Failed to save new project:', err);
     });
     return newProject.id;
@@ -108,7 +108,7 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
 
     const newProjects = [workflowProject, ...get().projects];
     set({ projects: newProjects });
-    db.saveAllProjects(newProjects).catch((error) => {
+    db.saveAllProjects(newProjects as unknown as Record<string, unknown>[]).catch((error) => {
       console.error('Failed to save workflow document:', error);
     });
   },

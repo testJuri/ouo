@@ -152,9 +152,9 @@ const ImageConfigNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, se
         if (imageUrl) refImages.push(imageUrl);
       } else if (sourceNode.type === 'effectConfig') {
         // 收集效果配置参数（图片不包含运镜）
-        if (sourceNode.data.style) effectParams.style = sourceNode.data.style;
-        if (sourceNode.data.lighting) effectParams.lighting = sourceNode.data.lighting;
-        if (sourceNode.data.effect) effectParams.effect = sourceNode.data.effect;
+        if (sourceNode.data.style) effectParams.style = sourceNode.data.style as string;
+        if (sourceNode.data.lighting) effectParams.lighting = sourceNode.data.lighting as string;
+        if (sourceNode.data.effect) effectParams.effect = sourceNode.data.effect as string;
       }
     });
 

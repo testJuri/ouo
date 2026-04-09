@@ -56,8 +56,8 @@ const TemplateEffectNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data,
   const { nodes, edges, updateNode, addNode, addEdgeManually, duplicateNode, removeNode } = useCanvasStore();
   const { generate } = useVideoGeneration();
 
-  const [localResolution, setLocalResolution] = useState(data.resolution || '720P');
-  const [localTemplate, setLocalTemplate] = useState(data.template || '');
+  const [localResolution, setLocalResolution] = useState<string>(data.resolution as string || '720P');
+  const [localTemplate, setLocalTemplate] = useState<string>(data.template as string || '');
 
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [editLabel, setEditLabel] = useState(data.label || '图生视频-特效');
@@ -162,8 +162,8 @@ const TemplateEffectNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data,
         model: 'wan2.6-i2v-flash',
         prompt: '',
         first_frame_image: imageUrl,
-        resolution: localResolution,
-        template: localTemplate,
+        resolution: localResolution as string,
+        template: localTemplate as string,
       });
 
       if (videoUrl) {

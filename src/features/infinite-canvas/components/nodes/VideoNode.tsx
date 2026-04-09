@@ -292,10 +292,10 @@ const VideoNode: React.FC<NodeProps<CustomNode['data']>> = ({ id, data, selected
         url={data?.url || ''}
         title={data.label || '视频预览'}
         params={{
-          prompt: data?.prompt,
-          model: data?.model,
-          resolution: data?.resolution,
-          duration: data?.duration,
+          prompt: data?.prompt as string | undefined,
+          model: data?.model as string | undefined,
+          resolution: data?.resolution as string | undefined,
+          duration: data?.duration as number | undefined,
         }}
       />
     </div>

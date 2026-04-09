@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, SelectionMode, Node } from 'reactflow';
+import ReactFlow, { Background, MiniMap, useReactFlow, ReactFlowProvider, SelectionMode, Node as RFNode } from 'reactflow';
 import {
   ArrowLeftOutlined,
   DownOutlined,
@@ -192,12 +192,12 @@ const CanvasInner: React.FC = () => {
 
   // 直接从 nodes 中计算选中的节点
   const selectedNodes = useMemo(() => {
-    return nodes.filter(n => (n as unknown as Node).selected).map(n => n.id);
+    return nodes.filter(n => (n as unknown as RFNode).selected).map(n => n.id);
   }, [nodes]);
 
   // 获取选中的节点数据
   const selectedNodesData = useMemo(() => {
-    return nodes.filter(n => (n as unknown as Node).selected);
+    return nodes.filter(n => (n as unknown as RFNode).selected);
   }, [nodes]);
 
   // 对齐功能
@@ -208,8 +208,8 @@ const CanvasInner: React.FC = () => {
       id: n.id,
       x: n.position.x,
       y: n.position.y,
-      width: (n as unknown as Node).width || (n as unknown as Node).measured?.width || 280,
-      height: (n as unknown as Node).height || (n as unknown as Node).measured?.height || 200,
+      width: (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).width || (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).measured?.width || 280,
+      height: (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).height || (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).measured?.height || 200,
     }));
 
     let newPositions: { id: string; x: number; y: number }[] = [];
@@ -313,8 +313,8 @@ const CanvasInner: React.FC = () => {
       id: n.id,
       x: n.position.x,
       y: n.position.y,
-      width: (n as unknown as Node).width || (n as unknown as Node).measured?.width || 280,
-      height: (n as unknown as Node).height || (n as unknown as Node).measured?.height || 200,
+      width: (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).width || (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).measured?.width || 280,
+      height: (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).height || (n as unknown as RFNode & { measured?: { width?: number; height?: number } }).measured?.height || 200,
     }));
 
     // 计算节点的水平和垂直范围
@@ -552,7 +552,7 @@ const CanvasInner: React.FC = () => {
   }, [isLocked]);
 
   const handleCanvasDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+    if (!event.currentTarget.contains(event.relatedTarget as globalThis.Node | null)) {
       setIsCanvasMaterialDragOver(false);
     }
   }, []);

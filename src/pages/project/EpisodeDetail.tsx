@@ -5,6 +5,7 @@ import Sidebar from "@/components/layout/Sidebar"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useEffect, useState } from "react"
 import { projectApi } from "@/api/projectApi"
+import type { Episode } from "@/types"
 import {
   ChevronLeft,
   Clapperboard,
@@ -46,7 +47,7 @@ export default function EpisodeDetail() {
   const { projectId, episodeId } = useParams()
   const navigate = useNavigate()
   const { notify } = useFeedback()
-  const [episode, setEpisode] = useState<Record<string, unknown> | null>(null)
+  const [episode, setEpisode] = useState<Episode | null>(null)
 
   useEffect(() => {
     if (!projectId || !episodeId) return
@@ -60,12 +61,12 @@ export default function EpisodeDetail() {
   const currentEpisode = {
     ...fallbackEpisode,
     ...episode,
-    name: episode?.name || fallbackEpisode.name,
-    code: episode?.code || fallbackEpisode.code,
-    status: episode?.status || fallbackEpisode.status,
-    description: episode?.description || fallbackEpisode.description,
-    count: episode?.count || fallbackEpisode.sceneCount,
-    modified: episode?.modified || fallbackEpisode.modified,
+    name: (episode?.name as string) || fallbackEpisode.name,
+    code: (episode?.code as string) || fallbackEpisode.code,
+    status: (episode?.status as string) || fallbackEpisode.status,
+    description: (episode?.description as string) || fallbackEpisode.description,
+    count: (episode?.count as number) || fallbackEpisode.sceneCount,
+    modified: (episode?.modified as string) || fallbackEpisode.modified,
   }
 
   const openCanvas = () => {
