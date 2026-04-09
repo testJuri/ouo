@@ -20,7 +20,7 @@ const buildCharacterPayload = (data: CharacterCreateData) => ({
 })
 
 export const charactersApi = {
-  async getAll(projectId: number): Promise<ApiResponse<Character[]>> {
+  async getAll(projectId: number, role?: 'main' | 'support'): Promise<ApiResponse<Character[]>> {
     if (isMockMode) {
       const result = await mockCharactersApi.getAll(projectId)
       return successResponse(result.list as unknown as Character[])
@@ -29,6 +29,7 @@ export const charactersApi = {
       {
         url: `/projects/${projectId}/characters`,
         method: 'GET',
+        params: role ? { role } : undefined,
       },
       { list: [] },
       '获取角色列表失败',

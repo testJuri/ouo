@@ -40,6 +40,7 @@ interface ProjectActions {
   closeAllDrawers: () => void
   setAssets: (type: keyof ProjectState['assets'], data: Episode[] | Scene[] | Character[] | ObjectItem[]) => void
   loadProjectAssets: (projectId: number, force?: boolean) => Promise<void>
+  loadCharacters: (projectId: number, role?: 'main' | 'support') => Promise<void>
   createEpisode: (projectId: number, data: EpisodeCreateData) => Promise<Episode | null>
   updateEpisode: (projectId: number, id: number, data: Partial<Episode>) => Promise<Episode | null>
   deleteEpisode: (projectId: number, id: number) => Promise<boolean>
@@ -157,6 +158,28 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       set({
         isLoading: false,
         error: error instanceof Error ? error.message : '加载项目资产失败',
+      })
+    }
+  },
+
+  loadCharacters: async (projectId, role) => {
+    set({ isLoading: true, error: null })
+    try {
+      const response = await projectApi.characters.getAll(projectId, role)
+      if (!response.success) {
+        throw new Error(response.message || '加载角色列表失败')
+      }
+      set((state) => ({
+        isLoading: false,
+        assets: {
+          ...state.assets,
+          characters: response.data,
+        },
+      }))
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : '加载角色列表失败',
       })
     }
   },
