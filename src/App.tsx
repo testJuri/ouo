@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, Suspense, lazy } from "react"
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
+import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -380,7 +380,7 @@ function RouteLoading() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <IdentityRouteGuard />
       <Suspense fallback={<RouteLoading />}>
         <Routes>
@@ -406,7 +406,7 @@ function App() {
           <Route path="/assets" element={<Assets />} />
         </Routes>
       </Suspense>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
