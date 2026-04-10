@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,6 +10,14 @@ import {
 } from "@/components/ui/dialog"
 import { HelpCircle } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import type { Episode } from "@/types"
+
+export interface EpisodeEditData {
+  id: number
+  folderName: string
+  episodeCount: string
+  description: string
+}
 
 interface EpisodeCreatorProps {
   open: boolean
@@ -19,13 +27,42 @@ interface EpisodeCreatorProps {
     episodeCount: string
     description: string
   }) => void
+  onUpdate?: (data: EpisodeEditData) => void
+  initialData?: Episode | null
+  mode?: 'create' | 'edit'
 }
 
-export default function EpisodeCreator({ open, onOpenChange, onCreate }: EpisodeCreatorProps) {
+export default function EpisodeCreator({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate,
+  initialData,
+  mode = 'create'
+}: EpisodeCreatorProps) {
   const { notify } = useFeedback()
+  const isEditMode = mode === 'edit' && initialData != null
+  
   const [folderName, setFolderName] = useState("")
   const [episodeCount, setEpisodeCount] = useState("")
   const [description, setDescription] = useState("")
+
+  // 编辑模式下回填数据
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setFolderName(initialData.name)
+      setEpisodeCount(String(initialData.count))
+      setDescription(initialData.description || "")
+    } else if (!open) {
+      resetForm()
+    }
+  }, [isEditMode, initialData, open])
+
+  const resetForm = () => {
+    setFolderName("")
+    setEpisodeCount("")
+    setDescription("")
+  }
 
   const handleSubmit = () => {
     // 表单校验
@@ -34,11 +71,21 @@ export default function EpisodeCreator({ open, onOpenChange, onCreate }: Episode
       return
     }
     
-    onCreate?.({ folderName: folderName.trim(), episodeCount, description })
+    if (isEditMode && initialData) {
+      onUpdate?.({ 
+        id: initialData.id, 
+        folderName: folderName.trim(), 
+        episodeCount, 
+        description 
+      })
+      notify.success("片段已更新")
+    } else {
+      onCreate?.({ folderName: folderName.trim(), episodeCount, description })
+      notify.success("片段创建成功")
+    }
+    
     onOpenChange(false)
-    setFolderName("")
-    setEpisodeCount("")
-    setDescription("")
+    resetForm()
   }
 
   return (
@@ -47,7 +94,7 @@ export default function EpisodeCreator({ open, onOpenChange, onCreate }: Episode
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-2 text-left">
           <DialogTitle className="text-xl font-bold text-[hsl(var(--on-surface))]">
-            创建片段
+            {isEditMode ? "编辑片段" : "创建片段"}
           </DialogTitle>
         </DialogHeader>
 

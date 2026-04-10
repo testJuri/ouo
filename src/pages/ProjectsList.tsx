@@ -209,11 +209,7 @@ export default function ProjectsList() {
     setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
   }
 
-  useEffect(() => {
-    void loadProjects()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
+  // 身份切换监听
   useEffect(() => {
     const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
     const handleIdentityChange = (event: Event) => {

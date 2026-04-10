@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Trash2, Copy, Check, ArrowRight, Wand2, Workflow } from "lucide-react"
+import { MoreHorizontal, Trash2, Copy, Check, ArrowRight, Wand2, Workflow, Pencil } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,8 @@ import {
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useProjectStore } from "@/stores/projectStore"
 import type { Scene } from "@/types"
+import { useState } from "react"
+import SceneCreator from "../SceneCreator"
 
 interface ScenesTabProps {
   projectId?: number | null
@@ -31,8 +33,11 @@ export default function ScenesTab({
   onToggleSelect,
 }: ScenesTabProps) {
   const scenes = useProjectStore((state) => scenesProp ?? state.assets.scenes)
-  const { deleteScene, duplicateScene, openDrawer } = useProjectStore()
+  const { deleteScene, duplicateScene, updateScene } = useProjectStore()
   const { confirm, notify } = useFeedback()
+  
+  const [editScene, setEditScene] = useState<Scene | null>(null)
+  const [creatorOpen, setCreatorOpen] = useState(false)
 
   const handleDelete = async (id: number) => {
     const confirmed = await confirm({
@@ -58,8 +63,21 @@ export default function ScenesTab({
     if (onAddNew) {
       onAddNew()
     } else {
-      openDrawer('scene')
+      setEditScene(null)
+      setCreatorOpen(true)
     }
+  }
+
+  const handleEdit = (scene: Scene) => {
+    setEditScene(scene)
+    setCreatorOpen(true)
+  }
+
+  const handleUpdate = async (data: { id: number; name: string; genMethod: string; model: string; description: string; distance: number; zoom: number; status: "draft" | "in-use" }) => {
+    if (!projectId) return
+    await updateScene(projectId, data.id, data)
+    setCreatorOpen(false)
+    setEditScene(null)
   }
 
   const handleOpenCanvas = () => {
@@ -162,6 +180,7 @@ export default function ScenesTab({
                 <Button 
                   variant="secondary" 
                   size="sm"
+                  onClick={() => handleEdit(scene)}
                   className="flex-1 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
                 >
                   {scene.status === "in-use" ? "编辑详情" : "继续工作"}
@@ -177,6 +196,10 @@ export default function ScenesTab({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={() => handleEdit(scene)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      编辑
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleDuplicate(scene)}>
                       <Copy className="w-4 h-4 mr-2" />
                       复制
@@ -204,6 +227,15 @@ export default function ScenesTab({
           </div>
         </div>
       ))}
+
+      {/* Scene Creator / Editor */}
+      <SceneCreator
+        open={creatorOpen}
+        onOpenChange={setCreatorOpen}
+        onUpdate={handleUpdate}
+        initialData={editScene}
+        mode={editScene ? 'edit' : 'create'}
+      />
     </div>
   )
 }

@@ -23,6 +23,7 @@ import WorkspaceLayout from "@/components/layout/WorkspaceLayout"
 import { projectsApi } from "@/api"
 import { getCurrentUser, setActiveProjectId } from "@/lib/session"
 import { mapProjectCard, mapProjectStats } from "@/lib/projectMappers"
+import { useProjectsStore } from "@/store/projectsStore"
 
 const activities = [
   {
@@ -107,39 +108,42 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Array<{ id: number; name: string; image: string; status: string; updated: string }>>([])
   const [projectStats, setProjectStats] = useState({ episodeCount: 0, sceneCount: 0, characterCount: 0, objectCount: 0 })
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
+  // 使用全局缓存的项目列表
+  const { projects: allProjects, isLoaded: projectsLoaded, isLoading: projectsLoading, fetchProjects } = useProjectsStore()
+  const isLoading = !projectsLoaded || projectsLoading
+  
   // 获取当前项目
   const currentProject = projects.find(p => p.id === Number(projectId)) || projects[0]
   
   // 是否有项目
   const hasProjects = projects.length > 0
-
+  
   useEffect(() => {
-    const loadProjects = async () => {
-      setIsLoading(true)
-      try {
-        const user = getCurrentUser()
-        const organizationId = user?.organizationIds?.[0]
-        const response = await projectsApi.list({ page: 1, size: 100, organizationId })
-        const mapped = response.list.map((project) => {
-          const card = mapProjectCard(project)
-          return {
-            id: card.id,
-            name: card.name,
-            image: card.image,
-            status: card.status,
-            updated: card.modified,
-          }
-        })
-        setProjects(mapped)
-      } finally {
-        setIsLoading(false)
-      }
+    // 从全局缓存同步项目（只在加载完成且项目列表变化时更新）
+    if (projectsLoaded && allProjects.length > 0) {
+      setProjects((prev) => {
+        const mapped = allProjects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          image: project.coverImage || '/default-project.png',
+          status: project.status as "in-progress" | "completed" | "draft",
+          updated: project.updatedAt || project.createdAt || '',
+        }))
+        // 只有当数据真正变化时才更新
+        if (JSON.stringify(prev) === JSON.stringify(mapped)) {
+          return prev
+        }
+        return mapped
+      })
     }
-
-    void loadProjects()
-  }, [])
+  }, [allProjects, projectsLoaded])
+  
+  useEffect(() => {
+    // 如果全局未加载，触发加载
+    if (!projectsLoaded) {
+      void fetchProjects()
+    }
+  }, [projectsLoaded, fetchProjects])
 
   useEffect(() => {
     if (!currentProject?.id) return

@@ -10,6 +10,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import {
   X,
@@ -19,8 +20,10 @@ import {
   ChevronDown,
   Check
 } from "lucide-react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useImageModels } from "@/features/infinite-canvas/hooks"
+import type { Scene } from "@/types"
 
 export interface SceneCreateData {
   name: string
@@ -32,21 +35,39 @@ export interface SceneCreateData {
   status: "draft" | "in-use"
 }
 
+export interface SceneEditData extends SceneCreateData {
+  id: number
+}
+
 interface SceneCreatorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreate?: (data: SceneCreateData) => void
+  onUpdate?: (data: SceneEditData) => void
+  initialData?: Scene | null
+  mode?: 'create' | 'edit'
 }
 
-const styleModels = [
-  { id: "classic", name: "经典少年", desc: "通用叙事场景，适合日常与剧情推进镜头" },
-  { id: "cyber", name: "赛博霓虹", desc: "光效强烈，适合夜景与未来都市空间" },
-  { id: "ink", name: "水墨意境", desc: "氛围感突出，适合东方题材与留白构图" },
-]
-
-export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCreatorProps) {
+export default function SceneCreator({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate, 
+  initialData, 
+  mode = 'create' 
+}: SceneCreatorProps) {
   const { notify } = useFeedback()
-  const [selectedModel, setSelectedModel] = useState("classic")
+  const isEditMode = mode === 'edit' && initialData != null
+  // 从全局缓存获取图片模型列表（图像生成模型）
+  const { models: imageModels, loading: modelsLoading, error: modelsError, refetch } = useImageModels()
+  const [selectedModel, setSelectedModel] = useState<string>("")
+  
+  // 当模型列表加载完成时，默认选中第一个
+  useEffect(() => {
+    if (imageModels.length > 0 && !selectedModel) {
+      setSelectedModel(imageModels[0].id)
+    }
+  }, [imageModels, selectedModel])
   const [genMethod, setGenMethod] = useState("model")
   const [seedType, setSeedType] = useState("fixed")
   const [distance, setDistance] = useState([8.0])
@@ -57,6 +78,32 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
   const [batchArchiveName, setBatchArchiveName] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
+
+  // 重置表单的回调函数
+  const resetForm = useCallback(() => {
+    setSceneName("")
+    setDescription("")
+    setReferenceImage(null)
+    setBatchArchiveName("")
+    setSelectedModel(imageModels[0]?.id ?? "")
+    setGenMethod("model")
+    setDistance([8.0])
+    setZoom(0.6)
+  }, [imageModels])
+
+  // 编辑模式下回填数据
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setSceneName(initialData.name)
+      setGenMethod(initialData.genMethod || "model")
+      setSelectedModel(initialData.model || imageModels[0]?.id || "")
+      setDescription(initialData.description || "")
+      // 其他字段根据实际情况回填
+    } else if (!open) {
+      // 关闭时重置表单
+      resetForm()
+    }
+  }, [isEditMode, initialData, open, imageModels, resetForm])
 
   const generationMethods = [
     { id: "model", label: "通过模型生成场景" },
@@ -91,41 +138,50 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
       return
     }
     
-    const newScene: SceneCreateData = {
-      name: sceneName,
-      genMethod,
-      model: selectedModel,
-      description,
-      distance: distance[0],
-      zoom,
-      status: "draft"
+    if (isEditMode && initialData) {
+      const updatedScene: SceneEditData = {
+        id: initialData.id,
+        name: sceneName,
+        genMethod,
+        model: selectedModel,
+        description,
+        distance: distance[0],
+        zoom,
+        status: initialData.status === "in-use" ? "in-use" : "draft"
+      }
+      onUpdate?.(updatedScene)
+      notify.success("场景已更新")
+    } else {
+      const newScene: SceneCreateData = {
+        name: sceneName,
+        genMethod,
+        model: selectedModel,
+        description,
+        distance: distance[0],
+        zoom,
+        status: "draft"
+      }
+      onCreate?.(newScene)
+      notify.success("场景创建成功")
     }
     
-    onCreate?.(newScene)
-    
     // Reset form
-    setSceneName("")
-    setDescription("")
-    setReferenceImage(null)
-    setBatchArchiveName("")
-    setSelectedModel("classic")
-    setGenMethod("model")
-    setDistance([8.0])
-    setZoom(0.6)
-    
+    resetForm()
     onOpenChange(false)
   }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[900px] sm:max-w-[900px] p-0 overflow-hidden bg-[hsl(var(--surface))]" style={{ maxWidth: '900px' }} hideCloseButton>
+        {/* 隐藏的标题用于无障碍访问 */}
+        <SheetTitle className="sr-only">创建场景</SheetTitle>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))]">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-5 h-5" />
             </Button>
-            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">创建场景</h2>
+            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">{isEditMode ? "编辑场景" : "创建场景"}</h2>
           </div>
           <Badge className="signature-gradient text-white border-0 px-4 py-1.5">
             场景生成任务列表
@@ -244,7 +300,12 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
                         variant="ghost"
                         className="h-12 w-full justify-between rounded-xl bg-[hsl(var(--surface-container-low))] px-4 text-left text-sm font-normal text-[hsl(var(--on-surface))] hover:bg-[hsl(var(--surface-container-high))]"
                       >
-                        <span>{styleModels.find((model) => model.id === selectedModel)?.name ?? "选择场景模型"}</span>
+                        <span>
+                          {modelsLoading 
+                            ? "加载中..." 
+                            : (imageModels.find((model) => model.id === selectedModel)?.name ?? "选择场景模型")
+                          }
+                        </span>
                         <ChevronDown className="h-4 w-4 text-[hsl(var(--secondary))]" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -253,28 +314,45 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
                       sideOffset={10}
                       className="w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-[hsl(var(--outline-variant))]/30 bg-[hsl(var(--surface-container-lowest))] p-2 shadow-xl"
                     >
-                      {styleModels.map((model) => (
-                        <DropdownMenuItem
-                          key={model.id}
-                          onClick={() => setSelectedModel(model.id)}
-                          className={`min-h-[44px] rounded-lg px-3 text-base ${
-                            selectedModel === model.id
-                              ? "bg-[hsl(var(--primary))] text-white focus:bg-[hsl(var(--primary))] focus:text-white"
-                              : "text-[hsl(var(--on-surface))]"
-                          }`}
-                        >
-                          <Check
-                            className={`mr-3 h-4 w-4 ${
-                              selectedModel === model.id ? "opacity-100" : "opacity-0"
-                            }`}
-                          />
-                          <span>{model.name}</span>
+                      {modelsLoading ? (
+                        <DropdownMenuItem disabled className="text-[hsl(var(--secondary))]">
+                          加载模型列表...
                         </DropdownMenuItem>
-                      ))}
+                      ) : modelsError ? (
+                        <DropdownMenuItem 
+                          onClick={() => refetch()} 
+                          className="text-red-500 cursor-pointer"
+                        >
+                          加载失败: {modelsError} (点击重试)
+                        </DropdownMenuItem>
+                      ) : imageModels.length === 0 ? (
+                        <DropdownMenuItem disabled className="text-[hsl(var(--secondary))]">
+                          暂无可用模型
+                        </DropdownMenuItem>
+                      ) : (
+                        imageModels.map((model) => (
+                          <DropdownMenuItem
+                            key={model.id}
+                            onClick={() => setSelectedModel(model.id)}
+                            className={`min-h-[44px] rounded-lg px-3 text-base ${
+                              selectedModel === model.id
+                                ? "bg-[hsl(var(--primary))] text-white focus:bg-[hsl(var(--primary))] focus:text-white"
+                                : "text-[hsl(var(--on-surface))]"
+                            }`}
+                          >
+                            <Check
+                              className={`mr-3 h-4 w-4 ${
+                                selectedModel === model.id ? "opacity-100" : "opacity-0"
+                              }`}
+                            />
+                            <span>{model.name}</span>
+                          </DropdownMenuItem>
+                        ))
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <p className="text-xs text-[hsl(var(--secondary))]">
-                    {styleModels.find((model) => model.id === selectedModel)?.desc}
+                    {imageModels.find((model) => model.id === selectedModel)?.description}
                   </p>
                 </div>
 
@@ -322,28 +400,30 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
             </>
             )}
 
-            {/* Seed Control */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium">种子控制</label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setSeedType("random")}
-                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-                    seedType === "random" ? "bg-[hsl(var(--surface-container-high))]" : "bg-transparent text-[hsl(var(--secondary))]"
-                  }`}
-                >
-                  随机种子
-                </button>
-                <button
-                  onClick={() => setSeedType("fixed")}
-                  className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-                    seedType === "fixed" ? "signature-gradient text-white" : "bg-transparent text-[hsl(var(--secondary))]"
-                  }`}
-                >
-                  固定种子
-                </button>
+            {/* Seed Control - 仅在模型生成模式下显示 */}
+            {genMethod === "model" && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">种子控制</label>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setSeedType("random")}
+                    className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                      seedType === "random" ? "bg-[hsl(var(--surface-container-high))]" : "bg-transparent text-[hsl(var(--secondary))]"
+                    }`}
+                  >
+                    随机种子
+                  </button>
+                  <button
+                    onClick={() => setSeedType("fixed")}
+                    className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+                      seedType === "fixed" ? "signature-gradient text-white" : "bg-transparent text-[hsl(var(--secondary))]"
+                    }`}
+                  >
+                    固定种子
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
         </div>
@@ -354,7 +434,7 @@ export default function SceneCreator({ open, onOpenChange, onCreate }: SceneCrea
             onClick={handleSubmit}
             className="w-full py-6 signature-gradient text-white rounded-xl font-bold text-lg border-0"
           >
-            提交任务（消耗2积分）
+            {isEditMode ? "保存修改" : "提交任务（消耗2积分）"}
           </Button>
         </div>
       </SheetContent>

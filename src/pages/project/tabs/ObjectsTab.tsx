@@ -1,9 +1,11 @@
 import { Badge } from "@/components/ui/badge"
-import { Check, ArrowRight, Wand2, Workflow } from "lucide-react"
+import { Check, ArrowRight, Wand2, Workflow, Pencil, Trash2, Copy } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
 import { useProjectStore } from "@/stores/projectStore"
 import type { ObjectItem, ObjectType } from "@/types"
+import { useState } from "react"
+import ObjectCreator from "../ObjectCreator"
 
 interface ObjectsTabProps {
   objects?: ObjectItem[]
@@ -32,15 +34,49 @@ export default function ObjectsTab({
   onToggleSelect,
 }: ObjectsTabProps) {
   const objects = useProjectStore((state) => objectsProp ?? state.assets.objects)
-  const { openDrawer } = useProjectStore()
-  const { notify } = useFeedback()
+  const { updateObject, deleteObject, duplicateObject } = useProjectStore()
+  const { confirm, notify } = useFeedback()
+  
+  const [editObject, setEditObject] = useState<ObjectItem | null>(null)
+  const [creatorOpen, setCreatorOpen] = useState(false)
 
   const handleAddNew = () => {
     if (onAddNew) {
       onAddNew()
     } else {
-      openDrawer('object')
+      setEditObject(null)
+      setCreatorOpen(true)
     }
+  }
+
+  const handleEdit = (object: ObjectItem) => {
+    setEditObject(object)
+    setCreatorOpen(true)
+  }
+
+  const handleDelete = async (id: number) => {
+    const confirmed = await confirm({
+      title: "删除物品",
+      description: "删除后将无法恢复这个物品。",
+      confirmText: "删除",
+      tone: "danger",
+    })
+    if (confirmed) {
+      await deleteObject(0, id)
+      notify.success("物品已删除")
+    }
+  }
+
+  const handleDuplicate = async (object: ObjectItem) => {
+    await duplicateObject(0, object.id)
+    notify.success("物品已复制")
+  }
+
+  const handleUpdate = async (data: { id: number; name: string; genMethod: "model" | "upload"; model?: string; prompt?: string; aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3"; referenceImage?: string; referenceImages?: string[] }) => {
+    await updateObject(0, data.id, data)
+    setCreatorOpen(false)
+    setEditObject(null)
+    notify.success("物品已更新")
   }
 
   const handleOpenCanvas = () => {
@@ -127,7 +163,7 @@ export default function ObjectsTab({
                 </Badge>
               )}
             </div>
-            {batchMode && (
+            {batchMode ? (
               <button
                 type="button"
                 onClick={(event) => {
@@ -138,6 +174,30 @@ export default function ObjectsTab({
               >
                 <Check className="h-4 w-4" />
               </button>
+            ) : (
+              <div className={`absolute top-3 right-3 flex flex-col gap-2 transition-all opacity-0 group-hover:opacity-100`}>
+                <button
+                  type="button"
+                  onClick={() => handleEdit(object)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-[hsl(var(--primary))]"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDuplicate(object)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-blue-500"
+                >
+                  <Copy className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(object.id)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-red-500"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             )}
 
           </div>
@@ -150,6 +210,15 @@ export default function ObjectsTab({
           </div>
         </div>
       ))}
+
+      {/* Object Creator / Editor */}
+      <ObjectCreator
+        open={creatorOpen}
+        onOpenChange={setCreatorOpen}
+        onUpdate={handleUpdate}
+        initialData={editObject}
+        mode={editObject ? 'edit' : 'create'}
+      />
     </div>
   )
 }

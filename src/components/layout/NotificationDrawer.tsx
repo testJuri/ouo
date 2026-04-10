@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Bell, Check, Trash2, X } from "lucide-react"
 
 export interface NotificationItem {
@@ -73,6 +73,7 @@ export default function NotificationDrawer({
         hideCloseButton
         className="w-[420px] max-w-[92vw] border-l border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))] p-0"
       >
+        <SheetTitle className="sr-only">消息通知</SheetTitle>
         <div className="flex h-full flex-col">
           <div className="border-b border-[hsl(var(--outline-variant))]/15 px-4 py-3">
             <div className="flex items-center justify-between gap-3">

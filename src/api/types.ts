@@ -193,3 +193,42 @@ export interface EpisodeDTO {
   createdAt?: string
   updatedAt?: string
 }
+
+// AI 模型相关类型
+export type ModelModality = 'text' | 'image' | 'video' | 'audio' | 'embedding' | 'rerank' | 'multimodal'
+
+export interface ModelCapability {
+  key: string
+  label: string
+  description?: string
+}
+
+export interface ModelParameter {
+  key: string
+  label: string
+  type: 'string' | 'number' | 'boolean' | 'enum'
+  options?: { label: string; value: string | number }[]
+  defaultValue?: string | number | boolean
+  min?: number
+  max?: number
+  required?: boolean
+  description?: string
+}
+
+export interface ModelDTO {
+  id: string
+  model_id?: string  // API 返回的原始字段
+  name: string
+  provider: string
+  modality: ModelModality
+  description?: string
+  capabilities?: ModelCapability[]
+  parameters?: ModelParameter[]
+  defaultParams?: Record<string, unknown>
+  isEnabled: boolean
+  icon?: string
+  tags?: string[]
+  createdAt?: string
+  updatedAt?: string
+  status?: string  // API 返回的启用状态字段
+}

@@ -1,14 +1,20 @@
 import type { Scene, SceneCreateData } from '@/types'
+import type { SceneDTO } from '@/api/types'
 import { projectApi } from '../api'
 import { useApiQuery, useMutation } from './shared'
 import type { UseMutationOptions } from './shared'
 
-export function useScenes(projectId: number | null) {
-  return useApiQuery(() => projectId ? projectApi.scenes.getAll(projectId) : Promise.resolve({ success: true, data: [] as Scene[] }), {
+export function useScenes(projectId: number | null, status?: SceneDTO['status']) {
+  return useApiQuery(() => projectId ? projectApi.scenes.getAll(projectId, status) : Promise.resolve({ success: true, data: [] as Scene[] }), {
     initialData: [] as Scene[],
     immediate: projectId !== null,
-    deps: [projectId],
+    deps: [projectId, status],
   })
+}
+
+// 获取使用中场景列表的便捷 hook
+export function useActiveScenes(projectId: number | null) {
+  return useScenes(projectId, 'in-use')
 }
 
 export function useScene(projectId: number | null, id: number | null) {

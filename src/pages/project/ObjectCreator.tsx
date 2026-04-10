@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { X, ImagePlus, Package, LayoutList, Check, ChevronDown, CheckCircle2, Clock } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import type { ObjectItem } from "@/types"
 
 export interface ObjectCreateData {
   name: string
@@ -18,6 +19,10 @@ export interface ObjectCreateData {
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3"
   referenceImage?: string
   referenceImages?: string[]
+}
+
+export interface ObjectEditData extends ObjectCreateData {
+  id: number
 }
 
 const models = [
@@ -31,6 +36,9 @@ interface ObjectCreatorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreate?: (data: ObjectCreateData) => void
+  onUpdate?: (data: ObjectEditData) => void
+  initialData?: ObjectItem | null
+  mode?: 'create' | 'edit'
 }
 
 const objectGenerationTasks = [
@@ -39,8 +47,16 @@ const objectGenerationTasks = [
   { id: 3, name: "战术背包", status: "queued", detail: "等待队列中，还需约 3 分钟", time: "18 分钟前" },
 ]
 
-export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCreatorProps) {
+export default function ObjectCreator({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate, 
+  initialData, 
+  mode = 'create' 
+}: ObjectCreatorProps) {
   const { notify } = useFeedback()
+  const isEditMode = mode === 'edit' && initialData != null
   const [genMethod, setGenMethod] = useState<"model" | "upload">("model")
   const [prompt, setPrompt] = useState("")
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16" | "4:3">("1:1")
@@ -96,28 +112,59 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
       return
     }
     
-    const newObject: ObjectCreateData = {
-      name: objectName,
-      genMethod,
-      model: genMethod === "model" ? selectedModel : undefined,
-      prompt: genMethod === "model" ? prompt.trim() : undefined,
-      aspectRatio: genMethod === "model" ? aspectRatio : undefined,
-      referenceImage: referenceImages[0] || undefined,
-      referenceImages: referenceImages.length ? referenceImages : undefined,
+    if (isEditMode && initialData) {
+      const updatedObject: ObjectEditData = {
+        id: initialData.id,
+        name: objectName,
+        genMethod,
+        model: genMethod === "model" ? selectedModel : undefined,
+        prompt: genMethod === "model" ? prompt.trim() : undefined,
+        aspectRatio: genMethod === "model" ? aspectRatio : undefined,
+        referenceImage: referenceImages[0] || undefined,
+        referenceImages: referenceImages.length ? referenceImages : undefined,
+      }
+      onUpdate?.(updatedObject)
+      notify.success(`物品 "${updatedObject.name}" 已更新`)
+    } else {
+      const newObject: ObjectCreateData = {
+        name: objectName,
+        genMethod,
+        model: genMethod === "model" ? selectedModel : undefined,
+        prompt: genMethod === "model" ? prompt.trim() : undefined,
+        aspectRatio: genMethod === "model" ? aspectRatio : undefined,
+        referenceImage: referenceImages[0] || undefined,
+        referenceImages: referenceImages.length ? referenceImages : undefined,
+      }
+      onCreate?.(newObject)
+      notify.success(`物品 "${newObject.name}" 创建成功`)
     }
     
-    onCreate?.(newObject)
-    
-    // Reset form
+    resetForm()
+    onOpenChange(false)
+  }
+
+  const resetForm = () => {
     setObjectName("")
     setPrompt("")
     setAspectRatio("1:1")
     setReferenceImages([])
     setGenMethod("model")
-    
-    onOpenChange(false)
-    notify.success(`物品 "${newObject.name}" 创建成功`)
+    setSelectedModel("sdxl")
+    setTaskDrawerOpen(false)
   }
+
+  // 编辑模式下回填数据
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      setObjectName(initialData.name)
+      setGenMethod(initialData.genMethod as "model" | "upload" || "model")
+      setPrompt(initialData.description || "")
+      setReferenceImages(initialData.image ? [initialData.image] : [])
+      // 其他字段根据实际需求回填
+    } else if (!open) {
+      resetForm()
+    }
+  }, [isEditMode, initialData, open])
 
   if (!open) return null
 
@@ -206,7 +253,7 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-5 h-5" />
             </Button>
-            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">新建物品</h2>
+            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">{isEditMode ? "编辑物品" : "新建物品"}</h2>
           </div>
           <Button 
             variant="ghost"
@@ -488,7 +535,7 @@ export default function ObjectCreator({ open, onOpenChange, onCreate }: ObjectCr
             onClick={handleSubmit}
             className="w-full py-6 signature-gradient text-white rounded-xl font-bold text-lg border-0 hover:opacity-90 transition-opacity"
           >
-            创建物品
+            {isEditMode ? "保存修改" : "创建物品"}
           </Button>
         </div>
       </div>

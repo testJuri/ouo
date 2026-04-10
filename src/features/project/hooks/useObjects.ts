@@ -1,14 +1,20 @@
 import type { ObjectCreateData, ObjectItem } from '@/types'
+import type { ObjectDTO } from '@/api/types'
 import { projectApi } from '../api'
 import { useApiQuery, useMutation } from './shared'
 import type { UseMutationOptions } from './shared'
 
-export function useObjects(projectId: number | null) {
-  return useApiQuery(() => projectId ? projectApi.objects.getAll(projectId) : Promise.resolve({ success: true, data: [] as ObjectItem[] }), {
+export function useObjects(projectId: number | null, type?: ObjectDTO['type']) {
+  return useApiQuery(() => projectId ? projectApi.objects.getAll(projectId, type) : Promise.resolve({ success: true, data: [] as ObjectItem[] }), {
     initialData: [] as ObjectItem[],
     immediate: projectId !== null,
-    deps: [projectId],
+    deps: [projectId, type],
   })
+}
+
+// 获取武器列表的便捷 hook
+export function useWeapons(projectId: number | null) {
+  return useObjects(projectId, 'weapon')
 }
 
 export function useObject(projectId: number | null, id: number | null) {

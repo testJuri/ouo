@@ -7,10 +7,11 @@ import {
 } from "@/components/ui/dialog"
 import type { MouseEvent } from "react"
 import { useState } from "react"
-import { Trash2, Check, ArrowRight, Wand2, Workflow, User, Sparkles, Image, Settings } from "lucide-react"
+import { Trash2, Check, ArrowRight, Wand2, Workflow, User, Sparkles, Image, Settings, Pencil } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useProjectStore } from "@/stores/projectStore"
 import type { Character } from "@/types"
+import CharacterCreator from "../CharacterCreator"
 
 interface CharactersTabProps {
   projectId?: number | null
@@ -32,10 +33,14 @@ export default function CharactersTab({
   onToggleSelect,
 }: CharactersTabProps) {
   const characters = useProjectStore((state) => charactersProp ?? state.assets.characters)
-  const { deleteCharacter, openDrawer } = useProjectStore()
+  const { deleteCharacter, updateCharacter } = useProjectStore()
   const { confirm, notify } = useFeedback()
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  
+  // Creator state
+  const [editCharacter, setEditCharacter] = useState<Character | null>(null)
+  const [creatorOpen, setCreatorOpen] = useState(false)
 
   const handleDelete = async (e: MouseEvent<HTMLButtonElement>, id: number) => {
     e.stopPropagation()
@@ -57,8 +62,28 @@ export default function CharactersTab({
     if (onAddNew) {
       onAddNew()
     } else {
-      openDrawer('character')
+      setEditCharacter(null)
+      setCreatorOpen(true)
     }
+  }
+
+  const handleEdit = (character: Character, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setEditCharacter(character)
+    setCreatorOpen(true)
+    setDetailOpen(false)
+  }
+
+  const handleUpdate = async (data: { id: number; name: string; gender: string; ageGroup: string; role: 'main' | 'support'; genMethod: string; model: string; description: string; referenceImage?: string; seed?: string; seedMode?: 'random' | 'fixed'; quantity?: number; isRealPerson?: boolean; batchReferenceArchive?: string }) => {
+    if (!projectId) return
+    const roleMap: Record<string, '主角' | '配角'> = { main: '主角', support: '配角' }
+    await updateCharacter(projectId, data.id, { 
+      ...data, 
+      role: roleMap[data.role]
+    })
+    setCreatorOpen(false)
+    setEditCharacter(null)
+    notify.success("角色已更新")
   }
 
   const handleOpenCanvas = () => {
@@ -165,13 +190,22 @@ export default function CharactersTab({
                 <Check className="h-4 w-4" />
               </button>
             )}
-            <button
-              type="button"
-              onClick={(e) => handleDelete(e, character.id)}
-              className={`absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-red-500 ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <div className={`absolute top-2 right-2 flex flex-col gap-2 transition-all ${batchMode ? "opacity-0 pointer-events-none" : "opacity-0 group-hover:opacity-100"}`}>
+              <button
+                type="button"
+                onClick={(e) => handleEdit(character, e)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-[hsl(var(--primary))]"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => handleDelete(e, character.id)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-red-500"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <div className="p-2.5">
             <h3 className="text-xs font-bold text-[hsl(var(--on-surface))] truncate">{character.name}</h3>
@@ -276,6 +310,15 @@ export default function CharactersTab({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Character Creator / Editor */}
+      <CharacterCreator
+        open={creatorOpen}
+        onOpenChange={setCreatorOpen}
+        onUpdate={handleUpdate}
+        initialData={editCharacter}
+        mode={editCharacter ? 'edit' : 'create'}
+      />
     </div>
   )
 }

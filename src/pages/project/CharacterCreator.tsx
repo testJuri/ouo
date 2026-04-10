@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
 } from "@/components/ui/sheet"
 import {
   DropdownMenu,
@@ -15,12 +16,19 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { X, ChevronDown, ImagePlus, Copy, Check, Dice5, Lock, Upload } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
-import type { CharacterCreateData } from "@/types"
+import type { CharacterCreateData, Character } from "@/types"
+
+export interface CharacterEditData extends CharacterCreateData {
+  id: number
+}
 
 interface CharacterCreatorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreate?: (data: CharacterCreateData) => void
+  onUpdate?: (data: CharacterEditData) => void
+  initialData?: Character | null
+  mode?: 'create' | 'edit'
 }
 
 const models = [
@@ -78,8 +86,16 @@ const quantityOptions = [1, 2, 3, 4, 5]
 const createSeed = () =>
   `${Math.floor(10000000 + Math.random() * 90000000)}${Math.floor(10000000 + Math.random() * 90000000)}`
 
-export default function CharacterCreator({ open, onOpenChange, onCreate }: CharacterCreatorProps) {
+export default function CharacterCreator({ 
+  open, 
+  onOpenChange, 
+  onCreate, 
+  onUpdate, 
+  initialData, 
+  mode = 'create' 
+}: CharacterCreatorProps) {
   const { notify } = useFeedback()
+  const isEditMode = mode === 'edit' && initialData != null
   const [genMethod, setGenMethod] = useState("model")
   const [selectedModel, setSelectedModel] = useState("xt45")
   const [gender, setGender] = useState("")
@@ -143,8 +159,41 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
     if (open) {
       setCopied(false)
       setSeed((current) => current || createSeed())
+      
+      if (isEditMode && initialData) {
+        // 回填编辑数据
+        setCharacterName(initialData.name)
+        setGender(initialData.gender || "")
+        setAge(initialData.ageGroup || "")
+        setRole(initialData.role === "主角" ? "main" : "support")
+        setGenMethod(initialData.genMethod || "model")
+        setSelectedModel(initialData.model || "xt45")
+        setDescription(initialData.description || "")
+        setSeed(initialData.seed || createSeed())
+        setSeedMode((initialData.seedMode as "random" | "fixed") || "fixed")
+        setReferenceImage(initialData.image || null)
+      } else {
+        // 新建模式重置表单
+        resetForm()
+      }
     }
-  }, [open])
+  }, [open, isEditMode, initialData])
+
+  const resetForm = () => {
+    setCharacterName("")
+    setGender("")
+    setAge("")
+    setDescription("")
+    setReferenceImage(null)
+    setBatchArchiveName("")
+    setRole("support")
+    setGenMethod("model")
+    setSelectedModel("xt45")
+    setSeedMode("fixed")
+    setSeed(createSeed())
+    setQuantity(1)
+    setIsRealPerson(true)
+  }
 
   const handleSubmit = () => {
     if (!characterName.trim()) {
@@ -164,52 +213,60 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
       return
     }
     
-    const newCharacter: CharacterCreateData = {
-      name: characterName,
-      gender,
-      ageGroup: age,
-      genMethod,
-      model: selectedModel,
-      description,
-      referenceImage: referenceImage || undefined,
-      role,
-      seed,
-      seedMode,
-      quantity,
-      isRealPerson,
-      batchReferenceArchive: batchArchiveName || undefined,
+    if (isEditMode && initialData) {
+      const updatedCharacter: CharacterEditData = {
+        id: initialData.id,
+        name: characterName,
+        gender,
+        ageGroup: age,
+        genMethod,
+        model: selectedModel,
+        description,
+        referenceImage: referenceImage || undefined,
+        role,
+        seed,
+        seedMode,
+        quantity,
+        isRealPerson,
+        batchReferenceArchive: batchArchiveName || undefined,
+      }
+      onUpdate?.(updatedCharacter)
+      notify.success("角色已更新")
+    } else {
+      const newCharacter: CharacterCreateData = {
+        name: characterName,
+        gender,
+        ageGroup: age,
+        genMethod,
+        model: selectedModel,
+        description,
+        referenceImage: referenceImage || undefined,
+        role,
+        seed,
+        seedMode,
+        quantity,
+        isRealPerson,
+        batchReferenceArchive: batchArchiveName || undefined,
+      }
+      onCreate?.(newCharacter)
+      notify.success("角色创建成功")
     }
     
-    onCreate?.(newCharacter)
-    
-    // Reset form
-    setCharacterName("")
-    setGender("")
-    setAge("")
-    setDescription("")
-    setReferenceImage(null)
-    setBatchArchiveName("")
-    setRole("support")
-    setGenMethod("model")
-    setSelectedModel("xt45")
-    setSeedMode("fixed")
-    setSeed(createSeed())
-    setQuantity(1)
-    setIsRealPerson(true)
-    
+    resetForm()
     onOpenChange(false)
   }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-[900px] sm:max-w-[900px] p-0 overflow-hidden bg-[hsl(var(--surface))]" style={{ maxWidth: '900px' }} hideCloseButton>
+        <SheetTitle className="sr-only">创建角色</SheetTitle>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--outline-variant))]/20 bg-[hsl(var(--surface))]">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <X className="w-5 h-5" />
             </Button>
-            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">新建角色</h2>
+            <h2 className="text-xl font-bold text-[hsl(var(--on-surface))]">{isEditMode ? "编辑角色" : "新建角色"}</h2>
           </div>
           <Badge className="signature-gradient text-white border-0 px-4 py-1.5">
             角色生成任务列表
@@ -593,7 +650,7 @@ export default function CharacterCreator({ open, onOpenChange, onCreate }: Chara
             onClick={handleSubmit}
             className="w-full py-6 signature-gradient text-white rounded-xl font-bold text-lg border-0 hover:opacity-90 transition-opacity"
           >
-            提交任务（消耗0积分）
+            {isEditMode ? "保存修改" : "提交任务（消耗0积分）}"}
           </Button>
         </div>
       </SheetContent>

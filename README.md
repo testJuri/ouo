@@ -224,6 +224,10 @@ import { getResponseReader, parseJsonResponse } from "@/api"
 - `src/features/infinite-canvas/api/chat.ts`
   - 因为涉及流式输出，仍然使用 `fetch`
   - 但已复用 `src/api/core/fetch.ts`
+- `src/api/imageGenerationApi.ts`
+  - 业务图像生成接口封装（POST /api/v1/ai/images/generations）
+  - 支持模型：qwen-image-2.0/wanx2.1-t2i 等系列
+  - 提供快捷方法：`generate` / `quickGenerate` / `imageToImage`
 
 ### 约定
 
@@ -248,6 +252,32 @@ import { getResponseReader, parseJsonResponse } from "@/api"
 - 如果要继续整理，可以新增：
   - `src/api/services/xxx.ts`
   - `src/api/types.ts`
+
+### 图像生成 API 使用示例
+
+```ts
+import { imageGenerationApi, SUPPORTED_IMAGE_MODELS } from "@/api"
+
+// 完整参数生成
+const result = await imageGenerationApi.generate({
+  model: 'qwen-image-2.0',
+  prompt: '赛博朋克风格的城市夜景',
+  n: 2,
+  size: '1280x720',
+  negative_prompt: '模糊,低质量'
+})
+// result.data: [{ url: 'https://...' }, { url: 'https://...' }]
+
+// 快捷生成（返回 URL 数组）
+const urls = await imageGenerationApi.quickGenerate('一只可爱的猫咪')
+
+// 图生图
+const newUrls = await imageGenerationApi.imageToImage(
+  '转为水彩风格',
+  'https://example.com/original.jpg',
+  0.6  // 影响强度
+)
+```
 
 ## UI 与反馈约定
 

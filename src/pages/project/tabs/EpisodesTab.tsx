@@ -1,9 +1,18 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, MoreHorizontal, Play, Check } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Plus, MoreHorizontal, Play, Check, Pencil, Trash2, Copy } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useProjectStore } from "@/stores/projectStore"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import type { Episode } from "@/types"
+import { useState } from "react"
+import EpisodeCreator from "../EpisodeCreator"
 
 interface EpisodesTabProps {
   projectId?: number | null
@@ -25,7 +34,11 @@ export default function EpisodesTab({
   const navigate = useNavigate()
   const { id: routeProjectId } = useParams()
   const episodes = useProjectStore((state) => episodesProp ?? state.assets.episodes)
-  const { openDrawer } = useProjectStore()
+  const { updateEpisode, deleteEpisode, duplicateEpisode } = useProjectStore()
+  const { confirm, notify } = useFeedback()
+  
+  const [editEpisode, setEditEpisode] = useState<Episode | null>(null)
+  const [creatorOpen, setCreatorOpen] = useState(false)
 
   const handleEpisodeClick = (episodeId: number) => {
     if (batchMode) {
@@ -39,8 +52,45 @@ export default function EpisodesTab({
     if (onAddNew) {
       onAddNew()
     } else {
-      openDrawer("episode")
+      setEditEpisode(null)
+      setCreatorOpen(true)
     }
+  }
+
+  const handleEdit = (episode: Episode, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    setEditEpisode(episode)
+    setCreatorOpen(true)
+  }
+
+  const handleDelete = async (episode: Episode, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    const confirmed = await confirm({
+      title: "删除片段",
+      description: `确定要删除片段 "${episode.name}" 吗？删除后将无法恢复。`,
+      confirmText: "删除",
+      tone: "danger",
+    })
+    if (confirmed) {
+      await deleteEpisode(projectId ?? Number(routeProjectId), episode.id)
+      notify.success("片段已删除")
+    }
+  }
+
+  const handleDuplicate = async (episode: Episode, e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    await duplicateEpisode(projectId ?? Number(routeProjectId), episode.id)
+    notify.success("片段已复制")
+  }
+
+  const handleUpdate = async (data: { id: number; folderName: string; episodeCount: string; description: string }) => {
+    await updateEpisode(projectId ?? Number(routeProjectId), data.id, {
+      name: data.folderName,
+      description: data.description,
+    })
+    setCreatorOpen(false)
+    setEditEpisode(null)
+    notify.success("片段已更新")
   }
 
   return (
@@ -124,13 +174,34 @@ export default function EpisodesTab({
                 >
                   {episode.status === "draft" ? "继续编辑" : "查看详情"}
                 </Button>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="w-10 bg-white/20 backdrop-blur-md text-white py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
-                >
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="w-10 bg-white/20 backdrop-blur-md text-white py-2 rounded-lg border border-white/30 hover:bg-white/40 transition-colors"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={(e) => handleEdit(episode, e)}>
+                      <Pencil className="w-4 h-4 mr-2" />
+                      编辑
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => handleDuplicate(episode, e)}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      复制
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={(e) => handleDelete(episode, e)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      删除
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -146,6 +217,15 @@ export default function EpisodesTab({
         </div>
         )
       })}
+
+      {/* Episode Creator / Editor */}
+      <EpisodeCreator
+        open={creatorOpen}
+        onOpenChange={setCreatorOpen}
+        onUpdate={handleUpdate}
+        initialData={editEpisode}
+        mode={editEpisode ? 'edit' : 'create'}
+      />
     </div>
   )
 }

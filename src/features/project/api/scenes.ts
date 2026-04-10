@@ -21,7 +21,7 @@ const buildScenePayload = (data: SceneCreateData) => ({
 })
 
 export const scenesApi = {
-  async getAll(projectId: number): Promise<ApiResponse<Scene[]>> {
+  async getAll(projectId: number, status?: SceneDTO['status']): Promise<ApiResponse<Scene[]>> {
     if (isMockMode) {
       const result = await mockScenesApi.getAll(projectId)
       return successResponse(result.list as unknown as Scene[])
@@ -30,6 +30,7 @@ export const scenesApi = {
       {
         url: `/projects/${projectId}/scenes`,
         method: 'GET',
+        params: status ? { status } : undefined,
       },
       { list: [] },
       '获取场景列表失败',

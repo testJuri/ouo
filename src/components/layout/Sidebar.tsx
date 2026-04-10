@@ -20,9 +20,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import ApiKeySettings from "./ApiKeySettings"
 import ProjectCreator from "@/pages/ProjectCreator"
+import { getActiveProjectId, setActiveProjectId, getCurrentUser } from "@/lib/session"
+import { useProjectsStore, refreshProjects } from "@/store/projectsStore"
 import { projectsApi } from "@/api"
-import { getActiveProjectId, getCurrentUser, setActiveProjectId } from "@/lib/session"
-import { mapProjectCard } from "@/lib/projectMappers"
 import {
   IDENTITY_CHANGE_EVENT,
   getStoredIdentity,
@@ -55,7 +55,6 @@ const getProjectIdFromPath = (pathname: string) => {
 }
 
 export default function Sidebar() {
-  const [projects, setProjects] = useState<Array<{ id: number; name: string }>>([])
   const [currentProject, setCurrentProject] = useState<{ id: number; name: string } | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -65,48 +64,36 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const routeProjectId = getProjectIdFromPath(location.pathname)
   const activeProjectId = routeProjectId ?? currentProject?.id ?? getActiveProjectId() ?? undefined
+  
+  // 使用全局缓存的项目列表
+  const { projects: allProjects, isLoaded, fetchProjects } = useProjectsStore()
+  const projects = allProjects.map(p => ({ id: p.id, name: p.name }))
 
   const navItems = getNavItems(currentIdentity, activeProjectId)
 
+  // 自动加载项目列表（全局只请求一次）
   useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        const user = getCurrentUser()
-        const organizationId = user?.organizationIds?.[0]
-        const response = await projectsApi.list({ page: 1, size: 100, organizationId })
-        const mapped = response.list.map((item) => {
-          const project = mapProjectCard(item)
-          return { id: project.id, name: project.name }
-        })
-        setProjects(mapped)
+    if (!isLoaded) {
+      void fetchProjects()
+    }
+  }, [isLoaded, fetchProjects])
 
-        const preferredId = routeProjectId ?? getActiveProjectId() ?? mapped[0]?.id
-        const matched = mapped.find((project) => project.id === preferredId) || mapped[0] || null
-        setCurrentProject(matched)
-      } catch {
-        setProjects([])
+  // 同步当前项目（只在需要时更新）
+  useEffect(() => {
+    if (projects.length === 0) return
+    
+    const preferredId = routeProjectId ?? getActiveProjectId() ?? projects[0]?.id
+    const matched = projects.find((project) => project.id === preferredId) || projects[0] || null
+    
+    // 只有当项目真的变化时才更新，避免无限循环
+    if (matched && (!currentProject || currentProject.id !== matched.id)) {
+      setCurrentProject(matched)
+      if (routeProjectId && matched.id === routeProjectId) {
+        setActiveProjectId(matched.id)
       }
     }
-
-    void loadProjects()
-
-    // 监听项目列表刷新事件
-    const handleRefresh = () => void loadProjects()
-    window.addEventListener('projects:refresh', handleRefresh)
-
-    return () => {
-      window.removeEventListener('projects:refresh', handleRefresh)
-    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeProjectId])
-
-  useEffect(() => {
-    if (!routeProjectId || !projects.length) return
-    const matched = projects.find((project) => project.id === routeProjectId)
-    if (matched) {
-      setCurrentProject(matched)
-      setActiveProjectId(matched.id)
-    }
-  }, [projects, routeProjectId])
 
   useEffect(() => {
     const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
@@ -253,13 +240,8 @@ export default function Sidebar() {
             description: project.description,
             isPublic: false,
           })
-          // 刷新项目列表
-          const response = await projectsApi.list({ page: 1, size: 100, organizationId })
-          const mapped = response.list.map((item) => ({
-            id: item.id,
-            name: item.name,
-          }))
-          setProjects(mapped)
+          // 刷新全局项目列表
+          await refreshProjects()
           setIsProjectCreatorOpen(false)
         } catch (error) {
           console.error('创建项目失败:', error)

@@ -74,6 +74,8 @@ export interface Character {
   genMethod?: string
   model?: string
   description?: string
+  seed?: string
+  seedMode?: 'random' | 'fixed'
 }
 
 export interface CharacterCreateData {
@@ -104,6 +106,7 @@ export interface ObjectItem {
   scene: string
   modified: string
   description?: string
+  genMethod?: string
 }
 
 export interface ObjectCreateData {
