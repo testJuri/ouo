@@ -18,11 +18,13 @@ import {
   ImagePlus,
   Upload,
   ChevronDown,
-  Check
+  Check,
+  Loader2
 } from "lucide-react"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
 import { useImageModels } from "@/features/infinite-canvas/hooks"
+import { useUpload } from "@/hooks/useUpload"
 import type { Scene } from "@/types"
 
 export interface SceneCreateData {
@@ -79,6 +81,18 @@ export default function SceneCreator({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
 
+  // 使用上传 hook
+  const { uploading, progress, upload } = useUpload({
+    directory: 'scenes',
+    onSuccess: (url) => {
+      setReferenceImage(url)
+      notify.success('图片上传成功')
+    },
+    onError: (error) => {
+      notify.error(`上传失败: ${error.message}`)
+    },
+  })
+
   // 重置表单的回调函数
   const resetForm = useCallback(() => {
     setSceneName("")
@@ -110,13 +124,16 @@ export default function SceneCreator({
     { id: "upload", label: "自己上传图片" },
   ]
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setReferenceImage(url)
-      setBatchArchiveName("")
-    }
+    if (!file) return
+
+    // 使用真实上传
+    await upload(file)
+    setBatchArchiveName("")
+    
+    // 清空 input 以便可以重复选择同一文件
+    e.target.value = ''
   }
 
   const handleBatchUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -243,10 +260,18 @@ export default function SceneCreator({
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-[hsl(var(--on-surface))]">上传已有场景图</label>
                     <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="min-h-[260px] cursor-pointer overflow-hidden rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] group relative"
+                      onClick={() => !uploading && fileInputRef.current?.click()}
+                      className={`min-h-[260px] cursor-pointer overflow-hidden rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] group relative ${uploading ? 'pointer-events-none' : ''}`}
                     >
-                      {referenceImage ? (
+                      {uploading ? (
+                        <div className="flex h-full min-h-[260px] flex-col items-center justify-center gap-4 text-center">
+                          <Loader2 className="h-14 w-14 text-[hsl(var(--primary))] animate-spin" />
+                          <div className="space-y-1">
+                            <p className="text-xl font-medium text-[hsl(var(--on-surface))]">正在上传...</p>
+                            <p className="text-sm text-[hsl(var(--secondary))]">{progress}%</p>
+                          </div>
+                        </div>
+                      ) : referenceImage ? (
                         <>
                           <img src={referenceImage} alt="上传已有场景图" className="absolute inset-0 h-full w-full object-cover" />
                           <div className="absolute inset-0 flex items-center justify-center bg-black/35 opacity-0 transition-opacity group-hover:opacity-100">
@@ -372,10 +397,13 @@ export default function SceneCreator({
                     <div className="flex gap-4">
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex h-28 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                        onClick={() => !uploading && fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex h-28 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))] disabled:opacity-50"
                       >
-                        {referenceImage ? (
+                        {uploading ? (
+                          <Loader2 className="h-7 w-7 animate-spin" />
+                        ) : referenceImage ? (
                           <img src={referenceImage} alt="场景参考图" className="h-full w-full object-cover" />
                         ) : (
                           <ImagePlus className="h-7 w-7" />
@@ -386,8 +414,9 @@ export default function SceneCreator({
                         <textarea
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
-                          placeholder="上传参考图、输入文字，描述你想生成的场景，包括空间构成、时间氛围、光线、材质、镜头语言等。"
-                          className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none"
+                          placeholder={uploading ? `正在上传... ${progress}%` : "上传参考图、输入文字，描述你想生成的场景，包括空间构成、时间氛围、光线、材质、镜头语言等。"}
+                          disabled={uploading}
+                          className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none disabled:opacity-50"
                         />
                       </div>
                     </div>

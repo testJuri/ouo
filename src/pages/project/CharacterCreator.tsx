@@ -14,8 +14,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { X, ChevronDown, ImagePlus, Copy, Check, Dice5, Lock, Upload } from "lucide-react"
+import { X, ChevronDown, ImagePlus, Copy, Check, Dice5, Lock, Upload, Loader2 } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useUpload } from "@/hooks/useUpload"
 import type { CharacterCreateData, Character } from "@/types"
 
 export interface CharacterEditData extends CharacterCreateData {
@@ -113,18 +114,33 @@ export default function CharacterCreator({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
 
+  // 使用上传 hook
+  const { uploading, progress, upload } = useUpload({
+    directory: 'characters',
+    onSuccess: (url) => {
+      setReferenceImage(url)
+      notify.success('图片上传成功')
+    },
+    onError: (error) => {
+      notify.error(`上传失败: ${error.message}`)
+    },
+  })
+
   const generationMethods = [
     { id: "model", label: "通过模型生成角色" },
     { id: "upload", label: "自己上传图片" },
     { id: "jurilu", label: "巨日禄标准生成器" },
   ]
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const url = URL.createObjectURL(file)
-      setReferenceImage(url)
-    }
+    if (!file) return
+
+    // 使用真实上传
+    await upload(file)
+    
+    // 清空 input 以便可以重复选择同一文件
+    e.target.value = ''
   }
 
   const handleApplyTemplate = () => {
@@ -443,10 +459,18 @@ export default function CharacterCreator({
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[hsl(var(--on-surface))]">上传已有角色图</label>
                   <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative"
+                    onClick={() => !uploading && fileInputRef.current?.click()}
+                    className={`min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative ${uploading ? 'pointer-events-none' : ''}`}
                   >
-                    {referenceImage ? (
+                    {uploading ? (
+                      <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3">
+                        <Loader2 className="h-12 w-12 text-[hsl(var(--primary))] animate-spin" />
+                        <div className="text-center space-y-1">
+                          <p className="text-base font-medium text-[hsl(var(--on-surface))]">正在上传...</p>
+                          <p className="text-sm text-[hsl(var(--secondary))]">{progress}%</p>
+                        </div>
+                      </div>
+                    ) : referenceImage ? (
                       <>
                         <img src={referenceImage} alt="上传已有角色图" className="absolute inset-0 h-full w-full object-cover" />
                         <div className="absolute inset-0 bg-black/35 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
@@ -495,10 +519,18 @@ export default function CharacterCreator({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[hsl(var(--on-surface))]">角色参考图</label>
                 <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative"
+                  onClick={() => !uploading && fileInputRef.current?.click()}
+                  className={`min-h-[220px] rounded-2xl border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-low))] transition-colors hover:bg-[hsl(var(--surface-container-high))] cursor-pointer group overflow-hidden relative ${uploading ? 'pointer-events-none' : ''}`}
                 >
-                  {referenceImage ? (
+                  {uploading ? (
+                    <div className="flex h-full min-h-[220px] flex-col items-center justify-center gap-3">
+                      <Loader2 className="h-12 w-12 text-[hsl(var(--primary))] animate-spin" />
+                      <div className="text-center space-y-1">
+                        <p className="text-base font-medium text-[hsl(var(--on-surface))]">正在上传...</p>
+                        <p className="text-sm text-[hsl(var(--secondary))]">{progress}%</p>
+                      </div>
+                    </div>
+                  ) : referenceImage ? (
                     <>
                       <img src={referenceImage} alt="角色参考图" className="absolute inset-0 h-full w-full object-cover" />
                       <div className="absolute inset-0 bg-black/35 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">

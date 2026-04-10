@@ -1,223 +1,182 @@
 # MangaCanvas 待办清单
 
-> 当前策略：**纯前端 Mock 闭环**，暂不接入真实 API。
+> 当前状态：**API 已大量对接**，剩余 35 个接口待接入。
 > 
-> **状态说明**: 后端开发中，所有数据操作均为本地模拟（localStorage + Zustand Store），接口已预留但暂未对接真实服务。
-> 
-> **后端开发请参考**: [`BACKEND_API_SPEC.md`](./BACKEND_API_SPEC.md)
+> **后端开发请参考**: [`BACKEND_API_SPEC_V2.md`](./BACKEND_API_SPEC_V2.md)
 
 ---
 
-## ✅ 已完成
+## 🔴 P0 — 核心阻塞（文件上传）
 
-### 架构优化 ✅
-- [x] **项目资产状态重构** (2025-04-05)
-  - 新增 `src/stores/projectStore.ts` - 集中管理项目资产状态
-  - 新增 `src/types/index.ts` - 统一类型定义
-  - 新增 `src/data/initialData.ts` - 分离 Mock 数据
-  - `ProjectDetail` 代码行数 -70%，从 374 行减至 112 行
-  - 各 Tab 组件直接订阅 Store，移除 props 传递
-
-- [x] 画廊页面（`/gallery`）与导航
-- [x] Dashboard 新建项目弹框（含表单验证与列表实时更新）
-- [x] 片段弹框 `EpisodeCreator.tsx` 提交逻辑（支持新建片段并实时显示）
-- [x] **项目列表页** (`/projects`) - 卡片网格展示，支持新建项目
-
-### P0 核心流程闭环 ✅
-- [x] **场景管理**
-  - `ScenesTab` state 化（支持外部控制或内部状态）
-  - `SceneCreator` 添加 `onCreate` 回调，支持表单提交
-  - 参考图本地上传预览（`URL.createObjectURL`）
-  - 卡片操作菜单：删除、复制
-  
-- [x] **角色管理**
-  - `CharactersTab` state 化，优化为 5-7 列紧凑布局
-  - `CharacterCreator` 添加 `onCreate` 回调
-  - 角色定位选择（主角/配角）
-  - 参考图本地上传预览
-  - 提示词模板一键填入
-  - 种子复制功能
-  - 卡片操作菜单：编辑、删除、复制
-  
-- [x] **物品管理**
-  - 创建 `ObjectsTab.tsx` 完整组件，优化为 6-10 列布局
-  - 创建 `ObjectCreator.tsx` 抽屉组件（名称+生成方式+上传）
-  - 参考图本地上传（单张+批量）
-  - 物品生成任务列表抽屉
-  - 卡片操作菜单：删除、复制
-
-- [x] **片段管理**
-  - 片段卡片添加场景效果图（Unsplash 高质量图片）
-  - 创建片段弹框：片段文件夹名称、片段数量、片段说明
-  - 剧本模式支持文件上传（TXT 格式，4MB 限制）
-  - 表单校验（必填字段验证）
-  - **片段详情页** (`/project/:id/episode/:episodeId`)
-    - 片段概览：名称、状态、进度、描述
-    - 登场角色列表（可添加/查看）
-    - 使用场景展示（缩略图+镜头数）
-    - 道具物品网格
-    - 分镜时间线（可点击编辑）
-    - 制作进度统计
-    - **标记完成功能**（联动列表页状态显示）
-
-### UI/UX 优化 ✅
-- [x] **顶部导航** - 个人中心下拉菜单（身份切换、我的主页、退出登录）
-- [x] **通知中心** - 右侧滑出侧边栏，展示消息列表，支持全部已读
-- [x] **项目切换** - 2秒 loading 动画后跳转工作台
-- [x] **密码输入** - 禁止输入中文字符
-- [x] **表单校验** - 所有 Creator 组件添加非空校验
-- [x] **浏览器标题** - 改为 "MangaCanvas - AI 漫画创作平台"
-- [x] **Footer** - 项目工作台和项目列表页补全 footer
-
-### 公共页面 ✅
-- [x] **服务条款页面** (`/terms`)
-- [x] **隐私政策页面** (`/privacy`)
-- [x] **联系我们页面** (`/contact`)
-- [x] **工作流页面** (`/workflow`)
+### 1. 文件上传模块 🚧
+- [x] `POST /api/v1/upload/presigned` - 预签名上传 URL
+- [x] `POST /api/v1/upload/confirm` - 上传完成确认
+- [x] 创建 `uploadApi` 模块
+- [x] 创建 `useUpload` / `useMultiUpload` Hooks
+- [x] **Creator 组件对接真实上传** ✅
+  - [x] `CharacterCreator` - 角色参考图上传
+  - [x] `SceneCreator` - 场景参考图上传
+  - [x] `ObjectCreator` - 物品参考图上传
+  - [x] 替换 `URL.createObjectURL` 为真实上传流程
 
 ---
 
-## 🔴 P0 — 核心创作流程闭环（剩余）
+## 🔴 P0 — 核心流程
 
-### 1. 卡片编辑功能 ✅
-- [x] 场景卡片 - `编辑` 按钮打开 `SceneCreator` 回显数据
-- [x] 角色卡片 - `编辑` 按钮打开 `CharacterCreator` 回显数据
-- [x] 物品卡片 - `编辑` 按钮打开 `ObjectCreator` 回显数据
-- [x] 片段卡片 - `⋯` 更多按钮 DropdownMenu：编辑、删除、复制
-
-### 1.1 片段卡片交互变更（新需求）
+### 2. 片段卡片交互变更
 - [ ] 点击片段卡片 → 展开抽屉（而非跳转页面）
 - [ ] 抽屉内支持文生视频 / 图生视频操作
 - [ ] 移除片段详情页独立路由（或保留为备用入口）
 
 ---
 
-## 🟠 P1 — Dashboard 与导航闭环
+## 🟠 P1 — 重要功能（API 对接）
 
-### 2. Dashboard 功能补全
-- [ ] 项目卡片更多操作（DropdownMenu：重命名、删除、复制）
-- [ ] 侧边栏导航高亮（仪表盘/项目当前页高亮）
-- [ ] 侧边栏其他页面壳（资源 / 团队 / 设置 / 分析）
-- [x] 移除侧边栏底部个人中心入口（改为仅通过顶部导航访问）
-- [x] 工作台页面重新设计 - 突出无限画布入口
+### 3. 组织管理模块
+- [ ] `POST /api/v1/organizations` - 创建组织
+- [ ] `GET /api/v1/organizations` - 组织列表
+- [ ] `GET /api/v1/organizations/{id}` - 组织详情
+- [ ] `POST /api/v1/organizations/{id}/members` - 添加成员
+- [ ] `DELETE /api/v1/organizations/{id}/members/{userId}` - 移除成员
+- [ ] `GET /api/v1/users/me/organizations` - 我的组织列表
 
-### 2.1 文档与工程收尾
-- [ ] README 再做一轮去重，避免与 `BACKEND_API_SPEC.md`、`src/features/infinite-canvas/styles/README.md` 重复
-- [ ] 补一份“前端页面真实入口图”，明确 `src/pages/project/index.tsx` 才是当前项目工作台主入口，避免继续误用旧的 `src/pages/ProjectDetail.tsx`
-- [ ] 梳理并标记历史遗留页面/文件（如 `src/pages/ProjectDetail.tsx`），决定是删除、归档还是在 README 中明确“仅历史参考”
-- [ ] 给请求层补一个最小业务示例（推荐 `src/api/services/project.ts`），让后续新增接口有统一模板
-- [ ] 评估是否把 `src/api/projectApi.ts` 的 mock API 与 `src/stores/projectStore.ts` 的本地 CRUD 做职责收敛，避免两套 mock 数据入口长期并存
-- [ ] 给身份系统补一份约定说明，明确“哪些身份可访问项目路由，哪些只能停留在 `/projects`”
+### 4. 项目管理补充
+- [ ] `POST /api/v1/projects/{id}/duplicate` - 复制项目
+- [ ] 片段关联管理 `PATCH /episodes/{id}/relations`
 
-### 3. 批量操作
-- [x] 批量删除 - 点击进入选择模式，卡片显示复选框，确认删除
+### 5. 画布工作流补充
+- [ ] `POST /api/v1/projects/{id}/canvas-workflows` - 创建工作流
+- [ ] `PUT /api/v1/projects/{id}/canvas-workflows/{id}` - 保存工作流
+- [ ] 工作流成员管理 CRUD
 
-### 4. `antd` 渐进替代方案
+### 6. 项目资产补充
+- [ ] `POST /api/v1/projects/{id}/assets` - 登记资产
+- [ ] `PUT /api/v1/projects/{id}/assets/{id}` - 更新资产
+- [ ] `DELETE /api/v1/projects/{id}/assets/{id}` - 删除资产
 
-> 目标：保持无限画布功能可用，逐步收敛到 `shadcn/ui + Radix + Tailwind`，避免一次性重写引入大回归。
+### 7. AI 模型网关 - 核心能力
+- [ ] `POST /api/v1/ai/chat/completions` - 文本对话
+- [ ] `POST /api/v1/ai/video/generations` - 视频生成（文生视频/图生视频）
 
-#### Phase 1 - 先清理全局副作用与反馈层
-- [ ] 移除 `src/pages/project/WorkflowCanvas.tsx` 中的 `antd/dist/reset.css`
-- [ ] 为无限画布接入项目统一反馈层，替代 `antd message`
-- [ ] 将 `Canvas.tsx` 中的 `Modal.confirm` 替换为项目内确认弹层
-- [ ] 将 `Canvas.tsx` / 节点工具栏中的 `Tooltip` 替换为项目内 tooltip / title 方案
-- [ ] 约束原则：先替代全局弹层和 portal，优先消除遮挡、点击失效、body scroll lock 一类问题
-
-#### Phase 2 - 替换画布外层弹窗与面板
-- [ ] 替换 `src/features/infinite-canvas/components/ApiSettings.tsx` 的 `antd Modal/Form/Input/Button`
-- [ ] 替换 `src/features/infinite-canvas/components/DownloadModal.tsx`
-- [ ] 替换 `src/features/infinite-canvas/components/PreviewModal.tsx`
-- [ ] 替换 `src/features/infinite-canvas/components/SaveToMaterialsModal.tsx`
-- [ ] 收敛画布页顶部与侧边面板的图标来源，优先改用 `lucide-react`
-
-#### Phase 3 - 替换节点内部表单控件
-- [ ] 替换 `nodes/TextNode.tsx` 的 `Input/Button/Tooltip`
-- [ ] 替换 `nodes/ImageNode.tsx` 的 `Input/Upload/Spin/Tooltip`
-- [ ] 替换 `nodes/ImageConfigNode.tsx` 的 `Input/Select/Button`
-- [ ] 替换 `nodes/VideoConfigNode.tsx` 的 `Input/Select/Button`
-- [ ] 替换 `nodes/EffectConfigNode.tsx` 的 `Input/Select`
-- [ ] 替换 `nodes/TemplateEffectNode.tsx` 的 `Input/Select/Button`
-- [ ] 替换 `nodes/VideoNode.tsx` 的 `Input`
-
-#### Phase 4 - 收尾与依赖下线
-- [ ] 全仓搜索确认无 `from "antd"` / `from 'antd'`
-- [ ] 全仓搜索确认无 `@ant-design/icons`
-- [ ] 删除 `package.json` 中 `antd` 与 `@ant-design/icons`
-- [ ] 跑通 `npm run build` 与关键交互回归
-- [ ] 补一份迁移记录：哪些交互用 shadcn，哪些保留为自定义画布原生 UI
-
-#### 迁移原则
-- [ ] 不在同一轮同时重写节点逻辑与视觉样式
-- [ ] 每次只替换一类 primitive，先保证行为一致，再做视觉统一
-- [ ] 优先替换会创建 portal / overlay / body 锁定的组件
-- [ ] 新增交互一律不再引入 `antd`
+### 8. 积分系统
+- [ ] `GET /api/v1/credits` - 积分余额
+- [ ] `GET /api/v1/credits/history` - 积分流水
 
 ---
 
-## 🟡 P2 — 认证与首页交互
+## 🟠 P1 — Dashboard 与导航
 
-### 4. 认证系统
-- [x] 登录/注册表单提交，localStorage 存储用户
-- [x] 登录页自动填充 Mock 数据
-- [x] 移除第三方登录（Google/GitHub）
-- [ ] Header 根据 localStorage 显示用户头像
+### 9. Dashboard 功能补全
+- [ ] 项目卡片更多操作（DropdownMenu：重命名、删除、复制）
+- [ ] 侧边栏导航高亮（仪表盘/项目当前页高亮）
+- [ ] 侧边栏其他页面壳（资源 / 团队 / 设置 / 分析）
 
-### 5. 首页交互
+### 10. 文档与工程收尾
+- [ ] README 去重，避免与 `BACKEND_API_SPEC.md` 重复
+- [x] 补全请求层使用文档（上传 API、useUpload Hook）✅
+- [ ] 补一份"前端页面真实入口图"，明确 `src/pages/project/index.tsx` 才是当前项目工作台主入口
+- [ ] 梳理并标记历史遗留页面/文件（如 `src/pages/ProjectDetail.tsx`）
+- [ ] 给请求层补一个最小业务示例（推荐 `src/api/services/project.ts`）
+
+---
+
+## 🟡 P2 — 辅助功能（API 对接）
+
+### 11. 认证补充
+- [ ] `POST /api/v1/auth/oauth/{provider}` - OAuth 登录
+- [ ] `GET /api/v1/health` - 健康检查
+
+### 12. AI 模型网关 - 扩展能力
+- [ ] `POST /api/v1/ai/audio/speech` - 语音合成（TTS）
+- [ ] `POST /api/v1/ai/embeddings` - 文本向量化
+- [ ] `GET /api/v1/ai/models` - 模型列表
+- [ ] `GET /api/v1/ai/balance` - 余额查询
+- [ ] `GET /api/v1/ai/bills` - 账单记录
+
+### 13. 计费额度
+- [ ] `GET /api/v1/billing/enterprise/quota` - 企业额度
+- [ ] `GET /api/v1/billing/organizations/{id}/quota` - 组织额度
+- [ ] `GET /api/v1/billing/projects/{id}/quota` - 项目额度
+- [ ] `GET /api/v1/billing/projects/{id}/users/{userId}/quota` - 用户项目额度
+
+---
+
+## 🟡 P2 — 认证与首页
+
+### 14. 认证系统
+- [ ] Header 根据登录状态显示用户头像
+
+### 15. 首页交互
 - [ ] 场景编排卡片点击跳转 `/dashboard`
 
 ---
 
-## 🟢 P3 — 项目详情页的辅助功能
+## 🟢 P3 — 辅助功能
 
-### 6. 顶部操作按钮
+### 16. 顶部操作按钮
 - [ ] 导出视频 - Mock 提示
 - [ ] 分享 - 复制当前 URL
 
 ---
 
-## 🔵 P4 — 高级功能（规划中）
+## 🔵 P4 — 高级功能
 
-### 7. 图片改创 (`remix` tab)
+### 17. 图片改创 (`remix` tab)
 - [ ] 创建 `RemixTab.tsx`（原图上传+风格选择+生成结果）
 - [ ] Mock 生成流程
 
-### 8. Pricing CTA 闭环
+### 18. Pricing CTA 闭环
 - [ ] 立即升级 → 支付模拟 Dialog
 - [ ] 联系销售 → 跳转 `/contact`
 
 ---
 
-## 🟣 P5 — 体验优化与 Polish
+## 🟣 P5 — 体验优化
 
-### 9. 动画与过渡
+### 19. 动画与过渡
 - [ ] 卡片进入动画（stagger 效果）
 - [ ] 页面切换过渡效果
 
-### 10. 空状态设计
+### 20. 空状态设计
 - [ ] 各标签页空状态插图和文案
 
-### 11. 响应式优化
+### 21. 响应式优化
 - [ ] 移动端侧边栏折叠
 - [ ] 抽屉移动端全屏
 
 ---
 
-## ⚪ P6 — 后端接入（等待后端开发完成）
+## 🐜 antd 渐进替代方案
 
-> **当前状态**: 后端开发中，前端已完成接口预留和 Mock 实现
+> 目标：逐步收敛到 `shadcn/ui + Radix + Tailwind`
 
-- [ ] 替换 Mock 数据为真实 API (`src/api/*` 已预留接口)
-- [ ] 接入 React Query / TanStack Query
-- [ ] 用户认证 JWT 全局管理
-- [ ] 真实 AI 生成服务对接
-- [ ] 文件上传接口（OSS / S3 直传）
+### Phase 1 - 先清理全局副作用与反馈层
+- [ ] 移除 `src/pages/project/WorkflowCanvas.tsx` 中的 `antd/dist/reset.css`
+- [ ] 为无限画布接入项目统一反馈层，替代 `antd message`
+- [ ] 将 `Canvas.tsx` 中的 `Modal.confirm` 替换为项目内确认弹层
+- [ ] 将 `Canvas.tsx` / 节点工具栏中的 `Tooltip` 替换为项目内 tooltip / title 方案
 
-### 已预留但未对接的 API 模块
-| 模块 | 文件 | 说明 |
-|------|------|------|
-| 项目 API | `src/api/projectApi.ts` | 增删改查接口已定义，使用 mockPromise 模拟 |
-| 用户 API | `src/api/hooks.ts` | useUser/useProjects hooks 已预留，返回假数据 |
-| 场景/角色/物品 | `src/stores/projectStore.ts` | createScene/createCharacter/createObject 待接入真实 POST 请求 |
+### Phase 2 - 替换画布外层弹窗与面板
+- [ ] 替换 `src/features/infinite-canvas/components/ApiSettings.tsx`
+- [ ] 替换 `src/features/infinite-canvas/components/DownloadModal.tsx`
+- [ ] 替换 `src/features/infinite-canvas/components/PreviewModal.tsx`
+- [ ] 替换 `src/features/infinite-canvas/components/SaveToMaterialsModal.tsx`
+- [ ] 收敛画布页顶部与侧边面板的图标来源，优先改用 `lucide-react`
+
+### Phase 3 - 替换节点内部表单控件
+- [ ] 替换 `nodes/TextNode.tsx`
+- [ ] 替换 `nodes/ImageNode.tsx`
+- [ ] 替换 `nodes/ImageConfigNode.tsx`
+- [ ] 替换 `nodes/VideoConfigNode.tsx`
+- [ ] 替换 `nodes/EffectConfigNode.tsx`
+- [ ] 替换 `nodes/TemplateEffectNode.tsx`
+- [ ] 替换 `nodes/VideoNode.tsx`
+
+### Phase 4 - 收尾与依赖下线
+- [ ] 全仓搜索确认无 `from "antd"` / `from 'antd'`
+- [ ] 全仓搜索确认无 `@ant-design/icons`
+- [ ] 删除 `package.json` 中 `antd` 与 `@ant-design/icons`
+- [ ] 跑通 `npm run build` 与关键交互回归
 
 ---
 
@@ -225,57 +184,42 @@
 
 | 优先级 | 任务数 | 完成数 | 进度 |
 |--------|--------|--------|------|
-| ✅ P0 - 架构与核心 | 5 | 5 | 100% |
-| 🔴 P0 - 核心流程 | 28 | 22 | 78.6% |
-| 🟠 P1 - Dashboard | 6 | 1 | 16.7% |
-| 🟡 P2 - 认证与首页 | 5 | 3 | 60% |
-| 🟢 P3 - 辅助功能 | 4 | 0 | 0% |
-| 🔵 P4 - 高级功能 | 5 | 0 | 0% |
-| 🟣 P5 - 体验优化 | 6 | 0 | 0% |
-| ⚪ P6 - 后端接入 | 5 | 0 | 0% |
-| **总计** | **64** | **31** | **48.4%** |
+| 🔴 P0 - 核心阻塞 | 5 | 0 | 0% |
+| 🟠 P1 - 重要功能 | 22 | 0 | 0% |
+| 🟡 P2 - 辅助功能 | 16 | 0 | 0% |
+| 🟢 P3 - 辅助功能 | 2 | 0 | 0% |
+| 🔵 P4 - 高级功能 | 4 | 0 | 0% |
+| 🟣 P5 - 体验优化 | 5 | 0 | 0% |
+| 🐜 antd 替代 | 15 | 0 | 0% |
+| **总计** | **69** | **0** | **进行中** |
+
+### API 对接统计
+
+| 模块 | 已对接 | 未对接 | 总计 |
+|------|--------|--------|------|
+| Auth | 4 | 1 (OAuth) | 5 |
+| Organizations | 0 | 6 | 6 |
+| Projects | 6 | 2 | 8 |
+| Project Members | 4 | 0 | 4 |
+| Characters | 5 | 0 | 5 |
+| Scenes | 5 | 0 | 5 |
+| Objects | 5 | 0 | 5 |
+| Episodes | 5 | 1 | 6 |
+| Workflows | 3 | 3 | 6 |
+| Assets | 1 | 2 | 3 |
+| Upload | 4 | 0 | 4 |
+| AI Gateway | 1 | 7 | 8 |
+| Credits/Billing | 0 | 6 | 6 |
+| **总计** | **43** | **26** | **69** |
 
 ---
 
-*最后更新：2026-04-06*
-
-### 2026-04-06
-- ✅ 建立并收敛 axios 请求层：`src/api/core` + `src/api/clients`
-- ✅ 将 `axios` 固定到 `1.14.0`
-- ✅ 把 Infinite Canvas 的普通请求接入统一请求层
-- ✅ 为流式 `fetch` 请求补共享错误处理底座
-- ✅ 修复个人中心身份切换子菜单 hover 中断问题
-- ✅ 增加身份路由守卫：无项目权限身份自动离开 `/dashboard` 与 `/project/*`
-- ✅ 重写 README，使其更贴近当前代码状态
-
----
+*最后更新：2026-04-10*
 
 ## 📝 更新日志
 
-### 2026-04-06
-- ✅ 建立并收敛 axios 请求层：`src/api/core` + `src/api/clients`
-- ✅ 将 `axios` 固定到 `1.14.0`
-- ✅ 把 Infinite Canvas 的普通请求接入统一请求层
-- ✅ 为流式 `fetch` 请求补共享错误处理底座
-- ✅ 修复个人中心身份切换子菜单 hover 中断问题
-- ✅ 增加身份路由守卫：无项目权限身份自动离开 `/dashboard` 与 `/project/*`
-- ✅ 重写 README，使其更贴近当前代码状态
-- ✅ 批量删除功能实现
-
-### 2026-04-05
-- ✅ 补充无限画布 `antd` 渐进替代方案（分阶段迁移计划）
-- ✅ 片段详情页添加「标记完成」功能
-- ✅ 创建项目列表页 (`/projects`)
-- ✅ 新建项目支持剧本模式文件上传
-- ✅ 密码输入过滤中文字符
-- ✅ 项目切换添加 2 秒 loading 动画
-- ✅ 顶部导航添加通知中心侧边栏
-- ✅ 优化角色卡片布局（5-7 列）
-- ✅ 优化物品卡片布局（6-10 列）
-- ✅ 片段卡片添加场景效果图
-- ✅ 移除第三方登录选项
-- ✅ 个人中心下拉菜单优化
-- ✅ 所有 Creator 组件添加表单校验
-- ✅ 修改浏览器标题为 MangaCanvas
-- ✅ 项目切换后自动跳转工作台
-- ✅ 项目工作台和列表页补全 footer
+### 2026-04-10
+- 🔄 更新策略说明：API 已大量对接，不再是纯前端 Mock
+- 📝 重新梳理 API 对接情况，列出剩余 30 个待对接接口
+- ✅ 清理已完成的历史任务
+- 📝 重新整理待办清单，按优先级分类

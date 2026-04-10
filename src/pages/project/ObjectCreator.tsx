@@ -7,8 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { X, ImagePlus, Package, LayoutList, Check, ChevronDown, CheckCircle2, Clock } from "lucide-react"
+import { X, ImagePlus, Package, LayoutList, Check, ChevronDown, CheckCircle2, Clock, Loader2 } from "lucide-react"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
+import { useMultiUpload } from "@/hooks/useUpload"
 import type { ObjectItem } from "@/types"
 
 export interface ObjectCreateData {
@@ -68,32 +69,41 @@ export default function ObjectCreator({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const batchFileInputRef = useRef<HTMLInputElement>(null)
 
-  const appendReferenceImages = (files: FileList | File[]) => {
+  // 使用上传 hook（支持多文件）
+  const { uploading, uploadMultiple } = useMultiUpload({
+    directory: 'objects',
+  })
+
+  const appendReferenceImages = async (files: FileList | File[]) => {
     const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"))
     if (imageFiles.length === 0) return
 
-    const nextUrls = imageFiles.map((file) => URL.createObjectURL(file))
-    setReferenceImages((current) => [...current, ...nextUrls])
+    // 上传到服务器
+    const urls = await uploadMultiple(imageFiles)
+    if (urls.length > 0) {
+      setReferenceImages((current) => [...current, ...urls])
+      notify.success(`成功上传 ${urls.length} 张图片`)
+    }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isBatch = false) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isBatch = false) => {
     const files = e.target.files
     if (!files || files.length === 0) return
 
     if (isBatch) {
       notify.success(`已选择批量上传文件：${files[0].name}`)
     } else {
-      appendReferenceImages(files)
+      await appendReferenceImages(files)
     }
 
     e.target.value = ""
   }
 
-  const handleReferenceDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleReferenceDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsReferenceDragOver(false)
     if (e.dataTransfer.files.length > 0) {
-      appendReferenceImages(e.dataTransfer.files)
+      await appendReferenceImages(e.dataTransfer.files)
     }
   }
 
@@ -326,10 +336,15 @@ export default function ObjectCreator({
                     className="hidden"
                   />
                   <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[4/3] bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:border-[hsl(var(--primary))]/50 hover:bg-[hsl(var(--surface-container-high))] transition-all cursor-pointer group overflow-hidden"
+                    onClick={() => !uploading && fileInputRef.current?.click()}
+                    className={`aspect-[4/3] bg-[hsl(var(--surface-container-low))] rounded-xl border-2 border-dashed border-[hsl(var(--outline-variant))]/50 flex flex-col items-center justify-center gap-2 hover:border-[hsl(var(--primary))]/50 hover:bg-[hsl(var(--surface-container-high))] transition-all cursor-pointer group overflow-hidden ${uploading ? 'pointer-events-none' : ''}`}
                   >
-                    {referenceImages[0] ? (
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-8 h-8 text-[hsl(var(--primary))] animate-spin" />
+                        <span className="text-sm text-[hsl(var(--on-surface))]">正在上传...</span>
+                      </>
+                    ) : referenceImages[0] ? (
                       <img src={referenceImages[0]} alt="参考图" className="w-full h-full object-cover" />
                     ) : (
                       <>
@@ -443,10 +458,15 @@ export default function ObjectCreator({
                     {referenceImages.length === 0 ? (
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex h-28 w-24 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                        onClick={() => !uploading && fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex h-28 w-24 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/45 bg-[hsl(var(--surface-container-lowest))] text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))] disabled:opacity-50"
                       >
-                        <ImagePlus className="h-7 w-7" />
+                        {uploading ? (
+                          <Loader2 className="h-7 w-7 animate-spin" />
+                        ) : (
+                          <ImagePlus className="h-7 w-7" />
+                        )}
                       </button>
                     ) : null}
 
@@ -454,13 +474,14 @@ export default function ObjectCreator({
                       <textarea
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
-                        placeholder="上传参考图、输入文字，描述你想生成的图片。"
-                        className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none"
+                        placeholder={uploading ? "正在上传..." : "上传参考图、输入文字，描述你想生成的图片。"}
+                        disabled={uploading}
+                        className="min-h-[110px] w-full resize-none bg-transparent text-base text-[hsl(var(--on-surface))] placeholder:text-[hsl(var(--secondary))] focus:outline-none disabled:opacity-50"
                       />
                     </div>
                   </div>
 
-                  {referenceImages.length > 0 ? (
+                  {referenceImages.length > 0 || uploading ? (
                     <div className="mt-4 flex flex-wrap gap-3">
                       {referenceImages.map((image, index) => (
                         <div
@@ -477,10 +498,16 @@ export default function ObjectCreator({
                           </button>
                         </div>
                       ))}
+                      {uploading && (
+                        <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/40">
+                          <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--primary))]" />
+                        </div>
+                      )}
                       <button
                         type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/40 text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))]"
+                        onClick={() => !uploading && fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-[hsl(var(--outline-variant))]/40 text-[hsl(var(--secondary))] transition-all hover:border-[hsl(var(--primary))]/45 hover:text-[hsl(var(--primary))] disabled:opacity-50"
                       >
                         <ImagePlus className="h-5 w-5" />
                       </button>

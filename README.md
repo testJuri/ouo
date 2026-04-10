@@ -172,6 +172,12 @@ src/
 - `src/api/index.ts`
   - API 统一出口
   - 新代码优先从这里 import
+- `src/api/uploadApi.ts`
+  - 文件上传专用 API
+  - 支持预签名上传流程：获取 URL → 直传 OSS → 确认完成
+- `src/hooks/useUpload.ts`
+  - 文件上传 React Hook
+  - 提供 `useUpload`（单文件）和 `useMultiUpload`（多文件）
 
 ### 现有使用方式
 
@@ -277,6 +283,70 @@ const newUrls = await imageGenerationApi.imageToImage(
   'https://example.com/original.jpg',
   0.6  // 影响强度
 )
+```
+
+### 文件上传使用示例
+
+**方式一：使用 Hook（推荐）**
+
+```ts
+import { useUpload } from "@/hooks/useUpload"
+
+// 在组件中使用
+const { uploading, progress, upload } = useUpload({
+  directory: 'characters',  // 上传目录：characters / scenes / objects
+  onSuccess: (url) => {
+    console.log('上传成功:', url)  // https://cdn.xxx/xxx.jpg
+  },
+  onError: (error) => {
+    console.error('上传失败:', error.message)
+  },
+})
+
+// 上传按钮点击事件
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (file) {
+    await upload(file)  // 自动完成预签名 → 直传 OSS → 确认流程
+  }
+}
+```
+
+**多文件上传**
+
+```ts
+import { useMultiUpload } from "@/hooks/useUpload"
+
+const { uploading, uploadMultiple } = useMultiUpload({
+  directory: 'objects',
+})
+
+// 批量上传
+const handleMultipleFiles = async (files: File[]) => {
+  const urls = await uploadMultiple(files)
+  console.log('上传完成:', urls)  // ['https://cdn.xxx/1.jpg', 'https://cdn.xxx/2.jpg']
+}
+```
+
+**方式二：直接使用 API**
+
+```ts
+import { uploadApi } from "@/api"
+
+// 完整上传流程（单文件）
+const url = await uploadApi.uploadSingleFile(file, 'scenes')
+
+// 分步调用
+const presigned = await uploadApi.getPresignedUrl({
+  filename: 'image.jpg',
+  contentType: 'image/jpeg',
+  directory: 'objects',
+})
+await uploadApi.uploadToOSS(presigned.uploadUrl, file, file.type)
+await uploadApi.confirmUpload({
+  accessUrl: presigned.accessUrl,
+  directory: 'objects',
+})
 ```
 
 ## UI 与反馈约定
