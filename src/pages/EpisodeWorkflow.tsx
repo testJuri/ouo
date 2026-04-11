@@ -16,6 +16,8 @@ import {
   Film
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AddCharacterDialog } from "@/components/AddCharacterDialog"
+import { AddSceneDialog } from "@/components/AddSceneDialog"
 
 // 工作流步骤
 const workflowSteps = [
@@ -219,6 +221,12 @@ function ScriptSection({ summary }: { summary: string }) {
 // 角色设计师模块
 function CharacterDesigner({ characters }: { characters: typeof mockCharacters }) {
   const [isExpanded, setIsExpanded] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  
+  const handleAddCharacter = (data: { name: string; prompt: string }) => {
+    console.log("添加角色:", data)
+    // TODO: 调用 API 添加角色
+  }
   
   return (
     <div id="section-characters" className="glass-panel rounded-2xl overflow-hidden mb-6 scroll-mt-24">
@@ -237,12 +245,20 @@ function CharacterDesigner({ characters }: { characters: typeof mockCharacters }
           <Button 
             size="sm" 
             className="bg-white/10 text-white hover:bg-white/15 border border-white/10"
+            onClick={() => setDialogOpen(true)}
           >
             <Plus className="w-4 h-4 mr-1" />
             添加
           </Button>
         </div>
       </div>
+      
+      {/* Add Character Dialog */}
+      <AddCharacterDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onConfirm={handleAddCharacter}
+      />
       
       {/* Content */}
       {isExpanded && (
@@ -284,9 +300,15 @@ function CharacterDesigner({ characters }: { characters: typeof mockCharacters }
   )
 }
 
-// 场景设计模块（占位）
+// 场景设计模块
 function SceneDesigner() {
   const [isExpanded, setIsExpanded] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  
+  const handleAddScene = (data: { name: string; prompt: string; image?: File }) => {
+    console.log("添加场景:", data)
+    // TODO: 调用 API 添加场景
+  }
   
   return (
     <div id="section-scenes" className="glass-panel rounded-2xl overflow-hidden mb-6 scroll-mt-24">
@@ -304,12 +326,20 @@ function SceneDesigner() {
           <Button 
             size="sm" 
             className="bg-white/10 text-white hover:bg-white/15 border border-white/10"
+            onClick={() => setDialogOpen(true)}
           >
             <Plus className="w-4 h-4 mr-1" />
             添加
           </Button>
         </div>
       </div>
+      
+      {/* Add Scene Dialog */}
+      <AddSceneDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onConfirm={handleAddScene}
+      />
       {isExpanded && (
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-12 text-white/40">
