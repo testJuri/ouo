@@ -838,8 +838,8 @@ export default function EpisodeWorkflow() {
       />
       
       {/* Main Content */}
-      <main className="pt-20 pb-12 px-8 pr-48">
-        <div className="max-w-4xl mx-auto">
+      <main className="pt-20 pb-12 px-8 pr-40">
+        <div className="max-w-6xl mx-auto">
           {/* Script Section */}
           <ScriptSection summary={mockScript.summary} />
           
