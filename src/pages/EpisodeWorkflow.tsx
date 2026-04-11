@@ -194,7 +194,7 @@ function parseScript(summary: string) {
 
 // 编剧/剧本摘要模块
 function ScriptSection({ summary }: { summary: string }) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const scriptContent = parseScript(summary)
   
