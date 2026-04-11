@@ -14,6 +14,7 @@ import {
   Loader2
 } from "lucide-react"
 import { StyleSelectorDialog, type StyleOption } from "@/components/StyleSelectorDialog"
+import { AddCharacterDialog } from "@/components/AddCharacterDialog"
 import {
   IDENTITY_CHANGE_EVENT,
   canAccessProjectRoutes,
@@ -179,9 +180,15 @@ function CreatorPanel() {
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9')
   const [styleDialogOpen, setStyleDialogOpen] = useState(false)
   const [selectedStyle, setSelectedStyle] = useState<StyleOption | null>(null)
+  const [characterDialogOpen, setCharacterDialogOpen] = useState(false)
   
   const handleStyleSelect = (style: StyleOption) => {
     setSelectedStyle(style)
+  }
+  
+  const handleAddCharacter = (data: { name: string; prompt: string }) => {
+    console.log("添加角色:", data)
+    // TODO: 调用 API 添加角色
   }
   
   return (
@@ -202,9 +209,12 @@ function CreatorPanel() {
 
         {/* 功能按钮行 */}
         <div className="flex flex-wrap items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all">
+          <button 
+            onClick={() => setCharacterDialogOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+          >
             <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">剧本</span>
+            <span className="text-sm font-medium">角色</span>
           </button>
 
           <button 
@@ -262,6 +272,13 @@ function CreatorPanel() {
       onOpenChange={setStyleDialogOpen}
       onSelect={handleStyleSelect}
       selectedStyleId={selectedStyle?.id}
+    />
+    
+    {/* 添加角色弹框 */}
+    <AddCharacterDialog
+      open={characterDialogOpen}
+      onOpenChange={setCharacterDialogOpen}
+      onConfirm={handleAddCharacter}
     />
     </>
   )
