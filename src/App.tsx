@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { StyleSelectorDialog, type StyleOption } from "@/components/StyleSelectorDialog"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
+import { AddSceneDialog } from "@/components/AddSceneDialog"
 import {
   IDENTITY_CHANGE_EVENT,
   canAccessProjectRoutes,
@@ -181,6 +182,7 @@ function CreatorPanel() {
   const [styleDialogOpen, setStyleDialogOpen] = useState(false)
   const [selectedStyle, setSelectedStyle] = useState<StyleOption | null>(null)
   const [characterDialogOpen, setCharacterDialogOpen] = useState(false)
+  const [sceneDialogOpen, setSceneDialogOpen] = useState(false)
   
   const handleStyleSelect = (style: StyleOption) => {
     setSelectedStyle(style)
@@ -189,6 +191,11 @@ function CreatorPanel() {
   const handleAddCharacter = (data: { name: string; prompt: string }) => {
     console.log("添加角色:", data)
     // TODO: 调用 API 添加角色
+  }
+  
+  const handleAddScene = (data: { name: string; prompt: string; image?: File }) => {
+    console.log("添加场景:", data)
+    // TODO: 调用 API 添加场景
   }
   
   return (
@@ -209,6 +216,14 @@ function CreatorPanel() {
 
         {/* 功能按钮行 */}
         <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => setSceneDialogOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">场景</span>
+          </button>
+
           <button 
             onClick={() => setCharacterDialogOpen(true)}
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
@@ -279,6 +294,13 @@ function CreatorPanel() {
       open={characterDialogOpen}
       onOpenChange={setCharacterDialogOpen}
       onConfirm={handleAddCharacter}
+    />
+    
+    {/* 添加场景弹框 */}
+    <AddSceneDialog
+      open={sceneDialogOpen}
+      onOpenChange={setSceneDialogOpen}
+      onConfirm={handleAddScene}
     />
     </>
   )
