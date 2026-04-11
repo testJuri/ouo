@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
 import { AddSceneDialog } from "@/components/AddSceneDialog"
 import { AddPropDialog } from "@/components/AddPropDialog"
+import { ScriptPreviewDialog } from "@/components/ScriptPreviewDialog"
 
 // 工作流步骤
 const workflowSteps = [
@@ -180,19 +181,22 @@ function StepSidebar({
   )
 }
 
-// 编剧/剧本摘要模块
-function ScriptSection({ summary }: { summary: string }) {
-  const [isExpanded, setIsExpanded] = useState(true)
-  const [previewOpen, setPreviewOpen] = useState(false)
-  
-  // 解析剧本内容
-  const scriptContent = {
+// 解析剧本内容的辅助函数
+function parseScript(summary: string) {
+  return {
     title: summary.match(/^(.*?) 画面：/)?.[1] || "",
     scene: summary.match(/画面：\s*(.+?)(?=剧情：)/s)?.[1]?.trim() || "",
     plot: summary.match(/剧情：\s*(.+?)(?=变故：)/s)?.[1]?.trim() || "",
     twist: summary.match(/变故：\s*(.+?)(?=结尾：)/s)?.[1]?.trim() || "",
     ending: summary.match(/结尾：\s*(.+)$/s)?.[1]?.trim() || "",
   }
+}
+
+// 编剧/剧本摘要模块
+function ScriptSection({ summary }: { summary: string }) {
+  const [isExpanded, setIsExpanded] = useState(true)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const scriptContent = parseScript(summary)
   
   return (
     <div id="section-script" className="glass-panel rounded-2xl overflow-hidden mb-6 scroll-mt-24">
@@ -222,64 +226,11 @@ function ScriptSection({ summary }: { summary: string }) {
       </div>
       
       {/* Preview Dialog */}
-      {previewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-          <div className="bg-[#0a0c12] rounded-2xl w-full max-w-3xl mx-4 max-h-[85vh] flex flex-col border border-white/10">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-              <h3 className="text-xl font-semibold text-white">剧本摘要</h3>
-              <button 
-                onClick={() => setPreviewOpen(false)}
-                className="text-white/50 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            {/* Content */}
-            <div className="p-6 overflow-y-auto">
-              <div className="bg-[#0d1020] rounded-xl p-6 border border-blue-500/20">
-                {/* Title */}
-                <h4 className="text-lg font-medium text-white mb-6">
-                  {scriptContent.title}
-                </h4>
-                
-                {/* Scene */}
-                <div className="mb-6">
-                  <span className="text-white/90 font-medium">画面：</span>
-                  <span className="text-white/80 leading-relaxed ml-1">
-                    {scriptContent.scene}
-                  </span>
-                </div>
-                
-                {/* Plot */}
-                <div className="mb-6">
-                  <span className="text-white/90 font-medium">剧情：</span>
-                  <span className="text-white/80 leading-relaxed ml-1">
-                    {scriptContent.plot}
-                  </span>
-                </div>
-                
-                {/* Twist */}
-                <div className="mb-6">
-                  <span className="text-white/90 font-medium">变故：</span>
-                  <span className="text-white/80 leading-relaxed ml-1">
-                    {scriptContent.twist}
-                  </span>
-                </div>
-                
-                {/* Ending */}
-                <div>
-                  <span className="text-white/90 font-medium">结尾：</span>
-                  <span className="text-white/80 leading-relaxed ml-1">
-                    {scriptContent.ending}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ScriptPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        script={scriptContent}
+      />
       
       {/* Content */}
       {isExpanded && (
