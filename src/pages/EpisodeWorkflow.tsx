@@ -15,7 +15,13 @@ import {
   LayoutGrid,
   Film,
   Pencil,
-  Download
+  Download,
+  History,
+  Copy,
+  Maximize,
+  Volume2,
+  Pause,
+  X
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
@@ -586,12 +592,38 @@ function StoryboardDesigner() {
   )
 }
 
-// 最终成片模块（占位）
+// 最终成片模块
 function FinalVideo() {
   const [isExpanded, setIsExpanded] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [currentTime] = useState(0)
+  void currentTime;
+  const [duration] = useState(14) // 14秒视频
+  const [showSynthesisModal, setShowSynthesisModal] = useState(false)
+  
+  // 模拟视频数据
+  const videoData = {
+    poster: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=1067&fit=crop",
+    versions: [
+      { id: 1, date: "2024-01-15 14:32", duration: "00:14", isActive: true },
+      { id: 2, date: "2024-01-15 12:10", duration: "00:14", isActive: false },
+      { id: 3, date: "2024-01-14 18:45", duration: "00:14", isActive: false },
+    ]
+  }
+  
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+  
+  const handleSynthesis = () => {
+    setShowSynthesisModal(true)
+  }
   
   return (
     <div id="section-final" className="glass-panel rounded-2xl overflow-hidden scroll-mt-24">
+      {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
         <h2 className="text-lg font-medium text-white">最终成片</h2>
         <div className="flex items-center gap-2">
@@ -604,19 +636,143 @@ function FinalVideo() {
             <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? "" : "-rotate-90"}`} />
           </Button>
           <Button 
+            variant="ghost" 
             size="sm" 
-            className="bg-white/10 text-white hover:bg-white/15 border border-white/10"
+            className="text-white/70 hover:text-white hover:bg-white/10"
           >
-            <Film className="w-4 h-4 mr-1" />
-            导出
+            <History className="w-4 h-4 mr-1.5" />
+            历史版本
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <Copy className="w-4 h-4 mr-1.5" />
+            复制视频链接
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <Download className="w-4 h-4 mr-1.5" />
+            下载成片
+          </Button>
+          <Button 
+            size="sm" 
+            className="bg-amber-500/90 text-black hover:bg-amber-500 font-medium"
+            onClick={handleSynthesis}
+          >
+            <Sparkles className="w-4 h-4 mr-1.5" />
+            合成最终成片
           </Button>
         </div>
       </div>
+      
       {isExpanded && (
         <div className="p-6">
-          <div className="flex flex-col items-center justify-center py-12 text-white/40">
-            <Film className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-sm">视频生成后在此预览</p>
+          {/* Video Player Container */}
+          <div className="relative bg-black/60 rounded-2xl overflow-hidden">
+            {/* Video */}
+            <div className="relative aspect-[9/16] max-w-sm mx-auto">
+              <img 
+                src={videoData.poster}
+                alt="视频封面"
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Play Button Overlay */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                  <button 
+                    onClick={() => setIsPlaying(true)}
+                    className="w-20 h-20 rounded-full bg-white/90 hover:bg-white flex items-center justify-center transition-all hover:scale-105"
+                  >
+                    <Play className="w-8 h-8 text-black ml-1" fill="currentColor" />
+                  </button>
+                </div>
+              )}
+              
+              {/* Video Controls */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                {/* Progress Bar */}
+                <div className="w-full h-1 bg-white/20 rounded-full mb-4 cursor-pointer">
+                  <div 
+                    className="h-full bg-white/60 rounded-full"
+                    style={{ width: `${(currentTime / duration) * 100}%` }}
+                  />
+                </div>
+                
+                {/* Control Buttons */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <button 
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="text-white hover:text-white/80 transition-colors"
+                    >
+                      {isPlaying ? (
+                        <Pause className="w-5 h-5" fill="currentColor" />
+                      ) : (
+                        <Play className="w-5 h-5" fill="currentColor" />
+                      )}
+                    </button>
+                    <button className="text-white hover:text-white/80 transition-colors">
+                      <Volume2 className="w-5 h-5" />
+                    </button>
+                    <span className="text-white/80 text-sm font-mono">
+                      {formatTime(currentTime)} / {formatTime(duration)}
+                    </span>
+                  </div>
+                  <button className="text-white hover:text-white/80 transition-colors">
+                    <Maximize className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Hint Text */}
+          <p className="mt-4 text-sm text-white/40">
+            可以在右上角切换历史版本，也可以直接下载当前选中的成片。
+          </p>
+        </div>
+      )}
+      
+      {/* Synthesis Modal */}
+      {showSynthesisModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="bg-[#1a1d24] rounded-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-white">合成最终成片</h3>
+              <button 
+                onClick={() => setShowSynthesisModal(false)}
+                className="text-white/50 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-white/60 text-sm mb-6">
+              确定要开始合成最终成片吗？此过程可能需要几分钟时间。
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowSynthesisModal(false)}
+                className="text-white/70 hover:text-white hover:bg-white/10"
+              >
+                取消
+              </Button>
+              <Button 
+                className="bg-amber-500/90 text-black hover:bg-amber-500 font-medium"
+                onClick={() => {
+                  setShowSynthesisModal(false)
+                  console.log("开始合成...")
+                }}
+              >
+                确认合成
+              </Button>
+            </div>
           </div>
         </div>
       )}
