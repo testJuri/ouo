@@ -13,11 +13,14 @@ import {
   Image as ImageIcon,
   Box,
   LayoutGrid,
-  Film
+  Film,
+  Pencil,
+  Download
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
 import { AddSceneDialog } from "@/components/AddSceneDialog"
+import { AddPropDialog } from "@/components/AddPropDialog"
 
 // 工作流步骤
 const workflowSteps = [
@@ -352,9 +355,15 @@ function SceneDesigner() {
   )
 }
 
-// 道具设计模块（占位）
+// 道具设计模块
 function PropDesigner() {
   const [isExpanded, setIsExpanded] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  
+  const handleAddProp = (data: { name: string; prompt: string; image?: File }) => {
+    console.log("添加道具:", data)
+    // TODO: 调用 API 添加道具
+  }
   
   return (
     <div id="section-props" className="glass-panel rounded-2xl overflow-hidden mb-6 scroll-mt-24">
@@ -372,12 +381,21 @@ function PropDesigner() {
           <Button 
             size="sm" 
             className="bg-white/10 text-white hover:bg-white/15 border border-white/10"
+            onClick={() => setDialogOpen(true)}
           >
             <Plus className="w-4 h-4 mr-1" />
             添加
           </Button>
         </div>
       </div>
+      
+      {/* Add Prop Dialog */}
+      <AddPropDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onConfirm={handleAddProp}
+      />
+      
       {isExpanded && (
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-12 text-white/40">
@@ -390,10 +408,72 @@ function PropDesigner() {
   )
 }
 
-// 分镜师模块（占位）
+// 分镜卡片类型
+interface StoryboardCard {
+  id: number
+  title: string
+  status: "completed" | "pending" | "generating"
+  image?: string
+  style: string
+  characters: string
+  location: string
+  cameraScript: string
+}
+
+// 分镜师模块
 function StoryboardDesigner() {
   const [isExpanded, setIsExpanded] = useState(true)
-  
+  const [cards, setCards] = useState<StoryboardCard[]>([
+    {
+      id: 1,
+      title: "分镜 1",
+      status: "completed",
+      image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=600&fit=crop",
+      style: "真人-赛博朋克风格",
+      characters: "K【@K】、Auro【@Auro】",
+      location: "K的工作空间【@K的工作空间】",
+      cameraScript: "特写平视...",
+    },
+    {
+      id: 2,
+      title: "分镜 2",
+      status: "completed",
+      image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=600&fit=crop",
+      style: "真人-赛博朋克风格",
+      characters: "K【@K】",
+      location: "K的工作空间【@K的工作空间】",
+      cameraScript: "分镜一:特写平视...",
+    },
+    {
+      id: 3,
+      title: "分镜 3",
+      status: "pending",
+      style: "真人-赛博朋克风格",
+      characters: "K【@K】、Auro【@Auro】",
+      location: "K的工作空间【@K的工作空间】",
+      cameraScript: "特写，...",
+    },
+  ])
+
+  const handleAddCard = (index: number) => {
+    const newCard: StoryboardCard = {
+      id: Date.now(),
+      title: `分镜 ${cards.length + 1}`,
+      status: "pending",
+      style: "真人-赛博朋克风格",
+      characters: "",
+      location: "",
+      cameraScript: "",
+    }
+    const newCards = [...cards]
+    newCards.splice(index + 1, 0, newCard)
+    // 重新编号
+    newCards.forEach((card, i) => {
+      card.title = `分镜 ${i + 1}`
+    })
+    setCards(newCards)
+  }
+
   return (
     <div id="section-storyboard" className="glass-panel rounded-2xl overflow-hidden mb-6 scroll-mt-24">
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
@@ -418,10 +498,88 @@ function StoryboardDesigner() {
       </div>
       {isExpanded && (
         <div className="p-6">
-          <div className="flex flex-col items-center justify-center py-12 text-white/40">
-            <LayoutGrid className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-sm">暂无分镜，生成后在此查看</p>
-          </div>
+          {cards.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-white/40">
+              <LayoutGrid className="w-12 h-12 mb-4 opacity-50" />
+              <p className="text-sm">暂无分镜，生成后在此查看</p>
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {cards.map((card, index) => (
+                <div key={card.id} className="flex items-center gap-4">
+                  {/* Card */}
+                  <div className="group relative w-64 flex-shrink-0 rounded-xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                    {/* Status Badge */}
+                    <div className={`absolute top-3 left-3 z-10 px-2 py-0.5 rounded text-xs ${
+                      card.status === "completed" 
+                        ? "bg-white/20 text-white" 
+                        : card.status === "generating"
+                        ? "bg-yellow-500/20 text-yellow-400"
+                        : "bg-white/10 text-white/60"
+                    }`}>
+                      {card.status === "completed" ? "已完成" : card.status === "generating" ? "生成中" : "待生成"}
+                    </div>
+
+                    {/* Image or Placeholder */}
+                    <div className="aspect-[4/3] relative bg-black/40">
+                      {card.image ? (
+                        <img 
+                          src={card.image} 
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <span className="text-white/40 text-sm mb-2">暂无视频</span>
+                          {/* Hover Add Button */}
+                          <button 
+                            onClick={() => handleAddCard(index)}
+                            className="w-12 h-12 rounded-full border-2 border-dashed border-white/30 flex items-center justify-center text-white/50 hover:border-white/60 hover:text-white/80 hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Plus className="w-6 h-6" />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Hover Add Button (for cards with image) */}
+                      {card.image && (
+                        <button 
+                          onClick={() => handleAddCard(index)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full border-2 border-dashed border-white/30 bg-black/60 flex items-center justify-center text-white/50 hover:border-white/60 hover:text-white/80 hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 z-20"
+                        >
+                          <Plus className="w-6 h-6" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="p-4">
+                      <h3 className="text-white font-medium mb-2">{card.title}</h3>
+                      <p className="text-xs text-white/50 line-clamp-3">
+                        Style: {card.style} characters: {card.characters} location: {card.location} Camera script: {card.cameraScript}
+                      </p>
+                      
+                      {/* Actions */}
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                        <button className="text-xs text-white/60 hover:text-white flex items-center gap-1">
+                          <Pencil className="w-3 h-3" />
+                          编辑
+                        </button>
+                        <button className="text-xs text-white/60 hover:text-white flex items-center gap-1">
+                          <Play className="w-3 h-3" />
+                          {card.status === "completed" ? "重新生成" : "生成"}
+                        </button>
+                        <button className="text-xs text-white/60 hover:text-white flex items-center gap-1">
+                          <Download className="w-3 h-3" />
+                          下载视频
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
