@@ -29,7 +29,8 @@ export const getIdentityMeta = (identity: IdentityOption) => {
   return identityOptions.find((option) => option.id === identity) ?? identityOptions[0]
 }
 
-export const getIdentityHomePath = (_identity: IdentityOption): string => {
+export const getIdentityHomePath = (identity: IdentityOption): string => {
+  void identity;
   return "/"
 }
 
