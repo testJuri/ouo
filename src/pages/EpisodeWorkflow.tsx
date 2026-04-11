@@ -438,8 +438,7 @@ function FinalVideo() {
 
 export default function EpisodeWorkflow() {
   const { projectId, episodeId } = useParams<{ projectId: string; episodeId: string }>()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unused = { projectId, episodeId }
+  void projectId; void episodeId;
   const [activeSection, setActiveSection] = useState("script")
   
   // 模拟数据
