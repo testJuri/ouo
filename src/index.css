@@ -4,43 +4,43 @@
 
 @layer base {
   :root {
-    /* MangaCanvas Theme Colors */
-    --background: 30 20% 98%;
-    --foreground: 0 0% 11%;
-    --card: 30 20% 98%;
-    --card-foreground: 0 0% 11%;
-    --popover: 30 20% 98%;
-    --popover-foreground: 0 0% 11%;
-    --primary: 14 100% 34%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 37%;
+    /* Dark Theme - Glassmorphism Style */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 8% / 0.6;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 8% / 0.9;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 20 9% 89%;
-    --muted-foreground: 0 0% 28%;
-    --accent: 14 100% 34%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 15 45% 81%;
-    --input: 15 45% 81%;
-    --ring: 14 100% 34%;
-    --radius: 0.5rem;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20% / 0.5;
+    --input: 0 0% 20% / 0.5;
+    --ring: 0 0% 100% / 0.3;
+    --radius: 0.75rem;
     
     /* Custom Theme Variables */
-    --surface: 30 20% 98%;
-    --surface-container: 0 6% 94%;
-    --surface-container-high: 0 5% 91%;
-    --surface-container-highest: 0 3% 89%;
-    --surface-container-low: 20 11% 96%;
-    --surface-container-lowest: 0 0% 100%;
-    --on-surface: 0 0% 11%;
-    --on-surface-variant: 12 26% 29%;
-    --primary-fixed: 14 100% 91%;
-    --primary-fixed-dim: 14 100% 81%;
-    --on-primary-fixed: 14 100% 12%;
-    --outline-variant: 15 45% 81%;
-    --secondary-fixed-dim: 0 1% 78%;
-    --on-secondary-fixed-variant: 0 0% 28%;
+    --surface: 0 0% 0%;
+    --surface-container: 0 0% 8%;
+    --surface-container-high: 0 0% 12%;
+    --surface-container-highest: 0 0% 16%;
+    --surface-container-low: 0 0% 6%;
+    --surface-container-lowest: 0 0% 4%;
+    --on-surface: 0 0% 100%;
+    --on-surface-variant: 0 0% 70%;
+    --primary-fixed: 0 0% 20%;
+    --primary-fixed-dim: 0 0% 15%;
+    --on-primary-fixed: 0 0% 100%;
+    --outline-variant: 0 0% 20%;
+    --secondary-fixed-dim: 0 0% 25%;
+    --on-secondary-fixed-variant: 0 0% 60%;
   }
 }
 
@@ -53,7 +53,7 @@
   }
   body {
     @apply bg-[hsl(var(--surface))] text-[hsl(var(--on-surface))];
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -82,9 +82,10 @@
     width: auto;
   }
   
-  /* Custom scrollbar */
+  /* Custom scrollbar - Dark theme */
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: hsl(var(--surface-container-low));
@@ -93,15 +94,50 @@
     background: hsl(var(--outline-variant));
     border-radius: 10px;
   }
-}
-
-/* Signature gradient */
-.signature-gradient {
-  background: linear-gradient(135deg, #ac2e00 0%, #d73b00 100%);
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--on-surface-variant));
+  }
 }
 
 /* Glass effect */
 .glass-effect {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+/* Dark glass panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark gradient button */
+.btn-primary {
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
+  color: black;
+  transition: all 0.3s ease;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 100%);
+  box-shadow: 0 4px 20px rgba(255,255,255,0.2);
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: all 0.3s ease;
+}
+.card-hover:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Text gradient */
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

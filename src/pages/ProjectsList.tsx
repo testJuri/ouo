@@ -1,490 +1,297 @@
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Pagination } from "@/components/ui/pagination"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import NotificationDrawer, { demoNotifications } from "@/components/layout/NotificationDrawer"
-import UserProfileMenu from "@/components/layout/UserProfileMenu"
-import { Plus, ChevronLeft, Bell, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react"
-import { useNavigate, Link } from "react-router-dom"
-import { useEffect, useState } from "react"
-import ProjectCreator from "./ProjectCreator"
-import ProjectEditor, { type EditableProject } from "./ProjectEditor"
-import Sidebar from "@/components/layout/Sidebar"
-import { useFeedback } from "@/components/feedback/FeedbackProvider"
-import { projectsApi } from "@/api"
-import { getCurrentUser, setActiveProjectId } from "@/lib/session"
-import { mapProjectCard } from "@/lib/projectMappers"
-import {
-  IDENTITY_CHANGE_EVENT,
-  getIdentityMeta,
-  getStoredIdentity,
-  type IdentityOption,
-} from "@/lib/mock-identities"
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { 
+  Plus, 
+  Folder, 
+  MoreVertical, 
+  Clock,
+  Users,
+  Search,
+  Filter,
+  Grid3X3,
+  List
+} from "lucide-react"
 
-interface Project {
-  id: number
-  organizationId?: number
-  name: string
-  description?: string
-  image: string
-  status: "in-progress" | "completed" | "draft"
-  modified: string
-  code: string
-  assetCount: number
-}
-
-type ProjectStatus = "all" | "draft" | "in-progress" | "completed"
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-  { value: "all", label: "全部" },
-  { value: "draft", label: "草稿" },
-  { value: "in-progress", label: "进行中" },
-  { value: "completed", label: "已完成" },
+// 模拟项目数据
+const mockProjects = [
+  {
+    id: "1",
+    name: "科幻短片《星际穿越》",
+    description: "关于时间旅行与亲情的科幻故事",
+    cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&h=300&fit=crop",
+    lastModified: "2024-04-10",
+    episodeCount: 5,
+    collaborators: 3,
+    status: "进行中",
+  },
+  {
+    id: "2",
+    name: "古风漫画《长安十二时辰》",
+    description: "唐朝背景的历史悬疑故事",
+    cover: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400&h=300&fit=crop",
+    lastModified: "2024-04-08",
+    episodeCount: 12,
+    collaborators: 5,
+    status: "进行中",
+  },
+  {
+    id: "3",
+    name: "现代都市《北漂日记》",
+    description: "年轻人在北京的奋斗故事",
+    cover: "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=400&h=300&fit=crop",
+    lastModified: "2024-04-05",
+    episodeCount: 8,
+    collaborators: 2,
+    status: "已完成",
+  },
+  {
+    id: "4",
+    name: "悬疑推理《迷雾》",
+    description: "小镇连续失踪案的真相",
+    cover: "https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=400&h=300&fit=crop",
+    lastModified: "2024-04-01",
+    episodeCount: 3,
+    collaborators: 4,
+    status: "草稿",
+  },
+  {
+    id: "5",
+    name: "爱情片《夏日限定》",
+    description: "海边小镇的夏日恋情",
+    cover: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=300&fit=crop",
+    lastModified: "2024-03-28",
+    episodeCount: 6,
+    collaborators: 3,
+    status: "进行中",
+  },
+  {
+    id: "6",
+    name: "恐怖片《午夜回廊》",
+    description: "老宅中的诡异事件",
+    cover: "https://images.unsplash.com/photo-1505635552518-3448ff116af3?w=400&h=300&fit=crop",
+    lastModified: "2024-03-25",
+    episodeCount: 4,
+    collaborators: 2,
+    status: "草稿",
+  },
 ]
 
 export default function ProjectsList() {
-  const navigate = useNavigate()
-  const { notify } = useFeedback()
-  const [projects, setProjects] = useState<Project[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false)
-  const [isProjectEditorOpen, setIsProjectEditorOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<EditableProject | null>(null)
-  const [notificationOpen, setNotificationOpen] = useState(false)
-  const [notificationList, setNotificationList] = useState(demoNotifications)
-  const [currentIdentity, setCurrentIdentity] = useState<IdentityOption>(getStoredIdentity)
-  
-  // 分页和筛选状态
-  const [page, setPage] = useState(1)
-  const [size] = useState(12)
-  const [total, setTotal] = useState(0)
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus>("all")
-  
-  // 删除对话框状态
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deletingProject, setDeletingProject] = useState<Project | null>(null)
-  
-  const unreadCount = notificationList.filter((item) => !item.read).length
-  const currentIdentityMeta = getIdentityMeta(currentIdentity)
-  const visibleProjects = currentIdentityMeta.hasProjects ? projects : []
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [searchQuery, setSearchQuery] = useState("")
 
-  const loadProjects = async () => {
-    setIsLoading(true)
-    try {
-      const user = getCurrentUser()
-      const organizationId = user?.organizationIds?.[0]
-      const params: { page: number; size: number; organizationId?: number; status?: "draft" | "in-progress" | "completed" } = { 
-        page, 
-        size, 
-        organizationId 
-      }
-      if (statusFilter !== "all") {
-        params.status = statusFilter as "draft" | "in-progress" | "completed"
-      }
-      const response = await projectsApi.list(params)
-      setProjects(response.list.map((project) => mapProjectCard(project)))
-      setTotal(response.pagination?.total ?? response.list.length)
-    } catch (error) {
-      notify.error(error instanceof Error ? error.message : "加载项目列表失败")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // 当分页或筛选条件变化时重新加载
-  useEffect(() => {
-    if (currentIdentityMeta.hasProjects) {
-      void loadProjects()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, statusFilter])
-
-  const handleProjectClick = (projectId: number) => {
-    setActiveProjectId(projectId)
-    navigate(`/project/${projectId}`)
-  }
-
-  const handleCreateProject = async (data: {
-    name: string
-    password?: string
-    mode: string
-    description: string
-    scriptFile?: File | null
-  }) => {
-    try {
-      const user = getCurrentUser()
-      const organizationId = user?.organizationIds?.[0]
-      if (!organizationId) {
-        notify.error("当前账号缺少组织信息，无法创建项目")
-        return
-      }
-
-      const project = await projectsApi.create({
-        organizationId,
-        name: data.name,
-        description: data.description,
-        coverImage: null,
-        isPublic: false,
-      })
-      const mapped = mapProjectCard(project)
-      setProjects((prev) => [mapped, ...prev])
-      notify.success(`已创建项目：${mapped.name}`)
-    } catch (error) {
-      notify.error(error instanceof Error ? error.message : "创建项目失败")
-    }
-  }
-
-  const handleSaveProject = async (updatedProject: EditableProject) => {
-    try {
-      const project = await projectsApi.update(updatedProject.id, {
-        name: updatedProject.name,
-        description: updatedProject.description,
-        coverImage: updatedProject.image,
-        status: updatedProject.status,
-      })
-      const mapped = mapProjectCard(project)
-      setProjects((prev) => prev.map((item) => (item.id === mapped.id ? mapped : item)))
-      setEditingProject(mapped)
-      notify.success(`已更新项目：${mapped.name}`)
-    } catch (error) {
-      notify.error(error instanceof Error ? error.message : "更新项目失败")
-    }
-  }
-
-  const handleDeleteProject = async () => {
-    if (!deletingProject) return
-    try {
-      await projectsApi.remove(deletingProject.id)
-      setProjects((prev) => prev.filter((item) => item.id !== deletingProject.id))
-      setTotal((prev) => prev - 1)
-      notify.success(`已删除项目：${deletingProject.name}`)
-      setDeleteDialogOpen(false)
-      setDeletingProject(null)
-      // 触发项目列表刷新事件，通知 Sidebar 更新
-      window.dispatchEvent(new CustomEvent('projects:refresh'))
-    } catch (error) {
-      notify.error(error instanceof Error ? error.message : "删除项目失败")
-    }
-  }
-
-  const openEditDialog = (project: Project, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setEditingProject({
-      id: project.id,
-      name: project.name,
-      description: project.description || "",
-      image: project.image,
-      status: project.status,
-      modified: project.modified,
-      code: project.code,
-      assetCount: project.assetCount,
-    })
-    setIsProjectEditorOpen(true)
-  }
-
-  const openDeleteDialog = (project: Project, e: React.MouseEvent) => {
-    e.stopPropagation()
-    setDeletingProject(project)
-    setDeleteDialogOpen(true)
-  }
-
-  const markAllAsRead = () => {
-    setNotificationList((current) => current.map((item) => ({ ...item, read: true })))
-  }
-
-  const markAsRead = (id: number) => {
-    setNotificationList((current) => current.map((item) => (item.id === id ? { ...item, read: true } : item)))
-  }
-
-  // 身份切换监听
-  useEffect(() => {
-    const syncIdentity = () => setCurrentIdentity(getStoredIdentity())
-    const handleIdentityChange = (event: Event) => {
-      const nextIdentity = (event as CustomEvent<IdentityOption>).detail
-      if (nextIdentity) {
-        setCurrentIdentity(nextIdentity)
-        return
-      }
-      syncIdentity()
-    }
-
-    window.addEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
-    window.addEventListener("storage", syncIdentity)
-
-    return () => {
-      window.removeEventListener(IDENTITY_CHANGE_EVENT, handleIdentityChange as EventListener)
-      window.removeEventListener("storage", syncIdentity)
-    }
-  }, [])
+  const filteredProjects = mockProjects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
-    <>
-    <div className="workspace-shell h-screen overflow-hidden bg-[hsl(var(--surface))]">
-      <ProjectCreator
-        open={isProjectDialogOpen}
-        onOpenChange={setIsProjectDialogOpen}
-        onCreate={handleCreateProject}
-      />
-      <ProjectEditor
-        open={isProjectEditorOpen}
-        onOpenChange={setIsProjectEditorOpen}
-        project={editingProject}
-        onSave={handleSaveProject}
-      />
+    <div className="min-h-screen bg-black">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Left: Title */}
+            <div className="flex items-center gap-4">
+              <Link to="/" className="text-white font-semibold text-lg hover:text-white/80 transition-colors">
+                ← 返回
+              </Link>
+              <h1 className="text-xl font-bold text-white">我的项目</h1>
+            </div>
 
-      <Sidebar />
-
-      <main className="relative ml-64 h-screen flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="workspace-fixed-header fixed top-0 z-40 flex h-16 items-center justify-between border-b border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface-container-lowest))]/80 px-8 backdrop-blur-md">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-              className="text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <span className="text-lg font-black text-[hsl(var(--on-surface))]">项目列表</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setNotificationOpen(true)}
-              className="relative text-[hsl(var(--secondary))] hover:text-[hsl(var(--on-surface))]"
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 ? (
-                <span className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[hsl(var(--primary))] px-1 text-[10px] font-bold text-white">
-                  {unreadCount}
-                </span>
-              ) : null}
-            </Button>
-
-            <div className="h-4 w-px bg-[hsl(var(--outline-variant))]" />
-
-            <UserProfileMenu />
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-8 pt-24">
-          {/* 筛选栏 */}
-          <div className="flex items-center gap-2 mb-6">
-            <Filter className="h-4 w-4 text-[hsl(var(--secondary))]" />
-            <span className="text-sm text-[hsl(var(--secondary))] mr-2">状态筛选:</span>
-            <div className="flex gap-1">
-              {STATUS_OPTIONS.map((option) => (
-                <Button
-                  key={option.value}
-                  variant={statusFilter === option.value ? "default" : "ghost"}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => {
-                    setStatusFilter(option.value)
-                    setPage(1)
-                  }}
+            {/* Right: Actions */}
+            <div className="flex items-center gap-3">
+              {/* View Toggle */}
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-white/5 border border-white/10">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`p-2 rounded-md transition-all ${
+                    viewMode === "grid"
+                      ? "bg-white/15 text-white"
+                      : "text-white/50 hover:text-white/80"
+                  }`}
                 >
-                  {option.label}
-                </Button>
-              ))}
+                  <Grid3X3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={`p-2 rounded-md transition-all ${
+                    viewMode === "list"
+                      ? "bg-white/15 text-white"
+                      : "text-white/50 hover:text-white/80"
+                  }`}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* New Project Button */}
+              <Link
+                to="/"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                新建项目
+              </Link>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Add New Project Card */}
-            <div
-              onClick={() => setIsProjectDialogOpen(true)}
-              className="aspect-[4/3] bg-[hsl(var(--surface-container))] border-2 border-dashed border-[hsl(var(--outline-variant))] flex flex-col items-center justify-center rounded-xl hover:bg-[hsl(var(--surface-container-low))] transition-all cursor-pointer group"
-            >
-              <div className="w-12 h-12 rounded-full bg-[hsl(var(--surface-container-high))] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Plus className="w-6 h-6 text-[hsl(var(--primary))]" />
-              </div>
-              <span className="text-sm font-bold text-[hsl(var(--on-surface-variant))]">新建项目</span>
-              <span className="text-[10px] text-[hsl(var(--secondary))] mt-1 uppercase tracking-tighter">
-                开始新的创作
-              </span>
+          {/* Search Bar */}
+          <div className="mt-4 flex items-center gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input
+                type="text"
+                placeholder="搜索项目..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-white/30 transition-colors"
+              />
             </div>
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
+              <Filter className="w-4 h-4" />
+              筛选
+            </button>
+          </div>
+        </div>
+      </header>
 
-            {/* Project Cards */}
-            {isLoading ? (
-              <div className="col-span-full rounded-xl bg-[hsl(var(--surface-container-lowest))] p-6 text-sm text-[hsl(var(--secondary))]">
-                正在加载项目列表...
-              </div>
-            ) : null}
-            {visibleProjects.map((project) => (
-              <div
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {filteredProjects.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Folder className="w-16 h-16 text-white/20 mb-4" />
+            <h3 className="text-xl font-medium text-white/60 mb-2">暂无项目</h3>
+            <p className="text-white/40 mb-6">创建你的第一个项目开始创作</p>
+            <Link
+              to="/"
+              className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              新建项目
+            </Link>
+          </div>
+        ) : viewMode === "grid" ? (
+          /* Grid View */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProjects.map((project) => (
+              <Link
                 key={project.id}
-                onClick={() => handleProjectClick(project.id)}
-                className="group relative bg-[hsl(var(--surface-container-lowest))] rounded-xl overflow-hidden hover:shadow-xl hover:shadow-[hsl(var(--on-surface))]/5 transition-all hover:-translate-y-1 cursor-pointer"
+                to={`/project/${project.id}`}
+                className="group block bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-white/20 hover:bg-white/[0.07] transition-all"
               >
-                <div className="aspect-[4/3] w-full relative overflow-hidden">
+                {/* Cover */}
+                <div className="aspect-[4/3] overflow-hidden">
                   <img
-                    src={project.image}
+                    src={project.cover}
                     alt={project.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge
-                      className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase border-0 ${
-                        project.status === "completed"
-                          ? "bg-emerald-500 text-white"
-                          : project.status === "in-progress"
-                          ? "bg-[hsl(var(--primary))] text-white"
-                          : "bg-[hsl(var(--surface-container-highest))] text-[hsl(var(--on-secondary-fixed-variant))]"
-                      }`}
-                    >
-                      {project.status === "completed"
-                        ? "已完成"
-                        : project.status === "in-progress"
-                        ? "进行中"
-                        : "草稿"}
-                    </Badge>
+                </div>
+
+                {/* Info */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-white line-clamp-1 group-hover:text-white/90">
+                      {project.name}
+                    </h3>
+                    <button className="p-1 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
                   </div>
-                  {/* 操作菜单 */}
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 bg-black/20 hover:bg-black/40 text-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => openEditDialog(project, e as unknown as React.MouseEvent)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          编辑
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600"
-                          onClick={(e) => openDeleteDialog(project, e as unknown as React.MouseEvent)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          删除
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <p className="text-sm text-white/50 line-clamp-1 mb-3">
+                    {project.description}
+                  </p>
+
+                  {/* Meta */}
+                  <div className="flex items-center justify-between text-xs text-white/40">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {project.lastModified}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Folder className="w-3 h-3" />
+                        {project.episodeCount} 集
+                      </span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                      project.status === "已完成"
+                        ? "bg-green-500/20 text-green-400"
+                        : project.status === "进行中"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-yellow-500/20 text-yellow-400"
+                    }`}>
+                      {project.status}
+                    </span>
                   </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-extrabold text-[hsl(var(--on-surface))] mb-1">
+              </Link>
+            ))}
+          </div>
+        ) : (
+          /* List View */
+          <div className="space-y-3">
+            {filteredProjects.map((project) => (
+              <Link
+                key={project.id}
+                to={`/project/${project.id}`}
+                className="group flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-xl hover:border-white/20 hover:bg-white/[0.07] transition-all"
+              >
+                {/* Cover */}
+                <div className="w-20 h-14 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    src={project.cover}
+                    alt={project.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-white line-clamp-1 group-hover:text-white/90">
                     {project.name}
                   </h3>
-                  {project.description && (
-                    <p className="text-[10px] text-[hsl(var(--secondary))] mb-2 line-clamp-1">
-                      {project.description}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-[hsl(var(--secondary))] font-medium">
-                      {project.assetCount} 个资源 · 修改于 {project.modified}
-                    </span>
-                    <Badge
-                      variant="secondary"
-                      className="text-[10px] bg-[hsl(var(--secondary-container))] text-[hsl(var(--on-secondary-container))] px-2 py-0.5 rounded-full font-bold border-0"
-                    >
-                      {project.code}
-                    </Badge>
-                  </div>
+                  <p className="text-sm text-white/50 line-clamp-1">
+                    {project.description}
+                  </p>
                 </div>
-              </div>
+
+                {/* Meta */}
+                <div className="flex items-center gap-6 text-sm text-white/40">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {project.lastModified}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Folder className="w-4 h-4" />
+                    {project.episodeCount} 集
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {project.collaborators} 人
+                  </span>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    project.status === "已完成"
+                      ? "bg-green-500/20 text-green-400"
+                      : project.status === "进行中"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : "bg-yellow-500/20 text-yellow-400"
+                  }`}>
+                    {project.status}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <button className="p-2 rounded-full text-white/40 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </Link>
             ))}
-
-            {!currentIdentityMeta.hasProjects ? (
-              <div className="col-span-full flex min-h-[320px] flex-col items-center justify-center rounded-[28px] border border-dashed border-[hsl(var(--outline-variant))]/40 bg-[hsl(var(--surface-container-lowest))] px-8 text-center">
-                <div className="rounded-full bg-[hsl(var(--surface-container-high))] px-4 py-1.5 text-[11px] font-bold tracking-[0.18em] text-[hsl(var(--secondary))]">
-                  {currentIdentityMeta.label}
-                </div>
-                <h3 className="mt-5 text-2xl font-black text-[hsl(var(--on-surface))]">当前身份下还没有项目</h3>
-                <p className="mt-3 max-w-md text-sm text-[hsl(var(--secondary))]">
-                  这个身份用于模拟刚加入系统的新成员视角。你可以切换回“创作者”、“管理员”或“项目统筹”查看已有项目。
-                </p>
-              </div>
-            ) : null}
           </div>
-
-          {/* 分页 */}
-          {currentIdentityMeta.hasProjects && total > 0 && (
-            <Pagination
-              page={page}
-              size={size}
-              total={total}
-              onPageChange={setPage}
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <footer className="py-6 border-t border-[hsl(var(--outline-variant))]/15 bg-[hsl(var(--surface))] shrink-0">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <span className="text-sm font-bold text-[hsl(var(--on-surface))]">MangaCanvas</span>
-              <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] mt-1">© 2024 Kinetic Gallery. 保留所有权利。</p>
-            </div>
-            <div className="flex gap-6">
-              <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                隐私政策
-              </Link>
-              <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                服务条款
-              </Link>
-              <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-colors">
-                联系我们
-              </Link>
-            </div>
-          </div>
-        </footer>
+        )}
       </main>
     </div>
-
-    {/* 删除确认对话框 */}
-    <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>确认删除项目</DialogTitle>
-          <DialogDescription>
-            您确定要删除项目 <strong>{deletingProject?.name}</strong> 吗？此操作不可恢复。
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-            取消
-          </Button>
-          <Button variant="destructive" onClick={handleDeleteProject}>
-            删除
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    <NotificationDrawer
-      open={notificationOpen}
-      onOpenChange={setNotificationOpen}
-      notifications={notificationList}
-      onMarkAllAsRead={markAllAsRead}
-      onMarkAsRead={markAsRead}
-      onClearAll={() => setNotificationList([])}
-    />
-    </>
   )
 }

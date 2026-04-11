@@ -29,9 +29,8 @@ export const getIdentityMeta = (identity: IdentityOption) => {
   return identityOptions.find((option) => option.id === identity) ?? identityOptions[0]
 }
 
-export const getIdentityHomePath = (identity: IdentityOption): string => {
-  const meta = getIdentityMeta(identity)
-  return meta.hasProjects ? "/dashboard" : "/projects"
+export const getIdentityHomePath = (_identity: IdentityOption): string => {
+  return "/"
 }
 
 // 根据 roleId 获取身份 ID

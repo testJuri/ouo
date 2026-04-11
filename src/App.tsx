@@ -1,42 +1,35 @@
 import { useEffect, useState, useRef, Suspense, lazy } from "react"
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+
 import { 
-  Package, 
-  Clapperboard, 
-  Users, 
-  Sparkles, 
-  ArrowRight, 
+  Home as HomeIcon,
+  FolderOpen,
+  Triangle,
+  Sparkles,
+  Plus,
+  Palette,
+  Monitor,
+  Smartphone,
   Wand2,
   Loader2
 } from "lucide-react"
-
-// 核心页面直接加载
-import Dashboard from "./pages/Dashboard"
-import Login from "./pages/auth/Login"
-import EpisodeDetail from "./pages/project/EpisodeDetail"
-
-// 非核心页面懒加载
-const ProjectsList = lazy(() => import("./pages/ProjectsList"))
-const ProjectPermissions = lazy(() => import("./pages/ProjectPermissions"))
-const Members = lazy(() => import("./pages/Members"))
-const ProjectDetail = lazy(() => import("./pages/project"))
-const WorkflowCanvas = lazy(() => import("./pages/project/WorkflowCanvas"))
-const Pricing = lazy(() => import("./pages/Pricing"))
-const Gallery = lazy(() => import("./pages/Gallery"))
-const Terms = lazy(() => import("./pages/Terms"))
-const Privacy = lazy(() => import("./pages/Privacy"))
-const Contact = lazy(() => import("./pages/Contact"))
-const Workflow = lazy(() => import("./pages/Workflow"))
-const Assets = lazy(() => import("./pages/Assets"))
+import { StyleSelectorDialog, type StyleOption } from "@/components/StyleSelectorDialog"
 import {
   IDENTITY_CHANGE_EVENT,
   canAccessProjectRoutes,
   getStoredIdentity,
   type IdentityOption,
 } from "@/lib/mock-identities"
+
+// 懒加载页面
+const Login = lazy(() => import("./pages/auth/Login"))
+const Pricing = lazy(() => import("./pages/Pricing"))
+const Gallery = lazy(() => import("./pages/Gallery"))
+const Terms = lazy(() => import("./pages/Terms"))
+const Privacy = lazy(() => import("./pages/Privacy"))
+const Contact = lazy(() => import("./pages/Contact"))
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"))
+const EpisodeWorkflow = lazy(() => import("./pages/EpisodeWorkflow"))
 
 function IdentityRouteGuard() {
   const location = useLocation()
@@ -64,33 +57,20 @@ function IdentityRouteGuard() {
   }, [])
 
   useEffect(() => {
-    const isProjectScopedRoute =
-      location.pathname === "/dashboard" || location.pathname.startsWith("/project/")
+    const isProjectScopedRoute = location.pathname.startsWith("/project/")
 
-    // 只在身份发生变化时处理
     if (prevIdentityRef.current === currentIdentity) {
       return
     }
 
-    // 在项目路由内切换身份：显示 loading 并刷新页面（模拟重新登录效果）
     if (isProjectScopedRoute) {
-      // 显示过渡动画
       setIsTransitioning(true)
       
-      // 延迟后跳转：有权限的跳转到看板，无权限的跳转到项目列表
       const timer = setTimeout(() => {
         if (canAccessProjectRoutes(currentIdentity)) {
-          // 有项目访问权限：跳转到看板
-          navigate("/dashboard", { replace: true })
+          navigate("/", { replace: true })
         } else {
-          // 无项目访问权限：跳转到项目列表
-          navigate("/projects", {
-            replace: true,
-            state: {
-              redirectedByIdentity: currentIdentity,
-              from: location.pathname,
-            },
-          })
+          navigate("/", { replace: true })
         }
         setIsTransitioning(false)
         prevIdentityRef.current = currentIdentity
@@ -98,18 +78,16 @@ function IdentityRouteGuard() {
       
       return () => clearTimeout(timer)
     } else {
-      // 非项目路由：直接更新身份，不显示 loading
       prevIdentityRef.current = currentIdentity
     }
   }, [currentIdentity, location.pathname, navigate])
 
-  // 身份切换 Loading 遮罩 - 与切换项目一致的强打断效果
   if (isTransitioning) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[hsl(var(--surface))]/80 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-[hsl(var(--primary))]" />
-          <p className="text-sm font-medium text-[hsl(var(--on-surface))]">
+          <Loader2 className="h-10 w-10 animate-spin text-white" />
+          <p className="text-sm font-medium text-white/70">
             正在切换身份...
           </p>
         </div>
@@ -120,251 +98,212 @@ function IdentityRouteGuard() {
   return null
 }
 
+// 左侧工具栏
+function SidebarNav() {
+  const [activeTool, setActiveTool] = useState('home')
+  const navigate = useNavigate()
+  
+  const tools = [
+    { id: 'home', icon: HomeIcon, label: '首页', action: () => navigate('/') },
+    { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/project/1') },
+    { id: 'create', icon: Triangle, label: '创作', action: () => {} },
+  ]
+
+  return (
+    <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50">
+      <div className="flex flex-col gap-3 p-2 rounded-full bg-black/20 backdrop-blur-xl border border-white/10">
+        {tools.map((tool) => {
+          const Icon = tool.icon
+          return (
+            <button
+              key={tool.id}
+              onClick={() => {
+                setActiveTool(tool.id)
+                tool.action()
+              }}
+              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+                activeTool === tool.id
+                  ? 'bg-white text-black'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'
+              }`}
+              title={tool.label}
+            >
+              <Icon className="w-5 h-5" />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// 顶部导航
+function TopNav() {
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5">
+      {/* Right Actions */}
+      <div className="flex items-center gap-4">
+        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+          </svg>
+        </button>
+        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+          </svg>
+        </button>
+        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
+        </button>
+
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white/20 overflow-hidden">
+          <img 
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
+            alt="User" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+    </nav>
+  )
+}
+
+// 中央创作区域
+function CreatorPanel() {
+  const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9')
+  const [styleDialogOpen, setStyleDialogOpen] = useState(false)
+  const [selectedStyle, setSelectedStyle] = useState<StyleOption | null>(null)
+  
+  const handleStyleSelect = (style: StyleOption) => {
+    setSelectedStyle(style)
+  }
+  
+  return (
+    <>
+    <div className="relative z-10 w-full max-w-3xl mx-auto px-6">
+      {/* 主标题 */}
+      <h1 className="text-5xl md:text-6xl font-bold text-white text-center mb-12 tracking-wide">
+        让故事，不再囿于文字
+      </h1>
+
+      {/* 输入面板 */}
+      <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
+        {/* 提示文字 */}
+        <div className="flex items-center gap-3 mb-6 text-white/60">
+          <Sparkles className="w-5 h-5" />
+          <span className="text-base">上传素材，选择风格与尺寸，即可开始 AI 创作</span>
+        </div>
+
+        {/* 功能按钮行 */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all">
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">剧本</span>
+          </button>
+
+          <button 
+            onClick={() => setStyleDialogOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <Palette className="w-4 h-4" />
+            <span className="text-sm font-medium">
+              {selectedStyle ? selectedStyle.name : "风格"}
+            </span>
+          </button>
+
+          <button 
+            onClick={() => setAspectRatio('16:9')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl border transition-all ${
+              aspectRatio === '16:9'
+                ? 'bg-white/20 border-white/30 text-white'
+                : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
+            }`}
+          >
+            <Monitor className="w-4 h-4" />
+            <span className="text-sm font-medium">16:9</span>
+          </button>
+
+          <button 
+            onClick={() => setAspectRatio('9:16')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl border transition-all ${
+              aspectRatio === '9:16'
+                ? 'bg-white/20 border-white/30 text-white'
+                : 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10'
+            }`}
+          >
+            <Smartphone className="w-4 h-4" />
+            <span className="text-sm font-medium">9:16</span>
+          </button>
+
+          <div className="flex-1" />
+
+          <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all shadow-lg shadow-white/10">
+            <Wand2 className="w-4 h-4" />
+            <span className="text-sm">生成</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 底部提示 */}
+      <p className="text-center text-white/40 text-sm mt-8">
+        支持小说、剧本、分镜等多种创作模式
+      </p>
+    </div>
+
+    {/* 风格选择弹框 */}
+    <StyleSelectorDialog
+      open={styleDialogOpen}
+      onOpenChange={setStyleDialogOpen}
+      onSelect={handleStyleSelect}
+      selectedStyleId={selectedStyle?.id}
+    />
+    </>
+  )
+}
+
+// 新的首页
 function Home() {
   return (
-    <div className="min-h-screen bg-[hsl(var(--surface))]">
-      {/* Top Navigation */}
-      <nav className="fixed top-0 w-full z-50 glass-effect bg-[hsl(var(--surface))]/80 shadow-[0_40px_40px_rgba(27,28,28,0.04)]">
-        <div className="flex justify-between items-center px-8 h-20 w-full max-w-7xl mx-auto">
-          <div className="flex items-center gap-12">
-            <span className="text-2xl font-black text-[hsl(var(--on-surface))] tracking-tighter">
-              MangaCanvas
-            </span>
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-              <Link to="/gallery" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
-                画廊
-              </Link>
-              <Link to="/workflow" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
-                工作流
-              </Link>
-              <Link to="/pricing" className="text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))] transition-colors duration-300">
-                价格
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost" className="hidden md:block text-[hsl(var(--on-secondary-fixed-variant))] hover:text-[hsl(var(--primary))]">
-                登录
-              </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button className="signature-gradient text-white px-6 py-2.5 rounded-xl text-sm font-semibold scale-95 active:scale-90 transition-transform border-0">
-                创建项目
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* 背景图 */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1920&q=80')`,
+        }}
+      >
+        {/* 暗色遮罩 */}
+        <div className="absolute inset-0 bg-black/40" />
+        {/* 渐变遮罩 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/60" />
+      </div>
 
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section className="relative min-h-[921px] flex items-center px-8 py-20 overflow-hidden">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-6 z-10">
-              <span className="text-[hsl(var(--primary))] font-bold tracking-[0.2em] uppercase text-xs mb-6 block">
-                叙事新纪元
-              </span>
-              <h1 className="text-5xl md:text-7xl font-black text-[hsl(var(--on-surface))] leading-[1.1] tracking-tighter mb-8">
-                将漫画转化为 <span className="text-[hsl(var(--secondary))] italic">电影级</span> 体验
-              </h1>
-              <p className="text-lg text-[hsl(var(--on-secondary-fixed-variant))] max-w-lg mb-10 leading-relaxed">
-                为创作者打造的终极资产管理和序列编排工具。通过高端编辑工作流，将静态画面转化为动态叙事。
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link to="/dashboard">
-                  <Button className="signature-gradient text-white px-8 py-6 rounded-xl font-bold text-lg hover:shadow-lg transition-all scale-100 active:scale-95 border-0">
-                    开始使用
-                  </Button>
-                </Link>
-                <Button variant="secondary" className="bg-[hsl(var(--surface-container-high))] text-[hsl(var(--on-surface))] px-8 py-6 rounded-xl font-bold text-lg hover:bg-[hsl(var(--surface-container-highest))] transition-all">
-                  观看演示
-                </Button>
-              </div>
-            </div>
+      {/* 导航 */}
+      <TopNav />
+      <SidebarNav />
 
-            {/* Right Image */}
-            <div className="lg:col-span-6 relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-700">
-                <img 
-                  src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&h=1067&fit=crop" 
-                  alt="漫画动作场景" 
-                  className="w-full aspect-[3/4] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--on-surface))]/40 to-transparent" />
-              </div>
-              
-              {/* Overlapping Card */}
-              <Card className="absolute -bottom-10 -left-10 bg-[hsl(var(--surface-container-lowest))] p-6 rounded-xl shadow-xl max-w-[240px] hidden md:block border-0">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary-fixed))] flex items-center justify-center">
-                    <Wand2 className="w-5 h-5 text-[hsl(var(--primary))]" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-[hsl(var(--on-surface-variant))]">实时同步</p>
-                    <p className="text-[10px] text-[hsl(var(--secondary))]">编辑阶段</p>
-                  </div>
-                </div>
-                <div className="h-1.5 w-full bg-[hsl(var(--surface-container))] rounded-full overflow-hidden">
-                  <div className="h-full bg-[hsl(var(--primary))] w-2/3" />
-                </div>
-              </Card>
-            </div>
-          </div>
-
-          {/* Background Grid Pattern */}
-          <div className="absolute top-0 right-0 -z-10 w-1/2 h-full opacity-5 pointer-events-none">
-            <svg className="w-full h-full" viewBox="0 0 100 100">
-              <defs>
-                <pattern id="grid" height="10" patternUnits="userSpaceOnUse" width="10">
-                  <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect fill="url(#grid)" height="100" width="100" />
-            </svg>
-          </div>
-        </section>
-
-        {/* Features Bento Grid */}
-        <section className="py-32 px-8 bg-[hsl(var(--surface-container-low))]">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-20 text-center">
-              <h2 className="text-4xl md:text-5xl font-black text-[hsl(var(--on-surface))] tracking-tighter mb-4">
-                为卓越而生
-              </h2>
-              <p className="text-[hsl(var(--secondary))] max-w-xl mx-auto">
-                我们的工具架起了传统插画与现代数字制作之间的桥梁。
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
-              {/* Asset Management - Large Card */}
-              <Card className="md:col-span-8 bg-[hsl(var(--surface-container-lowest))] p-10 rounded-xl flex flex-col justify-between group hover:bg-[hsl(var(--surface-container-highest))] transition-all border border-[hsl(var(--outline-variant))]/10 shadow-none">
-                <div className="max-w-md">
-                  <Package className="w-10 h-10 text-[hsl(var(--primary))] mb-6" fill="currentColor" fillOpacity={0.2} />
-                  <h3 className="text-3xl font-bold mb-4 text-[hsl(var(--on-surface))]">资产管理</h3>
-                  <p className="text-[hsl(var(--on-secondary-fixed-variant))] leading-relaxed">
-                    轻松组织你的画面、纹理和音效。一个将每个资产都视为杰作的集中式素材库。
-                  </p>
-                </div>
-                <div className="mt-12 flex gap-4 overflow-hidden">
-                  <div className="w-32 h-40 bg-[hsl(var(--surface-container))] rounded-lg flex-shrink-0 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1560972550-aba3456b5564?w=200&h=300&fit=crop" alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="w-32 h-40 bg-[hsl(var(--surface-container))] rounded-lg flex-shrink-0 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1541562232579-512a21360020?w=200&h=300&fit=crop" alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="w-32 h-40 bg-[hsl(var(--surface-container))] rounded-lg flex-shrink-0 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=200&h=300&fit=crop" alt="" className="w-full h-full object-cover" />
-                  </div>
-                </div>
-              </Card>
-
-              {/* Scene Sequencing */}
-              <Card className="md:col-span-4 bg-[hsl(var(--primary))] p-10 rounded-xl flex flex-col justify-between text-white group cursor-pointer border-0 shadow-none">
-                <div>
-                  <Clapperboard className="w-10 h-10 mb-6" />
-                  <h3 className="text-3xl font-bold mb-4">场景编排</h3>
-                  <p className="text-white/80 leading-relaxed">
-                    从漫画到动态影像的流畅过渡。用节奏精准的蒙太奇构建你的故事板。
-                  </p>
-                </div>
-                <div className="mt-8 flex justify-end">
-                  <div className="w-16 h-16 rounded-full border-2 border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
-                </div>
-              </Card>
-
-              {/* Team Collaboration */}
-              <Card className="md:col-span-4 bg-[hsl(var(--surface-container-high))] p-10 rounded-xl flex flex-col justify-between hover:bg-[hsl(var(--surface-container-highest))] transition-all border-0 shadow-none">
-                <div>
-                  <Users className="w-10 h-10 text-[hsl(var(--primary))] mb-6" />
-                  <h3 className="text-2xl font-bold mb-4 text-[hsl(var(--on-surface))]">团队协作</h3>
-                  <p className="text-[hsl(var(--on-secondary-fixed-variant))] text-sm">
-                    实时协作。共享资产、留下反馈、即时迭代。
-                  </p>
-                </div>
-                <div className="mt-6 flex -space-x-3">
-                  <Avatar className="w-10 h-10 border-2 border-[hsl(var(--surface))]">
-                    <AvatarFallback className="bg-gray-200 text-xs">U1</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-10 h-10 border-2 border-[hsl(var(--surface))]">
-                    <AvatarFallback className="bg-gray-300 text-xs">U2</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="w-10 h-10 border-2 border-[hsl(var(--surface))]">
-                    <AvatarFallback className="bg-[hsl(var(--primary))] text-xs font-bold text-white">+5</AvatarFallback>
-                  </Avatar>
-                </div>
-              </Card>
-
-              {/* Advanced Workflow */}
-              <Card className="md:col-span-8 bg-[hsl(var(--on-surface))] p-10 rounded-xl flex flex-col md:flex-row items-center gap-8 text-[hsl(var(--surface))] border-0 shadow-none">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2">高级工作流</h3>
-                  <p className="text-[hsl(var(--secondary-fixed-dim))] text-sm">
-                    通过 AI 辅助标签和智能画面提取，自动化重复性任务。
-                  </p>
-                </div>
-                <div className="w-full md:w-1/3 aspect-video bg-white/10 rounded-lg backdrop-blur-sm border border-white/10 flex items-center justify-center">
-                  <Sparkles className="w-12 h-12 text-[hsl(var(--primary))]" />
-                </div>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-40 px-8 bg-[hsl(var(--surface))] overflow-hidden relative">
-          <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-4xl md:text-6xl font-black text-[hsl(var(--on-surface))] tracking-tighter mb-8">
-              准备好让你的作品动起来了？
-            </h2>
-            <p className="text-xl text-[hsl(var(--secondary))] mb-12 max-w-2xl mx-auto">
-              加入新一代漫画艺术家和工作室的行列，将静态艺术转化为电影级杰作。
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/dashboard">
-                <Button className="signature-gradient text-white px-12 py-6 rounded-xl font-bold text-xl hover:shadow-2xl transition-all scale-100 active:scale-95 border-0">
-                  免费开始创作
-                </Button>
-              </Link>
-            </div>
-          </div>
-          
-          {/* Large faint text background */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none">
-            <span className="text-[40vw] font-black leading-none text-[hsl(var(--on-surface))]">漫画</span>
-          </div>
-        </section>
+      {/* 主内容区 */}
+      <main className="relative z-10 min-h-screen flex flex-col items-center justify-center">
+        <CreatorPanel />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-[hsl(var(--surface))] w-full pt-8 pb-0 px-8 border-t border-[hsl(var(--outline-variant))]/15">
-        <div className="flex flex-col md:flex-row justify-between items-center max-w-7xl mx-auto gap-8">
-          <div className="flex flex-col items-center md:items-start gap-4">
-            <span className="font-bold text-[hsl(var(--on-surface))] text-xl">MangaCanvas</span>
-            <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))] max-w-xs text-center md:text-left">
-              面向全球漫画和连环画创作者的顶级编辑生态系统。
-            </p>
-          </div>
-          <div className="flex gap-8">
-            <Link to="/privacy" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
-              隐私政策
-            </Link>
-            <Link to="/terms" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
-              服务条款
-            </Link>
-            <Link to="/contact" className="text-xs text-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))] transition-opacity opacity-80 hover:opacity-100">
-              联系我们
-            </Link>
-          </div>
-          <p className="text-xs text-[hsl(var(--on-secondary-fixed-variant))]">
-            © 2024 Kinetic Gallery. 保留所有权利。
-          </p>
+      {/* 底部装饰 */}
+      <div className="fixed bottom-8 left-0 right-0 z-10 flex justify-center">
+        <div className="flex items-center gap-8 text-white/30 text-xs">
+          <Link to="/privacy" className="hover:text-white/60 transition-colors">隐私政策</Link>
+          <span>|</span>
+          <Link to="/terms" className="hover:text-white/60 transition-colors">服务条款</Link>
+          <span>|</span>
+          <Link to="/contact" className="hover:text-white/60 transition-colors">联系我们</Link>
         </div>
-      </footer>
+      </div>
     </div>
   )
 }
@@ -372,8 +311,8 @@ function Home() {
 // 路由加载占位组件
 function RouteLoading() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[hsl(var(--surface))]">
-      <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--primary))]" />
+    <div className="flex items-center justify-center min-h-screen bg-black">
+      <Loader2 className="h-8 w-8 animate-spin text-white" />
     </div>
   )
 }
@@ -387,23 +326,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/project/:id/dashboard" element={<Dashboard />} />
-          <Route path="/projects" element={<ProjectsList />} />
           <Route path="/gallery" element={<Gallery />} />
-          <Route path="/project/:id" element={<ProjectDetail />} />
-          <Route path="/project/:id/:tab" element={<ProjectDetail />} />
-
-          <Route path="/project/:projectId/workflows/:workflowId" element={<WorkflowCanvas />} />
-          <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeDetail />} />
-          <Route path="/project/:projectId/episode/:episodeId/canvas" element={<WorkflowCanvas />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/workflow" element={<Workflow />} />
-          <Route path="/project/:projectId/permissions" element={<ProjectPermissions />} />
-          <Route path="/members" element={<Members />} />
-          <Route path="/assets" element={<Assets />} />
+          <Route path="/project/:id" element={<ProjectDetail />} />
+          <Route path="/project/:projectId/episode/:episodeId" element={<EpisodeWorkflow />} />
         </Routes>
       </Suspense>
     </HashRouter>
