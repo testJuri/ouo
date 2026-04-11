@@ -83,17 +83,9 @@ export function AddSceneDialog({
       <DialogContent className="max-w-lg w-[90vw] p-0 gap-0 bg-[#1a1d24] border-white/10 rounded-2xl overflow-hidden">
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold text-white">
-              添加场景
-            </DialogTitle>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="absolute right-4 top-4 p-2 rounded-full text-white/50 hover:text-white hover:bg-white/10 transition-all"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+          <DialogTitle className="text-xl font-semibold text-white">
+            添加场景
+          </DialogTitle>
         </DialogHeader>
 
         {/* Form */}
