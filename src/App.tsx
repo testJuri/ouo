@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, Suspense, lazy } from "react"
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom"
+import { message } from "antd"
 
 import { 
   Home as HomeIcon,
@@ -11,7 +12,8 @@ import {
   Monitor,
   Smartphone,
   Wand2,
-  Loader2
+  Loader2,
+  Upload
 } from "lucide-react"
 import { StyleSelectorDialog, type StyleOption } from "@/components/StyleSelectorDialog"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
@@ -22,6 +24,8 @@ import {
   getStoredIdentity,
   type IdentityOption,
 } from "@/lib/mock-identities"
+import { ouoApi } from "@/api/ouoApi"
+import { useAccountInfo } from "@/hooks/useAccountInfo"
 
 // 懒加载页面
 const Login = lazy(() => import("./pages/auth/Login"))
@@ -107,7 +111,7 @@ function SidebarNav() {
   
   const tools = [
     { id: 'home', icon: HomeIcon, label: '首页', action: () => navigate('/') },
-    { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/project/1') },
+    { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/') },
     { id: 'create', icon: Triangle, label: '创作', action: () => {} },
   ]
 
@@ -139,30 +143,18 @@ function SidebarNav() {
   )
 }
 
-// 顶部导航
 function TopNav() {
+  const { accountInfo } = useAccountInfo()
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5">
-      {/* Right Actions */}
       <div className="flex items-center gap-4">
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-          </svg>
-        </button>
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-          </svg>
-        </button>
-        <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
+          <Sparkles className="w-4 h-4 text-white/50" />
+          <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'}</span>
+          <span className="text-xs text-white/30">|</span>
+          <span className="text-xs text-white/50">充值</span>
+        </div>
 
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white/20 overflow-hidden">
           <img 
@@ -176,13 +168,17 @@ function TopNav() {
   )
 }
 
-// 中央创作区域
 function CreatorPanel() {
+  const navigate = useNavigate()
   const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9')
   const [styleDialogOpen, setStyleDialogOpen] = useState(false)
   const [selectedStyle, setSelectedStyle] = useState<StyleOption | null>(null)
   const [characterDialogOpen, setCharacterDialogOpen] = useState(false)
   const [sceneDialogOpen, setSceneDialogOpen] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string } | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const handleStyleSelect = (style: StyleOption) => {
     setSelectedStyle(style)
@@ -190,46 +186,85 @@ function CreatorPanel() {
   
   const handleAddCharacter = (data: { name: string; prompt: string }) => {
     console.log("添加角色:", data)
-    // TODO: 调用 API 添加角色
   }
   
   const handleAddScene = (data: { name: string; prompt: string; image?: File }) => {
     console.log("添加场景:", data)
-    // TODO: 调用 API 添加场景
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setIsUploading(true)
+    try {
+      const result = await ouoApi.uploadFile(file)
+      setUploadedFile({ url: result.url, name: file.name })
+      message.success('文件上传成功')
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : '上传失败')
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleCreate = async () => {
+    if (!uploadedFile) {
+      message.warning('请先上传剧本文件')
+      return
+    }
+    if (!selectedStyle) {
+      message.warning('请先选择风格')
+      return
+    }
+    setIsCreating(true)
+    try {
+      const taskId = await ouoApi.createTask({
+        styleId: Number(selectedStyle.id),
+        aspectRatio,
+        scriptFileUrl: uploadedFile.url,
+        scriptFileName: uploadedFile.name,
+        productionMode: 'INTELLIGENT',
+      })
+      message.success('任务创建成功')
+      navigate(`/project/${taskId}`)
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : '创建失败')
+    } finally {
+      setIsCreating(false)
+    }
   }
   
   return (
     <>
+    <input
+      ref={fileInputRef}
+      type="file"
+      accept=".pdf,.txt,.doc,.docx"
+      className="hidden"
+      onChange={handleFileUpload}
+    />
     <div className="relative z-10 w-full max-w-3xl mx-auto px-6">
-      {/* 主标题 */}
       <h1 className="text-5xl md:text-6xl font-bold text-white text-center mb-12 tracking-wide">
         让故事，不再囿于文字
       </h1>
 
-      {/* 输入面板 */}
       <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
-        {/* 提示文字 */}
         <div className="flex items-center gap-3 mb-6 text-white/60">
           <Sparkles className="w-5 h-5" />
           <span className="text-base">上传素材，选择风格与尺寸，即可开始 AI 创作</span>
         </div>
 
-        {/* 功能按钮行 */}
         <div className="flex flex-wrap items-center gap-3">
           <button 
-            onClick={() => setSceneDialogOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
           >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">场景</span>
-          </button>
-
-          <button 
-            onClick={() => setCharacterDialogOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">角色</span>
+            {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            <span className="text-sm font-medium">
+              {uploadedFile ? uploadedFile.name : "上传剧本"}
+            </span>
           </button>
 
           <button 
@@ -266,22 +301,40 @@ function CreatorPanel() {
             <span className="text-sm font-medium">9:16</span>
           </button>
 
+          <button 
+            onClick={() => setSceneDialogOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">场景</span>
+          </button>
+
+          <button 
+            onClick={() => setCharacterDialogOpen(true)}
+            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="text-sm font-medium">角色</span>
+          </button>
+
           <div className="flex-1" />
 
-          <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all shadow-lg shadow-white/10">
-            <Wand2 className="w-4 h-4" />
+          <button 
+            onClick={handleCreate}
+            disabled={isCreating}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-all shadow-lg shadow-white/10 disabled:opacity-50"
+          >
+            {isCreating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
             <span className="text-sm">生成</span>
           </button>
         </div>
       </div>
 
-      {/* 底部提示 */}
       <p className="text-center text-white/40 text-sm mt-8">
         支持小说、剧本、分镜等多种创作模式
       </p>
     </div>
 
-    {/* 风格选择弹框 */}
     <StyleSelectorDialog
       open={styleDialogOpen}
       onOpenChange={setStyleDialogOpen}
@@ -289,14 +342,12 @@ function CreatorPanel() {
       selectedStyleId={selectedStyle?.id}
     />
     
-    {/* 添加角色弹框 */}
     <AddCharacterDialog
       open={characterDialogOpen}
       onOpenChange={setCharacterDialogOpen}
       onConfirm={handleAddCharacter}
     />
     
-    {/* 添加场景弹框 */}
     <AddSceneDialog
       open={sceneDialogOpen}
       onOpenChange={setSceneDialogOpen}

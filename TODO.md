@@ -223,3 +223,38 @@
 - 📝 重新梳理 API 对接情况，列出剩余 30 个待对接接口
 - ✅ 清理已完成的历史任务
 - 📝 重新整理待办清单，按优先级分类
+
+### 2026-04-12
+- 📝 追加 OUO API 封装接口待真实测试清单
+
+---
+
+## 🔶 OUO API 封装接口（待后端真实测试）
+
+> 以下接口已在 `src/api/ouoApi.ts` 中完成封装，前端通过 MSW 模拟验证通过，但尚未与后端真实接口联调，需等待后端就绪后逐一测试。
+
+| # | 函数名 | 方法 | 路径 | 文档序号 | 测试状态 |
+|---|--------|------|------|----------|----------|
+| 1 | `uploadFile(file, group)` | POST | `/common/upload` | 1 | ⬜ 待测试 |
+| 2 | `createTask(params)` | POST | `/task/create` | 2 | ⬜ 待测试 |
+| 3 | `getMyTasks(page, pageSize)` | GET | `/task/my-tasks` | 3 | ⬜ 待测试 |
+| 4 | `getTaskStatus(taskId)` | GET | `/task/status` | 4 | ⬜ 待测试 |
+| 5 | `getTaskDetail(taskId)` | GET | `/task/detail` | 5 | ⬜ 待测试 |
+| 6 | `getTaskEpisodes(taskId)` | GET | `/task/episodes` | 6 | ⬜ 待测试 |
+| 7 | `getEpisodeDetail(episodeId)` | GET | `/episode/detail` | 7 | ⬜ 待测试 |
+| 8 | `getEpisodeMonitor(episodeId)` | GET | `/episode/monitor` | 8, 10, 12, 15, 18, 21, 29, 31 | ⬜ 待测试 |
+| 9 | `autoProcessEpisode(episodeId)` | POST | `/task/episode/autoProcess` | 9 | ⬜ 待测试 |
+| 10 | `generateCharacterPic(characterId)` | POST | `/character/pic/generate` | 11 | ⬜ 待测试 |
+| 11 | `getAccountInfo()` | GET | `/account/info` | 13, 16, 19, 26 | ⬜ 待测试 |
+| 12 | `generateScenePic(sceneId, prompt?, refs?)` | POST | `/scene/pic/generate` | 14, 34 | ⬜ 待测试 |
+| 13 | `regenerateProp(propId)` | POST | `/prop/regenerate` | 17 | ⬜ 待测试 |
+| 14 | `splitEpisodeShots(episodeId)` | POST | `/episode/shot/split` | 20 | ⬜ 待测试 |
+| 15 | `getEpisodeShots(episodeId)` | GET | `/task/episode/shots` | 22, 25, 32 | ⬜ 待测试 |
+| 16 | `regenerateShot(shotId)` | POST | `/shot/regenerate` | 23 | ⬜ 待测试 |
+| 17 | `batchGenerateShots(episodeId)` | POST | `/shot/generate/batch` | 24 | ⬜ 待测试 |
+| 18 | `mergeEpisodeVideo(episodeId)` | POST | `/episode/video/merge` | 27 | ⬜ 待测试 |
+| 19 | `getVideoMergeHistory(episodeId)` | GET | `/history/video-merge/list` | 30 | ⬜ 待测试 |
+| 20 | `createCharacter(episodeId, name, prompt)` | POST | `/character/create` | 30（添加角色） | ⬜ 待测试 |
+| 21 | `createScene(episodeId, location, prompt)` | POST | `/scene/create` | 31（添加场景） | ⬜ 待测试 |
+| 22 | `createProp(episodeId, name, prompt)` | POST | `/prop/create` | 32（添加道具） | ⬜ 待测试 |
+| 23 | `addShot(shotId, addLocation)` | POST | `/shot/add` | 37 | ⬜ 待测试 |

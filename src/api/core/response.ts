@@ -5,16 +5,16 @@ export interface BackendResponse<T> {
   code: number
   data: T
   message?: string
+  msg?: string
 }
 
 /**
  * 适配后端响应格式
  * 支持两种格式：
- * 1. 标准后端格式: { code: 0, data: T, message?: string }
+ * 1. 标准后端格式: { code: 0, data: T, message?: string | msg?: string }
  * 2. 直接数据格式（mock）: T
  */
 function adaptBackendResponse<T>(response: unknown): T {
-  // 检查是否是标准后端格式 (有 code 字段)
   if (
     response !== null &&
     typeof response === 'object' &&
@@ -23,11 +23,10 @@ function adaptBackendResponse<T>(response: unknown): T {
   ) {
     const backendResp = response as BackendResponse<T>
     if (backendResp.code !== 0) {
-      throw new Error(backendResp.message || `请求失败: code=${backendResp.code}`)
+      throw new Error(backendResp.message || backendResp.msg || `请求失败: code=${backendResp.code}`)
     }
     return backendResp.data
   }
-  // 直接返回数据（mock 模式）
   return response as T
 }
 
