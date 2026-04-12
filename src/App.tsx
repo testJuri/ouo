@@ -13,11 +13,22 @@ import {
   Smartphone,
   Wand2,
   Loader2,
-  Upload
+  Upload,
+  Settings,
+  LogOut,
+  User
 } from "lucide-react"
 import { StyleSelectorDialog, type StyleOption } from "@/components/StyleSelectorDialog"
 import { AddCharacterDialog } from "@/components/AddCharacterDialog"
 import { AddSceneDialog } from "@/components/AddSceneDialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   IDENTITY_CHANGE_EVENT,
   canAccessProjectRoutes,
@@ -145,6 +156,12 @@ function SidebarNav() {
 
 function TopNav() {
   const { accountInfo } = useAccountInfo()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
 
   return (
     <nav className="fixed top-0 right-0 z-50 flex items-center px-8 py-5">
@@ -154,13 +171,48 @@ function TopNav() {
           <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'} 积分</span>
         </div>
 
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white/20 overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
-            alt="User" 
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white/20 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+              <img 
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
+                alt="User" 
+                className="w-full h-full object-cover"
+              />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 bg-black/80 backdrop-blur-xl border-white/10">
+            <DropdownMenuLabel className="text-white/60">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span>我的账户</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem className="text-white/80 focus:text-white focus:bg-white/10 cursor-pointer">
+              <div className="flex items-center justify-between w-full">
+                <span>当前积分</span>
+                <span className="font-medium">{accountInfo?.balance ?? '--'}</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-white/80 focus:text-white focus:bg-white/10 cursor-pointer">
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span>设置</span>
+              </div>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuItem 
+              onClick={handleLogout}
+              className="text-red-400 focus:text-red-400 focus:bg-white/10 cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <LogOut className="w-4 h-4" />
+                <span>退出登录</span>
+              </div>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </nav>
   )
