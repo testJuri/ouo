@@ -147,13 +147,11 @@ function TopNav() {
   const { accountInfo } = useAccountInfo()
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-5">
+    <nav className="fixed top-0 right-0 z-50 flex items-center px-8 py-5">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
           <Sparkles className="w-4 h-4 text-white/50" />
-          <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'}</span>
-          <span className="text-xs text-white/30">|</span>
-          <span className="text-xs text-white/50">充值</span>
+          <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'} 积分</span>
         </div>
 
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white/20 overflow-hidden">
