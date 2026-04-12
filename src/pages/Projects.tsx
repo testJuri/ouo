@@ -9,8 +9,8 @@ import {
   LogOut,
   User,
   MoreVertical,
-  Clock,
-  Film
+  Film,
+  Search
 } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
@@ -84,10 +84,28 @@ function TopNav() {
         轩晔<span className="font-light">OUO</span>
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {/* 工具图标 */}
+        <button className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-colors">
+          <div className="w-4 h-4 border border-current rounded flex items-center justify-center">
+            <div className="w-2 h-2 bg-current rounded-sm" />
+          </div>
+        </button>
+        <button className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-colors">
+          <Search className="w-4 h-4" />
+        </button>
+        <button className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-colors">
+          <div className="grid grid-cols-2 gap-0.5">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-1 h-1 bg-current rounded-sm" />
+            ))}
+          </div>
+        </button>
+
+        {/* 积分 */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10">
-          <Sparkles className="w-4 h-4 text-white/50" />
-          <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'} 积分</span>
+          <Sparkles className="w-4 h-4 text-yellow-400" />
+          <span className="text-sm text-white/80 font-medium">{accountInfo?.balance ?? '--'}</span>
         </div>
 
         <DropdownMenu>
@@ -187,18 +205,35 @@ function ProjectCard({ project }: { project: OuoTask }) {
       className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer"
     >
       {/* 封面图 */}
-      <div className="relative aspect-video bg-black/20">
+      <div className="relative aspect-[4/3] bg-black/20 m-3 rounded-xl overflow-hidden">
         <img 
           src={project.cover} 
           alt={project.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute top-2 right-2">
+        {/* 标签 */}
+        <div className="absolute top-2 left-2 flex items-center gap-1.5">
+          <span className="px-2 py-0.5 rounded-full bg-purple-500/80 text-white text-xs">
+            {project.styleName}
+          </span>
+          <span className="px-2 py-0.5 rounded-full bg-blue-500/80 text-white text-xs">
+            {project.aspectRatio}
+          </span>
+        </div>
+      </div>
+      
+      {/* 信息 */}
+      <div className="px-4 pb-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-medium mb-1 truncate">{project.title}</h3>
+            <p className="text-sm text-white/40">{formatDate(project.createdAt)}</p>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
                 onClick={(e) => e.stopPropagation()}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-black/40 transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors ml-2"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
@@ -218,21 +253,6 @@ function ProjectCard({ project }: { project: OuoTask }) {
           </DropdownMenu>
         </div>
       </div>
-      
-      {/* 信息 */}
-      <div className="p-4">
-        <h3 className="text-white font-medium mb-2 line-clamp-1">{project.title}</h3>
-        
-        <div className="flex items-center gap-2 text-sm text-white/50 mb-3">
-          <span className="px-2 py-0.5 rounded bg-white/5">{project.aspectRatio}</span>
-          <span>{project.styleName}</span>
-        </div>
-        
-        <div className="flex items-center gap-1.5 text-xs text-white/40">
-          <Clock className="w-3.5 h-3.5" />
-          <span>{formatDate(project.createdAt)}</span>
-        </div>
-      </div>
     </div>
   )
 }
@@ -249,17 +269,17 @@ export default function Projects() {
         <div className="max-w-6xl mx-auto">
           {/* 头部 */}
           <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1">我的项目</h1>
-              <p className="text-white/50">共 {projects.length} 个项目</p>
+            <h1 className="text-xl font-medium text-white">我的项目</h1>
+            
+            {/* 搜索框 */}
+            <div className="relative w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input 
+                type="text" 
+                placeholder="请输入项目名称"
+                className="w-full pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/20"
+              />
             </div>
-            <Link
-              to="/gallery"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-black font-medium hover:bg-white/90 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              新建项目
-            </Link>
           </div>
           
           {/* 项目网格 */}
