@@ -1,3 +1,13 @@
+echo "🔍 检查 lock 文件同步..."
+if [ -f package.json ] && [ -f package-lock.json ]; then
+  # 检查 package.json 是否比 package-lock.json 新
+  if [ package.json -nt package-lock.json ]; then
+    echo "⚠️  package.json 已修改，但 package-lock.json 未更新"
+    echo "请运行 'npm install' 更新 lock 文件后再提交"
+    exit 1
+  fi
+fi
+
 echo "🔍 运行 ESLint 检查..."
 npm run lint
 if [ $? -ne 0 ]; then
