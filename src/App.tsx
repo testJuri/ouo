@@ -44,6 +44,7 @@ const Gallery = lazy(() => import("./pages/Gallery"))
 const Terms = lazy(() => import("./pages/Terms"))
 const Privacy = lazy(() => import("./pages/Privacy"))
 const Contact = lazy(() => import("./pages/Contact"))
+const Projects = lazy(() => import("./pages/Projects"))
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"))
 const EpisodeWorkflow = lazy(() => import("./pages/EpisodeWorkflow"))
 
@@ -121,7 +122,7 @@ function SidebarNav() {
   
   const tools = [
     { id: 'home', icon: HomeIcon, label: '首页', action: () => navigate('/') },
-    { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/') },
+    { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/projects') },
     { id: 'create', icon: Triangle, label: '创作', action: () => navigate('/gallery') },
   ]
 
@@ -450,6 +451,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/contact" element={<Contact />} />
