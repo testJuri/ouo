@@ -7,7 +7,6 @@ import {
   FolderOpen,
   Triangle,
   Sparkles,
-  Plus,
   Palette,
   Monitor,
   Smartphone,
@@ -349,22 +348,6 @@ function CreatorPanel() {
           >
             <Smartphone className="w-4 h-4" />
             <span className="text-sm font-medium">9:16</span>
-          </button>
-
-          <button 
-            onClick={() => setSceneDialogOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">场景</span>
-          </button>
-
-          <button 
-            onClick={() => setCharacterDialogOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 hover:text-white transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm font-medium">角色</span>
           </button>
 
           <div className="flex-1" />
