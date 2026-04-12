@@ -123,7 +123,7 @@ function SidebarNav() {
   const tools = [
     { id: 'home', icon: HomeIcon, label: '首页', action: () => navigate('/') },
     { id: 'projects', icon: FolderOpen, label: '项目', action: () => navigate('/') },
-    { id: 'create', icon: Triangle, label: '创作', action: () => {} },
+    { id: 'create', icon: Triangle, label: '创作', action: () => navigate('/gallery') },
   ]
 
   return (
