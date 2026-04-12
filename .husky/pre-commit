@@ -1,1 +1,15 @@
-npx lint-staged
+echo "🔍 运行 ESLint 检查..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint 检查失败，请修复错误后再提交"
+  exit 1
+fi
+
+echo "🔍 运行 TypeScript 类型检查..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript 类型检查失败，请修复错误后再提交"
+  exit 1
+fi
+
+echo "✅ 检查通过！"

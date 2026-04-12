@@ -32,6 +32,20 @@ export function useEpisodeMonitor(episodeId: number | undefined) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isPollingRef = useRef(false)
 
+  // 使用 ref 存储 stopPolling，避免循环依赖
+  const stopPollingRef = useRef<() => void>(() => {})
+
+  const stopPolling = useCallback(() => {
+    isPollingRef.current = false
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
+  // 更新 ref
+  stopPollingRef.current = stopPolling
+
   const fetchMonitor = useCallback(async () => {
     if (!episodeId) return
     try {
@@ -51,18 +65,10 @@ export function useEpisodeMonitor(episodeId: number | undefined) {
     intervalRef.current = setInterval(async () => {
       const data = await fetchMonitor()
       if (data && !hasRunningTasks(data)) {
-        stopPolling()
+        stopPollingRef.current()
       }
     }, POLL_INTERVAL)
   }, [fetchMonitor])
-
-  const stopPolling = useCallback(() => {
-    isPollingRef.current = false
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [])
 
   const refresh = useCallback(async () => {
     setLoading(true)
