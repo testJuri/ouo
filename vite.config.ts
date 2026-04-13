@@ -11,7 +11,8 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'http://124.156.186.82:8080',
+        // target: 'http://124.156.186.82:8080', // 远程服务器
+        target: 'http://localhost:8888', // 本地后端
         changeOrigin: true,
       },
       '/ouo-api': {
