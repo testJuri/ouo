@@ -35,7 +35,7 @@ npm run lint
 
 ## 当前路由
 
-以下内容以 [src/App.tsx](/Users/hanqian/My_/my_code/jurilu/src/App.tsx) 为准：
+以下内容以 [src/App.tsx](/Users/hanqian/My_/my_code/ouo/src/App.tsx) 为准：
 
 | 路径 | 页面 |
 |------|------|
@@ -418,5 +418,5 @@ Mock 数据位于 `src/api/mock/` 目录，包含：
 
 ## 参考文档
 
-- 后端接口文档位于仓库根目录 [BACKEND_API_SPEC_V2.md](/Users/hanqian/My_/my_code/jurilu/BACKEND_API_SPEC_V2.md)
+- 后端接口文档位于仓库根目录 [BACKEND_API_SPEC_V2.md](/Users/hanqian/My_/my_code/ouo/BACKEND_API_SPEC_V2.md)
 - 如存在旧版 `BACKEND_API_SPEC.md`，联调与实现以 `BACKEND_API_SPEC_V2.md` 为准
