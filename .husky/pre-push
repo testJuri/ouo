@@ -1,0 +1,21 @@
+#!/bin/bash
+
+remote="$1"
+url="$2"
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+echo "🔍 检查自动发版条件 (分支: $BRANCH, 远程: $remote)..."
+
+if [ "$BRANCH" = "main" ] && [ "$remote" = "origin" ]; then
+  echo "🚀 检测到 push 到 origin/main，开始自动远程发版..."
+  ./local-deploy.sh "$BRANCH"
+  if [ $? -ne 0 ]; then
+    echo "❌ 自动发版失败，push 已中断"
+    exit 1
+  fi
+  echo "✅ 自动发版完成"
+else
+  echo "ℹ️  跳过自动发版 (仅对 origin/main 生效)"
+fi
+
+exit 0
