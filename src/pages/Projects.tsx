@@ -81,7 +81,7 @@ function TopNav() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-black/40 backdrop-blur-xl">
       <Link to="/" className="text-2xl font-bold text-white">
-        轩晔<span className="font-light">OUO</span>
+        <span className="font-light">OUO</span>
       </Link>
 
       <div className="flex items-center gap-3">

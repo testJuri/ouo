@@ -16,6 +16,7 @@ export interface AuthPayload {
     email: string
     avatar: string | null
     roleId: number
+    organizationIds?: number[]
     credits?: number
     createdAt?: string
     updatedAt?: string

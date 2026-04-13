@@ -228,6 +228,7 @@ function CreatorPanel() {
   const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string } | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const handleStyleSelect = (style: StyleOption) => {
@@ -242,9 +243,7 @@ function CreatorPanel() {
     console.log("添加场景:", data)
   }
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const processFile = async (file: File) => {
     setIsUploading(true)
     try {
       const result = await ouoApi.uploadFile(file)
@@ -256,6 +255,33 @@ function CreatorPanel() {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    await processFile(file)
   }
 
   const handleCreate = async () => {
@@ -299,7 +325,14 @@ function CreatorPanel() {
         让故事，不再囿于文字
       </h1>
 
-      <div className="bg-black/30 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl">
+      <div
+        className={`bg-black/30 backdrop-blur-xl rounded-3xl border p-6 shadow-2xl transition-all ${
+          isDragging ? 'border-white/40 bg-white/10' : 'border-white/10'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="flex items-center gap-3 mb-6 text-white/60">
           <Sparkles className="w-5 h-5" />
           <span className="text-base">上传素材，选择风格与尺寸，即可开始 AI 创作</span>

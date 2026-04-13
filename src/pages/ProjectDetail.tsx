@@ -90,7 +90,7 @@ function TopNav({ projectName, scriptFile }: { projectName: string; scriptFile: 
           className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
         >
           <span className="text-xl font-bold text-white tracking-tight">
-            轩晔<span className="font-light text-white/60">OUO</span>
+            <span className="font-light text-white/60">OUO</span>
           </span>
         </Link>
         <div className="h-6 w-px bg-white/10" />

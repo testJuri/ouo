@@ -1,4 +1,4 @@
-import { ouoClient } from './clients/ouoClient'
+import { appClient } from './clients/appClient'
 import { requestData } from './core/response'
 import type {
   OuoUploadResult,
@@ -20,7 +20,7 @@ export const ouoApi = {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('group', group)
-    return requestData<OuoUploadResult>(ouoClient, {
+    return requestData<OuoUploadResult>(appClient, {
       method: 'POST',
       url: '/common/upload',
       data: formData,
@@ -29,7 +29,7 @@ export const ouoApi = {
   },
 
   createTask(params: OuoCreateTaskParams) {
-    return requestData<number>(ouoClient, {
+    return requestData<number>(appClient, {
       method: 'POST',
       url: '/task/create',
       data: params,
@@ -37,7 +37,7 @@ export const ouoApi = {
   },
 
   getMyTasks(page = 1, pageSize = 20) {
-    return requestData<OuoTaskList>(ouoClient, {
+    return requestData<OuoTaskList>(appClient, {
       method: 'GET',
       url: '/task/my-tasks',
       params: { page, pageSize },
@@ -45,7 +45,7 @@ export const ouoApi = {
   },
 
   getTaskStatus(taskId: number) {
-    return requestData<OuoTaskStatus>(ouoClient, {
+    return requestData<OuoTaskStatus>(appClient, {
       method: 'GET',
       url: '/task/status',
       params: { taskId },
@@ -53,7 +53,7 @@ export const ouoApi = {
   },
 
   getTaskDetail(taskId: number) {
-    return requestData<OuoTaskDetail>(ouoClient, {
+    return requestData<OuoTaskDetail>(appClient, {
       method: 'GET',
       url: '/task/detail',
       params: { taskId },
@@ -61,7 +61,7 @@ export const ouoApi = {
   },
 
   getTaskEpisodes(taskId: number) {
-    return requestData<OuoEpisode[]>(ouoClient, {
+    return requestData<OuoEpisode[]>(appClient, {
       method: 'GET',
       url: '/task/episodes',
       params: { taskId },
@@ -69,7 +69,7 @@ export const ouoApi = {
   },
 
   getEpisodeDetail(episodeId: number) {
-    return requestData<OuoEpisodeDetail>(ouoClient, {
+    return requestData<OuoEpisodeDetail>(appClient, {
       method: 'GET',
       url: '/episode/detail',
       params: { episodeId },
@@ -77,7 +77,7 @@ export const ouoApi = {
   },
 
   getEpisodeMonitor(episodeId: number) {
-    return requestData<OuoMonitor>(ouoClient, {
+    return requestData<OuoMonitor>(appClient, {
       method: 'GET',
       url: '/episode/monitor',
       params: { episodeId },
@@ -85,7 +85,7 @@ export const ouoApi = {
   },
 
   autoProcessEpisode(episodeId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/task/episode/autoProcess',
       data: { episodeId },
@@ -93,7 +93,7 @@ export const ouoApi = {
   },
 
   generateCharacterPic(characterId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/character/pic/generate',
       data: { characterId },
@@ -101,7 +101,7 @@ export const ouoApi = {
   },
 
   getAccountInfo() {
-    return requestData<OuoAccountInfo>(ouoClient, {
+    return requestData<OuoAccountInfo>(appClient, {
       method: 'GET',
       url: '/account/info',
     })
@@ -111,7 +111,7 @@ export const ouoApi = {
     const data: Record<string, unknown> = { sceneId }
     if (scenePrompt !== undefined) data.scenePrompt = scenePrompt
     if (sceneReferenceImages !== undefined) data.sceneReferenceImages = sceneReferenceImages
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/scene/pic/generate',
       data,
@@ -119,7 +119,7 @@ export const ouoApi = {
   },
 
   regenerateProp(propId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/prop/regenerate',
       data: { propId },
@@ -127,7 +127,7 @@ export const ouoApi = {
   },
 
   splitEpisodeShots(episodeId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/episode/shot/split',
       data: { episodeId },
@@ -135,7 +135,7 @@ export const ouoApi = {
   },
 
   getEpisodeShots(episodeId: number) {
-    return requestData<OuoShot[]>(ouoClient, {
+    return requestData<OuoShot[]>(appClient, {
       method: 'GET',
       url: '/task/episode/shots',
       params: { episodeId },
@@ -143,7 +143,7 @@ export const ouoApi = {
   },
 
   regenerateShot(shotId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/shot/regenerate',
       data: { shotId },
@@ -151,7 +151,7 @@ export const ouoApi = {
   },
 
   batchGenerateShots(episodeId: number) {
-    return requestData<OuoBatchGenerateResult>(ouoClient, {
+    return requestData<OuoBatchGenerateResult>(appClient, {
       method: 'POST',
       url: '/shot/generate/batch',
       data: { episodeId },
@@ -159,7 +159,7 @@ export const ouoApi = {
   },
 
   mergeEpisodeVideo(episodeId: number) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/episode/video/merge',
       data: { episodeId },
@@ -167,7 +167,7 @@ export const ouoApi = {
   },
 
   getVideoMergeHistory(episodeId: number) {
-    return requestData<OuoVideoMergeHistory[]>(ouoClient, {
+    return requestData<OuoVideoMergeHistory[]>(appClient, {
       method: 'GET',
       url: '/history/video-merge/list',
       params: { episodeId },
@@ -175,7 +175,7 @@ export const ouoApi = {
   },
 
   createCharacter(episodeId: number, characterName: string, characterPrompt: string) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/character/create',
       data: { episodeId, characterName, characterPrompt },
@@ -183,7 +183,7 @@ export const ouoApi = {
   },
 
   createScene(episodeId: number, sceneLocation: string, scenePrompt: string) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/scene/create',
       data: { episodeId, sceneLocation, scenePrompt },
@@ -191,7 +191,7 @@ export const ouoApi = {
   },
 
   createProp(episodeId: number, propName: string, propPrompt: string) {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/prop/create',
       data: { episodeId, propName, propPrompt },
@@ -199,7 +199,7 @@ export const ouoApi = {
   },
 
   addShot(shotId: number, addLocation: 'before' | 'after') {
-    return requestData<null>(ouoClient, {
+    return requestData<null>(appClient, {
       method: 'POST',
       url: '/shot/add',
       data: { shotId, addLocation },

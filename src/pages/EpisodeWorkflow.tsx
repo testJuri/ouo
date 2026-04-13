@@ -68,7 +68,7 @@ function TopNav({
       <div className="flex items-center gap-3">
         <Link to="/" className="flex items-center gap-2">
           <span className="text-lg font-bold text-white tracking-tight">
-            轩晔<span className="font-light text-white/60">OUO</span>
+            <span className="font-light text-white/60">OUO</span>
           </span>
         </Link>
         <Button
