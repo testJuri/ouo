@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 // 风格数据类型
 interface StyleOption {
-  id: string
+  id: number
   name: string
   image: string
   category: "realistic" | "anime"
@@ -18,95 +18,30 @@ interface StyleOption {
 
 // 写实风格选项
 const realisticStyles: StyleOption[] = [
-  {
-    id: "realistic-1",
-    name: "真人",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-2",
-    name: "古风",
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-3",
-    name: "赛博朋克",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-4",
-    name: "悬疑暗黑",
-    image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-5",
-    name: "电影",
-    image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-6",
-    name: "复古",
-    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
-  {
-    id: "realistic-7",
-    name: "现代末日",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop",
-    category: "realistic",
-  },
+  { id: 1, name: "真人", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 2, name: "古风", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 3, name: "赛博朋克", image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 4, name: "悬疑暗黑", image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 5, name: "电影", image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 6, name: "复古", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop", category: "realistic" },
+  { id: 7, name: "现代末日", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop", category: "realistic" },
 ]
 
 // 动漫风格选项
 const animeStyles: StyleOption[] = [
-  {
-    id: "anime-1",
-    name: "日漫",
-    image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&h=600&fit=crop",
-    category: "anime",
-  },
-  {
-    id: "anime-2",
-    name: "国漫",
-    image: "https://images.unsplash.com/photo-1560972550-aba3456b5564?w=400&h=600&fit=crop",
-    category: "anime",
-  },
-  {
-    id: "anime-3",
-    name: "Q版",
-    image: "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=400&h=600&fit=crop",
-    category: "anime",
-  },
-  {
-    id: "anime-4",
-    name: "赛博朋克",
-    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=600&fit=crop",
-    category: "anime",
-  },
-  {
-    id: "anime-5",
-    name: "唯美",
-    image: "https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=400&h=600&fit=crop",
-    category: "anime",
-  },
-  {
-    id: "anime-6",
-    name: "科幻",
-    image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400&h=600&fit=crop",
-    category: "anime",
-  },
+  { id: 101, name: "日漫", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&h=600&fit=crop", category: "anime" },
+  { id: 102, name: "国漫", image: "https://images.unsplash.com/photo-1560972550-aba3456b5564?w=400&h=600&fit=crop", category: "anime" },
+  { id: 103, name: "Q版", image: "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=400&h=600&fit=crop", category: "anime" },
+  { id: 104, name: "赛博朋克", image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=600&fit=crop", category: "anime" },
+  { id: 105, name: "唯美", image: "https://images.unsplash.com/photo-1515462277126-2dd0c162007a?w=400&h=600&fit=crop", category: "anime" },
+  { id: 106, name: "科幻", image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=400&h=600&fit=crop", category: "anime" },
 ]
 
 interface StyleSelectorDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSelect?: (style: StyleOption) => void
-  selectedStyleId?: string
+  selectedStyleId?: number
 }
 
 export function StyleSelectorDialog({
@@ -116,7 +51,7 @@ export function StyleSelectorDialog({
   selectedStyleId,
 }: StyleSelectorDialogProps) {
   const [activeTab, setActiveTab] = useState<"realistic" | "anime">("realistic")
-  const [localSelectedId, setLocalSelectedId] = useState<string | undefined>(selectedStyleId)
+  const [localSelectedId, setLocalSelectedId] = useState<number | undefined>(selectedStyleId)
 
   const currentStyles = activeTab === "realistic" ? realisticStyles : animeStyles
 

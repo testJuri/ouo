@@ -307,7 +307,7 @@ function CreatorPanel() {
     setIsCreating(true)
     try {
       const taskId = await ouoApi.createTask({
-        styleId: Number(selectedStyle.id),
+        styleId: selectedStyle.id,
         aspectRatio,
         scriptFileUrl: uploadedFile.url,
         scriptFileName: uploadedFile.name,
