@@ -35,7 +35,7 @@ import {
 } from "@/lib/mock-identities"
 import { ouoApi } from "@/api/ouoApi"
 import { authApi } from "@/api"
-import { getRefreshToken } from "@/lib/session"
+import { clearSession, clearActiveProjectId, getRefreshToken } from "@/lib/session"
 import { KeyRound } from "lucide-react"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
 
@@ -167,7 +167,8 @@ function TopNav() {
     } catch {
       // 即使后端登出失败也继续清理本地状态
     }
-    localStorage.removeItem('token')
+    clearSession()
+    clearActiveProjectId()
     navigate('/login')
   }
 

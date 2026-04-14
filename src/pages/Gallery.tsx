@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { authApi } from "@/api"
-import { getRefreshToken } from "@/lib/session"
+import { clearSession, clearActiveProjectId, getRefreshToken } from "@/lib/session"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
 import {
   DropdownMenu,
@@ -124,7 +124,8 @@ function TopNav() {
     } catch {
       // ignore
     }
-    localStorage.removeItem('token')
+    clearSession()
+    clearActiveProjectId()
     navigate('/login')
   }
 

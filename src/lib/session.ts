@@ -128,6 +128,12 @@ export const clearSession = () => {
   Object.values(USER_KEYS).forEach((key) => {
     localStorage.removeItem(key)
   })
+
+  // 清除可能遗留的 token key
+  localStorage.removeItem('token')
+
+  // 清除 unauthorized redirect flag
+  sessionStorage.removeItem(UNAUTHORIZED_REDIRECT_FLAG)
 }
 
 export const getAuthToken = (): string => {
