@@ -23,6 +23,7 @@ export interface ErrorMessageContext {
 export function extractErrorMessage(error: unknown, fallbackMessage = '请求失败'): string {
   if (axios.isAxiosError(error)) {
     return (
+      error.response?.data?.msg ||
       error.response?.data?.message ||
       error.response?.data?.error?.message ||
       error.message ||
