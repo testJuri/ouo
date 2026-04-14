@@ -100,7 +100,7 @@ export default function Login() {
       })
 
       notify.success(isLogin ? "登录成功" : "注册成功")
-      navigate("/dashboard")
+      navigate("/")
     } catch (error) {
       console.log('[Login] API 错误:', error)
       if (shouldFallbackToMock(error)) {
@@ -110,7 +110,7 @@ export default function Login() {
         })
         saveSession(mockSession)
         notify.warning("后端暂时不可用，已切换到本地 Mock 登录")
-        navigate("/dashboard")
+        navigate("/")
         return
       }
 
