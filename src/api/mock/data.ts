@@ -332,8 +332,8 @@ export const mockProjectAssets: ProjectAssetDTO[] = [
 
 // ============ 认证数据 ============
 export const mockAuthPayload: AuthPayload = {
-  token: 'mock_token_123456789',
-  refreshToken: 'mock_refresh_token_987654321',
+  access_token: 'mock_token_123456789',
+  refresh_token: 'mock_refresh_token_987654321',
   user: {
     id: 1,
     username: '张三',

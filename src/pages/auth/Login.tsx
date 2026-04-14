@@ -85,8 +85,8 @@ export default function Login() {
       console.log('[Login] API 返回:', payload)
 
       saveSession({
-        token: payload.token,
-        refreshToken: payload.refreshToken,
+        token: payload.access_token,
+        refreshToken: payload.refresh_token,
         user: {
           ...payload.user,
         },

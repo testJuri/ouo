@@ -10,19 +10,11 @@ export interface ListData<T> {
 }
 
 export interface AuthPayload {
-  user: {
-    id: number
-    username: string
-    email: string
-    avatar: string | null
-    roleId: number
-    organizationIds?: number[]
-    credits?: number
-    createdAt?: string
-    updatedAt?: string
-  }
-  token: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
+  expires_in?: number
+  user: AuthMe
+  projects?: { project_id: number; name: string; role: string }[]
 }
 
 export interface AuthMe {

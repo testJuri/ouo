@@ -502,11 +502,12 @@ export const mockAuthApi = {
     }
   },
 
-  async refresh(_refreshToken: string): Promise<{ token: string; refreshToken: string }> { // eslint-disable-line @typescript-eslint/no-unused-vars
+  async refresh(_refreshToken: string): Promise<{ access_token: string; refresh_token: string; expires_in?: number }> { // eslint-disable-line @typescript-eslint/no-unused-vars
     await delay(300)
     return {
-      token: 'mock_new_token_' + Date.now(),
-      refreshToken: 'mock_new_refresh_token_' + Date.now(),
+      access_token: 'mock_new_token_' + Date.now(),
+      refresh_token: 'mock_new_refresh_token_' + Date.now(),
+      expires_in: 7200,
     }
   },
 
