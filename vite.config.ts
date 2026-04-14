@@ -11,11 +11,11 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/uapi': {
-        target: 'http://124.156.186.82:8888', // 业务后端
+        target: 'http://localhost:8888', // 本地业务后端
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://124.156.186.82:8888', // AI 网关
+        target: 'http://localhost:8888', // 本地 AI 网关
         changeOrigin: true,
       },
     },
