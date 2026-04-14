@@ -101,4 +101,15 @@ export const authApi = {
       method: 'GET',
     }).then(mapBackendUserToAuthMe)
   },
+
+  changePassword(payload: { old_password: string; new_password: string }) {
+    if (isMockMode) {
+      return mockAuthApi.changePassword(payload)
+    }
+    return requestData<null>(appClient, {
+      url: '/auth/password',
+      method: 'PUT',
+      data: payload,
+    })
+  },
 }

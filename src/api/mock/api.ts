@@ -515,4 +515,9 @@ export const mockAuthApi = {
     await delay(200)
     return mockAuthMe
   },
+
+  async changePassword(_payload: { old_password: string; new_password: string }): Promise<null> { // eslint-disable-line @typescript-eslint/no-unused-vars
+    await delay(300)
+    return null
+  },
 }

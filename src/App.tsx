@@ -13,7 +13,6 @@ import {
   Wand2,
   Loader2,
   Upload,
-  Settings,
   LogOut,
   User
 } from "lucide-react"
@@ -35,10 +34,12 @@ import {
   type IdentityOption,
 } from "@/lib/mock-identities"
 import { ouoApi } from "@/api/ouoApi"
+import { KeyRound } from "lucide-react"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
 
 // 懒加载页面
 const Login = lazy(() => import("./pages/auth/Login"))
+const ChangePassword = lazy(() => import("./pages/auth/ChangePassword"))
 const Pricing = lazy(() => import("./pages/Pricing"))
 const Gallery = lazy(() => import("./pages/Gallery"))
 const Terms = lazy(() => import("./pages/Terms"))
@@ -195,10 +196,13 @@ function TopNav() {
                 <span className="font-medium">{accountInfo?.balance ?? '--'}</span>
               </div>
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-white/80 focus:text-white focus:bg-white/10 cursor-pointer">
+            <DropdownMenuItem 
+              onClick={() => navigate('/change-password')}
+              className="text-white/80 focus:text-white focus:bg-white/10 cursor-pointer"
+            >
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span>设置</span>
+                <KeyRound className="w-4 h-4" />
+                <span>修改密码</span>
               </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-white/10" />
@@ -482,6 +486,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/projects" element={<Projects />} />

@@ -13,7 +13,7 @@ import {
 } from "@/lib/mock-identities"
 import { cn } from "@/lib/utils"
 import { clearSession, clearActiveProjectId, getCurrentUser, getUserRoleId } from "@/lib/session"
-import { ChevronDown, Check, LogOut, Shield, User } from "lucide-react"
+import { ChevronDown, Check, LogOut, Shield, User, KeyRound } from "lucide-react"
 
 interface UserProfileMenuProps {
   userName?: string
@@ -133,6 +133,14 @@ export default function UserProfileMenu({
         >
           <User className="h-4 w-4 shrink-0" strokeWidth={2.2} />
           <span>我的主页</span>
+        </button>
+
+        <button
+          onClick={() => navigate("/change-password")}
+          className="mt-2 flex w-full items-center gap-2.5 rounded-[14px] px-3 py-2 text-left text-[13px] font-medium text-[hsl(var(--on-surface))] transition-colors hover:bg-[hsl(var(--surface-container-high))]"
+        >
+          <KeyRound className="h-4 w-4 shrink-0" strokeWidth={2.2} />
+          <span>修改密码</span>
         </button>
 
         <div
