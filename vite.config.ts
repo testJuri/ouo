@@ -10,16 +10,13 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5174,
     proxy: {
-      '/api': {
-        // target: 'http://124.156.186.82:8080', // 远程服务器
-        target: 'http://localhost:8888', // 本地后端
+      '/uapi': {
+        target: 'http://124.156.186.82:8888', // 业务后端
         changeOrigin: true,
       },
-      '/ouo-api': {
-        target: 'https://ouo.xuanyeai.com',
+      '/api': {
+        target: 'http://124.156.186.82:8888', // AI 网关
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/ouo-api/, '/dynamic-pro/api/v1.0'),
       },
     },
   },

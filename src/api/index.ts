@@ -5,7 +5,6 @@
 export * from './core'
 export * from './clients/appClient'
 export * from './clients/dashscopeClient'
-export * from './clients/ouoClient'
 export * from './authApi'
 export * from './projectsApi'
 export * from './projectMembersApi'

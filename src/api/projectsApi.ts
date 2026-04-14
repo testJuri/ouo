@@ -1,75 +1,90 @@
 import { appClient } from './clients/appClient'
 import { requestData } from './core/response'
-import type { ListData, ProjectDTO, ProjectDetailDTO } from './types'
-import { isMockMode, mockProjectsApi } from './mock'
+import type { ListData, ProjectDTO } from './types'
 
 export interface CreateProjectInput {
-  organizationId: number
   name: string
+  code?: string
   description?: string
-  coverImage?: string | null
-  isPublic?: boolean
+  organizationCode?: string
 }
 
-export interface UpdateProjectInput {
-  name?: string
-  description?: string
-  coverImage?: string | null
-  status?: ProjectDTO['status']
-  isPublic?: boolean
+function mapProject(raw: Record<string, unknown>): ProjectDTO {
+  const createdAt =
+    typeof raw.created_at === 'number'
+      ? new Date(raw.created_at * 1000).toISOString()
+      : undefined
+  const updatedAt =
+    typeof raw.updated_at === 'number'
+      ? new Date(raw.updated_at * 1000).toISOString()
+      : undefined
+
+  return {
+    id: (raw.project_id as number) ?? 0,
+    organizationId: (raw.organization_id as number) ?? 0,
+    name: (raw.name as string) ?? '',
+    description: (raw.description as string) ?? null,
+    coverImage: null,
+    status: raw.status === 1 ? 'draft' : 'completed',
+    ownerId: (raw.owner_id as number) ?? undefined,
+    createdAt,
+    updatedAt,
+  } as ProjectDTO
 }
 
 export const projectsApi = {
-  list(params?: { page?: number; size?: number; status?: ProjectDTO['status']; organizationId?: number }) {
-    if (isMockMode) {
-      return mockProjectsApi.list(params)
-    }
-    return requestData<ListData<ProjectDTO>>(appClient, {
-      url: '/projects',
+  list(params?: { page?: number; pageSize?: number }) {
+    return requestData<{ list: Record<string, unknown>[]; total: number; page: number; pageSize: number }>(appClient, {
+      url: '/project/list',
       method: 'GET',
       params,
-    })
+    }).then((res) => ({
+      list: res.list.map(mapProject),
+      pagination: {
+        total: res.total,
+        page: res.page,
+        size: res.pageSize,
+      },
+    } as ListData<ProjectDTO>))
   },
 
-  getById(projectId: number) {
-    if (isMockMode) {
-      return mockProjectsApi.getById(projectId)
-    }
-    return requestData<ProjectDetailDTO>(appClient, {
-      url: `/projects/${projectId}`,
+  detail(projectId: number) {
+    return requestData<Record<string, unknown>>(appClient, {
+      url: '/project/detail',
       method: 'GET',
-    })
+      params: { projectId },
+    }).then(mapProject)
   },
 
   create(payload: CreateProjectInput) {
-    if (isMockMode) {
-      return mockProjectsApi.create(payload)
-    }
-    return requestData<ProjectDTO>(appClient, {
-      url: '/projects',
+    return requestData<number>(appClient, {
+      url: '/project/create',
       method: 'POST',
       data: payload,
     })
   },
 
-  update(projectId: number, payload: UpdateProjectInput) {
-    if (isMockMode) {
-      return mockProjectsApi.update(projectId, payload)
-    }
-    return requestData<ProjectDTO>(appClient, {
-      url: `/projects/${projectId}`,
-      method: 'PUT',
+  assignUser(payload: { userId: number; projectId: number; role: string }) {
+    return requestData<null>(appClient, {
+      url: '/project/assign-user',
+      method: 'POST',
       data: payload,
     })
   },
 
-  remove(projectId: number) {
-    if (isMockMode) {
-      return mockProjectsApi.remove(projectId)
-    }
-    return requestData<true>(appClient, {
-      url: `/projects/${projectId}`,
-      method: 'DELETE',
+  removeUser(payload: { userId: number; projectId: number }) {
+    return requestData<null>(appClient, {
+      url: '/project/remove-user',
+      method: 'POST',
+      data: payload,
+    })
+  },
+
+  users(projectId: number) {
+    return requestData<unknown[]>(appClient, {
+      url: '/project/users',
+      method: 'GET',
+      params: { projectId },
     })
   },
 }

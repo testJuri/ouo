@@ -5,7 +5,6 @@
 
 import type {
   CreateProjectInput,
-  UpdateProjectInput,
 } from '../projectsApi'
 import type {
   ProjectDTO,
@@ -71,12 +70,11 @@ export const mockProjectsApi = {
     await delay(500)
     const newProject: ProjectDTO = {
       id: generateMockId(),
-      organizationId: payload.organizationId,
+      organizationId: 0,
       name: payload.name,
       description: payload.description ?? '',
-      coverImage: payload.coverImage ?? '',
+      coverImage: null,
       status: 'draft',
-      isPublic: payload.isPublic ?? false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -84,7 +82,7 @@ export const mockProjectsApi = {
     return newProject
   },
 
-  async update(projectId: number, payload: UpdateProjectInput): Promise<ProjectDTO> {
+  async update(projectId: number, payload: Partial<CreateProjectInput>): Promise<ProjectDTO> {
     await delay(300)
     const index = mockProjects.findIndex((p) => p.id === projectId)
     if (index === -1) throw new Error('项目不存在')

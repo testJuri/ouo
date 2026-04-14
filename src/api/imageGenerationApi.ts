@@ -3,7 +3,7 @@
  * POST /api/v1/ai/images/generations
  */
 
-import { appClient } from './clients/appClient'
+import { aiClient } from './clients/aiClient'
 import { requestData } from './core/response'
 
 // ==================== 类型定义 ====================
@@ -76,7 +76,7 @@ export interface ImageGenerationResponse {
 
 export const imageGenerationApi = {
   async generate(params: ImageGenerationRequest): Promise<ImageGenerationResponse> {
-    return requestData<ImageGenerationResponse>(appClient, {
+    return requestData<ImageGenerationResponse>(aiClient, {
       url: '/ai/images/generations',
       method: 'POST',
       data: params,
