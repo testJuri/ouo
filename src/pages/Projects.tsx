@@ -23,6 +23,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { authApi } from "@/api"
+import { getRefreshToken } from "@/lib/session"
 import { projectsApi } from "@/api/projectsApi"
 import type { ProjectDTO } from "@/api/types"
 import { useFeedback } from "@/components/feedback/FeedbackProvider"
@@ -32,7 +34,12 @@ function TopNav() {
   const { accountInfo } = useAccountInfo()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logout(getRefreshToken())
+    } catch {
+      // ignore
+    }
     localStorage.removeItem('token')
     navigate('/login')
   }

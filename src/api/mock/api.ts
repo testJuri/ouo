@@ -520,4 +520,9 @@ export const mockAuthApi = {
     await delay(300)
     return null
   },
+
+  async logout(_refreshToken: string): Promise<null> { // eslint-disable-line @typescript-eslint/no-unused-vars
+    await delay(200)
+    return null
+  },
 }

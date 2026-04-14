@@ -112,4 +112,15 @@ export const authApi = {
       data: payload,
     })
   },
+
+  logout(refreshToken: string) {
+    if (isMockMode) {
+      return mockAuthApi.logout(refreshToken)
+    }
+    return requestData<null>(appClient, {
+      url: '/auth/logout',
+      method: 'POST',
+      data: { refresh_token: refreshToken },
+    })
+  },
 }

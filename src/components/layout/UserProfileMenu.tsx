@@ -12,7 +12,8 @@ import {
   type IdentityOption,
 } from "@/lib/mock-identities"
 import { cn } from "@/lib/utils"
-import { clearSession, clearActiveProjectId, getCurrentUser, getUserRoleId } from "@/lib/session"
+import { clearSession, clearActiveProjectId, getCurrentUser, getUserRoleId, getRefreshToken } from "@/lib/session"
+import { authApi } from "@/api"
 import { ChevronDown, Check, LogOut, Shield, User, KeyRound } from "lucide-react"
 
 interface UserProfileMenuProps {
@@ -194,7 +195,12 @@ export default function UserProfileMenu({
         <div className="mt-3 h-px bg-[hsl(var(--outline-variant))]/20" />
 
         <button
-          onClick={() => {
+          onClick={async () => {
+            try {
+              await authApi.logout(getRefreshToken())
+            } catch {
+              // ignore
+            }
             clearSession()
             clearActiveProjectId()
             navigate("/login")

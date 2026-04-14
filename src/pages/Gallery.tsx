@@ -17,6 +17,8 @@ import {
   Wand2
 } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
+import { authApi } from "@/api"
+import { getRefreshToken } from "@/lib/session"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
 import {
   DropdownMenu,
@@ -116,7 +118,12 @@ function TopNav() {
   const { accountInfo } = useAccountInfo()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logout(getRefreshToken())
+    } catch {
+      // ignore
+    }
     localStorage.removeItem('token')
     navigate('/login')
   }

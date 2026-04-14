@@ -34,6 +34,8 @@ import {
   type IdentityOption,
 } from "@/lib/mock-identities"
 import { ouoApi } from "@/api/ouoApi"
+import { authApi } from "@/api"
+import { getRefreshToken } from "@/lib/session"
 import { KeyRound } from "lucide-react"
 import { useAccountInfo } from "@/hooks/useAccountInfo"
 
@@ -159,7 +161,12 @@ function TopNav() {
   const { accountInfo } = useAccountInfo()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authApi.logout(getRefreshToken())
+    } catch {
+      // 即使后端登出失败也继续清理本地状态
+    }
     localStorage.removeItem('token')
     navigate('/login')
   }
