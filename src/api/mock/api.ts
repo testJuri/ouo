@@ -489,7 +489,7 @@ export const mockAuthApi = {
     return mockAuthPayload
   },
 
-  async register(payload: { username: string; email: string; password: string; avatar?: string }): Promise<AuthPayload> {
+  async register(payload: { username: string; email: string; password: string; phone?: string; organization_code?: string }): Promise<AuthPayload> {
     await delay(500)
     return {
       ...mockAuthPayload,
@@ -497,7 +497,7 @@ export const mockAuthApi = {
         ...mockAuthPayload.user,
         username: payload.username,
         email: payload.email,
-        avatar: payload.avatar ?? mockAuthPayload.user.avatar,
+        avatar: mockAuthPayload.user.avatar,
       },
     }
   },

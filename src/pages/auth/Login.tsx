@@ -51,6 +51,7 @@ export default function Login() {
   const [email, setEmail] = useState("superadmin@shupivot.com")
   const [password, setPassword] = useState("123456")
   const [username, setUsername] = useState("superadmin")
+  const [phone, setPhone] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -71,6 +72,11 @@ export default function Login() {
       return
     }
 
+    if (!isLogin && !phone.trim()) {
+      notify.warning("请输入手机号")
+      return
+    }
+
     setIsLoading(true)
     console.log('[Login] 开始调用 authApi.login:', { email, isMockMode })
     try {
@@ -80,7 +86,8 @@ export default function Login() {
             username,
             email,
             password,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+            phone,
+            organization_code: 'default',
           })
       console.log('[Login] API 返回:', payload)
 
@@ -151,6 +158,7 @@ export default function Login() {
                 setIsLogin(false)
                 setUsername("newuser")
                 setEmail("newuser@example.com")
+                setPhone("13800138000")
                 setPassword("123456")
               }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -166,15 +174,27 @@ export default function Login() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">用户名</label>
-                <Input 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="请输入用户名"
-                  className="bg-[hsl(var(--surface-container-low))] border-none rounded-xl h-12"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">用户名</label>
+                  <Input 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="请输入用户名"
+                    className="bg-[hsl(var(--surface-container-low))] border-none rounded-xl h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">手机号</label>
+                  <Input 
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="请输入手机号"
+                    className="bg-[hsl(var(--surface-container-low))] border-none rounded-xl h-12"
+                  />
+                </div>
+              </>
             )}
             
             <div className="space-y-2">

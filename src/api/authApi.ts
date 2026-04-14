@@ -66,7 +66,7 @@ export const authApi = {
     }))
   },
 
-  register(payload: { username: string; email: string; password: string; avatar?: string }) {
+  register(payload: { username: string; email: string; password: string; phone?: string; organization_code?: string }) {
     if (isMockMode) {
       return mockAuthApi.register(payload)
     }
