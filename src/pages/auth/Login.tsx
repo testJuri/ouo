@@ -48,7 +48,7 @@ export default function Login() {
   const { notify } = useFeedback()
   const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState("superadmin@shupivot.com")
+  const [email, setEmail] = useState("admin@ouo.com")
   const [password, setPassword] = useState("123456")
   const [username, setUsername] = useState("superadmin")
   const [phone, setPhone] = useState("")

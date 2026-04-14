@@ -1,15 +1,17 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
-import { 
-  ArrowLeft, 
-  FileText, 
+import {
+  ArrowLeft,
+  FileText,
   Edit3,
-  Sparkles
+  Sparkles,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ouoApi } from "@/api/ouoApi"
+import type { OuoEpisode, OuoTaskDetail } from "@/api/ouoTypes"
+import { useFeedback } from "@/components/feedback/FeedbackProvider"
 
-
-// 模拟剧集数据
 interface Episode {
   id: number
   title: string
@@ -19,74 +21,50 @@ interface Episode {
   duration?: string
 }
 
-// 模拟项目数据
-const mockProject = {
-  id: 1,
-  name: "《赛博朋克风格》",
-  scriptFile: "覆写协议.txt",
-  aspectRatio: "9:16" as const,
-  episodes: [
-    {
-      id: 1,
-      title: "第一集",
-      status: "completed" as const,
-      thumbnail: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=700&fit=crop",
-      progress: { current: 6, total: 6 },
-      duration: "2:34",
-    },
-    {
-      id: 2,
-      title: "第二集",
-      status: "processing" as const,
-      progress: { current: 3, total: 6 },
-    },
-    {
-      id: 3,
-      title: "第三集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-    {
-      id: 4,
-      title: "第四集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-    {
-      id: 5,
-      title: "第五集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-    {
-      id: 6,
-      title: "第六集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-    {
-      id: 7,
-      title: "第七集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-    {
-      id: 8,
-      title: "第八集",
-      status: "pending" as const,
-      progress: { current: 0, total: 6 },
-    },
-  ] as Episode[],
+function mapOuoEpisodes(list: OuoEpisode[]): Episode[] {
+  return list.map((ep) => {
+    const st = ep.episodeTaskStatus
+    let status: Episode["status"] = "pending"
+    if (st.videoMergeStatus === 'SUCCESS') {
+      status = "completed"
+    } else if (
+      st.characterStatus === 'RUNNING' ||
+      st.characterPicStatus === 'RUNNING' ||
+      st.sceneStatus === 'RUNNING' ||
+      st.scenePicStatus === 'RUNNING' ||
+      st.shotSplitStatus === 'RUNNING' ||
+      st.videoMergeStatus === 'RUNNING'
+    ) {
+      status = "processing"
+    }
+
+    const total = 6
+    let current = 0
+    if (st.characterStatus === 'SUCCESS') current++
+    if (st.characterPicStatus === 'SUCCESS') current++
+    if (st.sceneStatus === 'SUCCESS') current++
+    if (st.scenePicStatus === 'SUCCESS') current++
+    if (st.shotSplitStatus === 'SUCCESS') current++
+    if (st.videoMergeStatus === 'SUCCESS') current++
+
+    return {
+      id: ep.episodeId,
+      title: ep.title || `第${ep.episodeId}集`,
+      status,
+      thumbnail: ep.cover || undefined,
+      progress: { current, total },
+    }
+  })
 }
 
 // 顶部导航栏
-function TopNav({ projectName, scriptFile }: { projectName: string; scriptFile: string }) {
+function TopNav({ projectName, scriptFile, aspectRatio }: { projectName: string; scriptFile: string; aspectRatio: string }) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 glass-panel border-b border-white/5">
       {/* Left: Logo & Back */}
       <div className="flex items-center gap-4">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
         >
           <span className="text-xl font-bold text-white tracking-tight">
@@ -117,7 +95,7 @@ function TopNav({ projectName, scriptFile }: { projectName: string; scriptFile: 
           <Edit3 className="w-3.5 h-3.5" />
         </div>
         <span className="text-white font-medium">{projectName}</span>
-        <span className="text-white/40 text-xs">9:16</span>
+        <span className="text-white/40 text-xs">{aspectRatio}</span>
       </div>
 
       {/* Right: Actions */}
@@ -147,9 +125,9 @@ function TopNav({ projectName, scriptFile }: { projectName: string; scriptFile: 
           <span className="text-xs text-white/50">充值</span>
         </div>
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border border-white/20 overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
-            alt="User" 
+          <img
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+            alt="User"
             className="w-full h-full object-cover"
           />
         </div>
@@ -163,34 +141,35 @@ function EpisodeCard({ episode, projectId }: { episode: Episode; projectId: stri
   const navigate = useNavigate()
   const isCompleted = episode.status === "completed"
   const isProcessing = episode.status === "processing"
-  
+
   return (
     <div className="group relative">
       {/* Card Container */}
-      <div 
+      <div
         onClick={() => navigate(`/project/${projectId}/episode/${episode.id}`)}
         className={`
           relative aspect-[9/16] rounded-2xl overflow-hidden cursor-pointer
           ${isCompleted ? "ring-2 ring-white/20" : "bg-[#2a2a2a]"}
           transition-all duration-300 hover:scale-[1.02] hover:ring-2 hover:ring-white/30
         `
-      }>
+        }
+      >
         {isCompleted && episode.thumbnail ? (
           <>
             {/* Completed Episode with Thumbnail */}
-            <img 
-              src={episode.thumbnail} 
+            <img
+              src={episode.thumbnail}
               alt={episode.title}
               className="w-full h-full object-cover"
             />
             {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            
+
             {/* Completed Badge */}
             <div className="absolute top-3 right-3 px-2 py-1 rounded-md bg-emerald-500 text-white text-xs font-medium">
               完成
             </div>
-            
+
             {/* Duration */}
             {episode.duration && (
               <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-black/60 text-white/80 text-xs">
@@ -204,7 +183,7 @@ function EpisodeCard({ episode, projectId }: { episode: Episode; projectId: stri
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-4xl font-bold text-white/10 select-none">OUO</span>
             </div>
-            
+
             {/* Processing Indicator */}
             {isProcessing && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -213,18 +192,18 @@ function EpisodeCard({ episode, projectId }: { episode: Episode; projectId: stri
             )}
           </>
         )}
-        
+
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             className="bg-white text-black hover:bg-white/90 font-medium"
           >
             {isCompleted ? "查看" : "制作"}
           </Button>
         </div>
       </div>
-      
+
       {/* Episode Info */}
       <div className="mt-3 px-1">
         <h3 className="text-white font-medium text-center">{episode.title}</h3>
@@ -247,7 +226,7 @@ function EpisodeCard({ episode, projectId }: { episode: Episode; projectId: stri
 // 添加新集卡片
 function AddEpisodeCard({ onClick }: { onClick: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="group relative aspect-[9/16] rounded-2xl overflow-hidden border-2 border-dashed border-white/10 hover:border-white/30 transition-all duration-300 hover:scale-[1.02]"
     >
@@ -265,36 +244,65 @@ function AddEpisodeCard({ onClick }: { onClick: () => void }) {
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
-  const [project, setProject] = useState(mockProject)
-  
-  const handleAddEpisode = () => {
-    const newEpisode: Episode = {
-      id: project.episodes.length + 1,
-      title: `第${["一","二","三","四","五","六","七","八","九","十"][project.episodes.length] || (project.episodes.length + 1) + "集"}集`,
-      status: "pending",
-      progress: { current: 0, total: 6 },
+  const navigate = useNavigate()
+  const { notify } = useFeedback()
+  const [loading, setLoading] = useState(true)
+  const [taskDetail, setTaskDetail] = useState<OuoTaskDetail | null>(null)
+  const [episodes, setEpisodes] = useState<Episode[]>([])
+
+  const taskId = Number(id)
+
+  useEffect(() => {
+    if (!taskId) {
+      navigate('/')
+      return
     }
-    setProject(prev => ({
-      ...prev,
-      episodes: [...prev.episodes, newEpisode]
-    }))
+
+    setLoading(true)
+    Promise.all([
+      ouoApi.getTaskDetail(taskId).catch(() => null),
+      ouoApi.getTaskEpisodes(taskId).catch(() => []),
+    ])
+      .then(([detailRes, episodesRes]) => {
+        if (detailRes) setTaskDetail(detailRes)
+        setEpisodes(mapOuoEpisodes(episodesRes))
+      })
+      .catch((err) => {
+        notify.error(err instanceof Error ? err.message : '获取项目详情失败')
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [taskId, navigate, notify])
+
+  const handleAddEpisode = () => {
+    notify.info('添加新集功能开发中')
   }
+
+  const projectName = taskDetail?.title || `项目 ${taskId}`
+  const scriptFile = '剧本文件'
+  const aspectRatio = taskDetail?.aspectRatio || '9:16'
 
   return (
     <div className="min-h-screen bg-black">
       {/* Top Navigation */}
-      <TopNav projectName={project.name} scriptFile={project.scriptFile} />
-      
+      <TopNav projectName={projectName} scriptFile={scriptFile} aspectRatio={aspectRatio} />
+
       {/* Main Content */}
       <main className="pt-20 pb-12 px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Episodes Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {project.episodes.map((episode) => (
-              <EpisodeCard key={episode.id} episode={episode} projectId={id ?? "1"} />
-            ))}
-            <AddEpisodeCard onClick={handleAddEpisode} />
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="w-8 h-8 animate-spin text-white/50" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {episodes.map((episode) => (
+                <EpisodeCard key={episode.id} episode={episode} projectId={id ?? "1"} />
+              ))}
+              <AddEpisodeCard onClick={handleAddEpisode} />
+            </div>
+          )}
         </div>
       </main>
     </div>
